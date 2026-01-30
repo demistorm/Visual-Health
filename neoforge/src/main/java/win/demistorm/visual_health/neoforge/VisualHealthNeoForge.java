@@ -11,8 +11,6 @@ public final class VisualHealthNeoForge {
     public VisualHealthNeoForge(IEventBus modEventBus) {
         VisualHealth.LOGGER.info("Visual Health (NEOFORGE) starting!");
 
-        PlatformImpl.init();
-
         VisualHealth.initialize();
 
         // Set up client side

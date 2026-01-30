@@ -18,11 +18,11 @@ archivesBaseName = rootProject.archives_base_name + "-fabric"
 
 // Loom configuration for the Fabric module
 loom {
-    // Access widener - add if needed in the future
-    // def aw = project(":common").file("src/main/resources/vr-swing-sprint.accesswidener")
-    // if (aw.exists()) {
-    //     accessWidenerPath.set(aw)
-    // }
+    // Access widener for NativeImage pixel manipulation methods
+    def aw = project(":common").file("src/main/resources/visualhealth.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
+    }
 }
 
 configurations {

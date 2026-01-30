@@ -10,15 +10,15 @@ architectury {
 
 // Loom configuration for the common module
 loom {
-    // Access widener - add if needed in the future
-    // def aw = file("src/main/resources/vr-swing-sprint.accesswidener")
-    // if (aw.exists()) {
-    //     accessWidenerPath.set(aw)
-    // }
+    // Access widener for NativeImage pixel manipulation methods
+    def aw = file("src/main/resources/visualhealth.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
+    }
 
     // Custom refmap name for mixin remapping
     mixin {
-        defaultRefmapName.set("vss.refmap.json")
+        defaultRefmapName.set("visualhealth.refmap.json")
     }
 }
 

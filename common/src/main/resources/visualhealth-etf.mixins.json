@@ -1,15 +1,15 @@
 {
-  "required": true,
+  "required": false,
   "minVersion": "0.8",
-  "package": "win.demistorm.visual_health.client.mixin",
+  "package": "win.demistorm.visual_health.client.mixin.etf",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
   ],
   "client": [
-    "LivingEntityRendererMixin"
+    "ETFTextureMixin"
   ],
   "server": [],
   "injectors": {
-    "defaultRequire": 1
+    "defaultRequire": 0
   }
 }

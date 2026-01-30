@@ -17,8 +17,14 @@ architectury {
 archivesBaseName = rootProject.archives_base_name + "-forge"
 
 loom {
+    // Access widener for NativeImage pixel manipulation methods
+    def aw = project(":common").file("src/main/resources/visualhealth.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
+    }
+
     forge {
-        mixinConfig "vss.mixins.json"
+        mixinConfig "visualhealth.mixins.json"
     }
 }
 
@@ -76,6 +82,7 @@ shadowJar {
 // Remap shadow JAR to proper Forge format
 remapJar {
     input.set shadowJar.archiveFile
+    atAccessWideners.add loom.accessWidenerPath.get().asFile.name
     dependsOn shadowJar
     archiveClassifier = null
 }

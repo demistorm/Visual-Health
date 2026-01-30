@@ -14,7 +14,7 @@
 	},
 	"license": "GPL-3.0",
 	"icon": "visualhealth-logo.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
 		"main": [
 			"win.demistorm.visual_health.fabric.VisualHealthFabric"
@@ -32,6 +32,7 @@
 	"mixins": [
 		"visualhealth.mixins.json"
 	],
+	"accessWidener": "visualhealth.accesswidener",
 	"suggests": {
 		"modmenu": "*"
 	},

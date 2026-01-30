@@ -1,0 +1,11 @@
+accessWidener	v2	named
+# Access widener for Visual Health mod
+# Allows access to private NativeImage methods for pixel manipulation
+# Required for Minecraft 1.21.11 where getPixelABGR and setPixelABGR are private
+
+# Make getPixelABGR(int, int) accessible in NativeImage
+accessible method com/mojang/blaze3d/platform/NativeImage getPixelABGR (II)I
+
+# Make setPixelABGR(int, int, int) accessible in NativeImage
+accessible method com/mojang/blaze3d/platform/NativeImage setPixelABGR (III)V
+
