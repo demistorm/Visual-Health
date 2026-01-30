@@ -1,0 +1,36 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+issueTrackerURL = "https://github.com/demistorm/VisualHealth/issues"
+license = "GPL-3.0"
+
+[[mods]]
+modId = "visual_health"
+version = "${version}"
+displayName = "Visual Health"
+displayURL = "https://github.com/demistorm/VisualHealth"
+logoFile = "visualhealth-logo.png"
+authors = "Halfstorm"
+description = '''
+Visual Health mod for Minecraft
+
+Support me on Ko-Fi: https://ko-fi.com/hstorm
+
+Discord: https://discord.gg/7uttzPbTGq
+'''
+
+[[mixins]]
+config = "visualhealth.mixins.json"
+
+[[dependencies.visual_health]]
+modId = "neoforge"
+mandatory = true
+versionRange = "[${neoforge_version},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.visual_health]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[${minecraft_version}]"
+ordering = "NONE"
+side = "BOTH"

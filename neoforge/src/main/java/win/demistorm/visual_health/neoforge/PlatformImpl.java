@@ -1,0 +1,39 @@
+package win.demistorm.visual_health.neoforge;
+
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
+import win.demistorm.visual_health.Platform;
+import win.demistorm.visual_health.PlatformHolder;
+import win.demistorm.visual_health.network.Network;
+
+// NeoForge-specific platform implementation
+public final class PlatformImpl implements Platform {
+
+    private PlatformImpl() {}
+
+    private static final Platform INSTANCE = new PlatformImpl();
+
+    public static void init() {
+        PlatformHolder.setPlatform(INSTANCE);
+    }
+
+    @Override
+    public void sendToServer(RegistryFriendlyByteBuf packet) {
+        // Wrap in BufferPacket and send
+        ClientPacketDistributor.sendToServer(new BufferPacket(packet));
+    }
+
+    @Override
+    public void sendToPlayer(ServerPlayer player, RegistryFriendlyByteBuf packet) {
+        // Wrap in BufferPacket and send
+        PacketDistributor.sendToPlayer(player, new BufferPacket(packet));
+    }
+
+    // Handle incoming packets from client
+    public static void handleClientPacket(RegistryFriendlyByteBuf buffer, ServerPlayer player) {
+        // Forward to NetworkChannel
+        Network.INSTANCE.handlePacket(player, buffer);
+    }
+}

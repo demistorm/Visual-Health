@@ -1,0 +1,46 @@
+{
+	"schemaVersion": 1,
+	"id": "visual_health",
+	"version": "${version}",
+	"name": "Visual Health",
+	"description": "Visual Health mod for Minecraft",
+	"authors": [
+		"Halfstorm"
+	],
+	"contact": {
+		"homepage": "https://github.com/demistorm/VisualHealth",
+		"issues": "https://github.com/demistorm/VisualHealth/issues",
+		"sources": "https://github.com/demistorm/VisualHealth"
+	},
+	"license": "GPL-3.0",
+	"icon": "visualhealth-logo.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"win.demistorm.visual_health.fabric.VisualHealthFabric"
+		],
+		"client": [
+			"win.demistorm.visual_health.fabric.client.FabricClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=${fabric_loader_version}",
+		"minecraft": "${minecraft_version}",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"mixins": [
+		"visualhealth.mixins.json"
+	],
+	"suggests": {
+		"modmenu": "*"
+	},
+	"custom": {
+		"modmenu": {
+			"links": {
+				"modmenu.discord": "https://discord.gg/7uttzPbTGq",
+				"modmenu.kofi": "https://ko-fi.com/hstorm"
+			}
+		}
+	}
+}
