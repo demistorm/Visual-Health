@@ -48,17 +48,4 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
         // Store render state for potential future use
         this.visualhealth$currentRenderState = state;
     }
-
-    // Clean up entity context after rendering completes
-    @Inject(
-            method = "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/CameraRenderState;)V",
-            at = @At("RETURN")
-    )
-    private void visualhealth$cleanupAfterRender(S state, com.mojang.blaze3d.vertex.PoseStack poseStack,
-                                                  net.minecraft.client.renderer.SubmitNodeCollector nodeCollector,
-                                                  net.minecraft.client.renderer.state.CameraRenderState cameraRenderState,
-                                                  CallbackInfo ci) {
-        // Clear the entity context to prevent leaking to other renders
-        VisualHealthRenderContext.clearCurrentEntity();
-    }
 }

@@ -12,8 +12,6 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.resources.Identifier;
 import win.demistorm.visual_health.VisualHealth;
 
-import java.util.Random;
-
 // Renders wound overlay on living entities based on health percentage
 // Uses entityCutoutNoCull for performance (GPU-friendly batching)
 // Compatible with ETF, Iris shaders, and all entity renderers
@@ -79,12 +77,14 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         VisualHealth.LOGGER.info("Rendering damage overlay for {} (ID: {}) at tier {}",
                 entityName, entityId, damageTier);
 
-        // Get wound texture based on tier and entity UUID (consistent per entity)
-        Random random = new Random(entity.getUUID().getLeastSignificantBits());
-        Identifier woundTexture = WoundAssetSelector.getRandomWoundTexture(damageTier, random);
+        // Generate a composite wound texture sized for the entity
+        // Most entities use 64x64 textures, but some may vary
+        int textureSize = 64; // Default size for most mobs (creeper, zombie, etc.)
+        Identifier woundTexture = win.demistorm.visual_health.client.texture.WoundTextureGenerator.generateWoundedTexture(
+                entity, damageTier, textureSize, textureSize);
 
         if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Selected wound texture: {}", woundTexture);
+            VisualHealth.LOGGER.debug("Generated wound texture: {}", woundTexture);
         }
 
         // Get parent model (the entity's actual model - creeper, zombie, etc.)
@@ -96,10 +96,10 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
         // Scale up slightly to prevent Z-fighting with base model
         poseStack.pushPose();
-        poseStack.scale(1.002f, 1.002f, 1.002f);
+        poseStack.scale(1.01f, 1.01f, 1.01f);
 
-        // Get RenderType with entityCutoutNoCull (GPU-friendly, no transparency)
-        RenderType renderType = RenderTypes.entityCutoutNoCull(woundTexture);
+        // Get RenderType with entityTranslucent (supports smooth alpha blending for wound textures)
+        RenderType renderType = RenderTypes.entityTranslucent(woundTexture);
 
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("RenderType: {}", renderType);
@@ -108,8 +108,8 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         // Get overlay coordinates (for hurt flash effect)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
 
-        // Blood tint color (dark red-orange)
-        int tint = 0xFF4010;
+        // White tint (no color modification) - lets greyscale wound texture show as-is
+        int tint = 0xFFFFFFFF;
 
         // Submit the entity model again with our wound texture overlay!
         // This renders the entire entity model with our wound texture painted on top

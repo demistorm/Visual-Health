@@ -22,15 +22,17 @@ public class WoundAssetSelector {
 
     // Wound types matching our asset folder structure
     public enum WoundType {
-        SCRATCH("scratches"),
-        CUT("cuts"),
-        WOUND("wounds"),
-        DRIP("drips");
+        SCRATCH("scratches", "scratch"),
+        CUT("cuts", "cut"),
+        WOUND("wounds", "wound"),
+        DRIP("drips", "drip");
 
         final String folderName;
+        final String texturePrefix;
 
-        WoundType(String folderName) {
+        WoundType(String folderName, String texturePrefix) {
             this.folderName = folderName;
+            this.texturePrefix = texturePrefix;
         }
     }
 
@@ -39,10 +41,10 @@ public class WoundAssetSelector {
         VisualHealth.LOGGER.info("Loading wound texture identifiers for Visual Health");
 
         // Load texture identifiers for each wound type
-        woundTextures.put(WoundType.SCRATCH, loadTexturesFromFolder(WoundType.SCRATCH.folderName));
-        woundTextures.put(WoundType.CUT, loadTexturesFromFolder(WoundType.CUT.folderName));
-        woundTextures.put(WoundType.WOUND, loadTexturesFromFolder(WoundType.WOUND.folderName));
-        woundTextures.put(WoundType.DRIP, loadTexturesFromFolder(WoundType.DRIP.folderName));
+        woundTextures.put(WoundType.SCRATCH, loadTexturesFromFolder(WoundType.SCRATCH));
+        woundTextures.put(WoundType.CUT, loadTexturesFromFolder(WoundType.CUT));
+        woundTextures.put(WoundType.WOUND, loadTexturesFromFolder(WoundType.WOUND));
+        woundTextures.put(WoundType.DRIP, loadTexturesFromFolder(WoundType.DRIP));
 
         int totalTextures = 0;
         for (List<Identifier> list : woundTextures.values()) {
@@ -61,13 +63,13 @@ public class WoundAssetSelector {
 
     // Load texture identifiers from a specific folder
     // We assume textures are named: scratch1.png, scratch2.png, etc.
-    private static List<Identifier> loadTexturesFromFolder(String folderName) {
+    private static List<Identifier> loadTexturesFromFolder(WoundType woundType) {
         List<Identifier> textures = new ArrayList<>();
 
-        // Try to load textures numbered 1-20 (covers most cases)
-        for (int i = 1; i <= 20; i++) {
+        // Load texture #1 (we only have one texture per type for now)
+        for (int i = 1; i <= 1; i++) {
             Identifier textureId = Identifier.fromNamespaceAndPath(MODID,
-                    TEXTURE_FOLDER + "/" + folderName + "/" + folderName.substring(0, folderName.length() - 1) + i + ".png");
+                    TEXTURE_FOLDER + "/" + woundType.folderName + "/" + woundType.texturePrefix + i + ".png");
 
             // Note: We don't check if the texture exists here
             // The rendering system will handle missing textures gracefully
@@ -131,7 +133,7 @@ public class WoundAssetSelector {
 
     // Fallback texture if none found
     private static Identifier getFallbackTexture() {
-        return Identifier.fromNamespaceAndPath(MODID, "textures/damage/scratches/scratch1.png");
+        return Identifier.fromNamespaceAndPath(MODID, "damage/scratches/scratch1.png");
     }
 
     // Clean up on resource reload
