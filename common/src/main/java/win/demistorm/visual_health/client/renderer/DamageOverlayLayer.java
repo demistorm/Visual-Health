@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.resources.Identifier;
+import win.demistorm.visual_health.VisualHealth;
 
 import java.util.Random;
 
@@ -23,37 +24,75 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
     public DamageOverlayLayer(RenderLayerParent<S, M> renderer) {
         super(renderer);
+        VisualHealth.LOGGER.debug("DamageOverlayLayer created for renderer: {}", renderer.getClass().getSimpleName());
     }
 
     @Override
     public void submit(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int packedLight,
                        S entityRenderState, float limbSwing, float limbSwingAmount) {
 
+        // Get the actual entity from render context (set by our mixin during extractRenderState)
+        net.minecraft.world.entity.LivingEntity entity = win.demistorm.visual_health.client.VisualHealthRenderContext.getCurrentEntity();
+
         // Distance check - skip far entities for performance
         if (entityRenderState.distanceToCameraSq > RENDER_DISTANCE * RENDER_DISTANCE) {
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("Skipping entity - too far (distance: {})",
+                        (int)Math.sqrt(entityRenderState.distanceToCameraSq));
+            }
             return;
         }
 
         // Invisibility check - skip invisible entities
         if (entityRenderState.isInvisible) {
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("Skipping entity - invisible");
+            }
             return;
         }
 
-        // Get entity ID from state (entityType as fallback since state doesn't have ID field)
-        int entityId = entityRenderState.entityType.hashCode();
+        // Entity should always be available in context during rendering
+        if (entity == null) {
+            VisualHealth.LOGGER.warn("Entity context is null during render! EntityType: {}",
+                    entityRenderState.entityType.getDescription().getString());
+            return;
+        }
+
+        // Get actual entity ID and name
+        int entityId = entity.getId();
+        String entityName = entity.getName().getString();
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("DamageOverlayLayer.submit() called for {} (entityId: {})",
+                    entityName, entityId);
+        }
 
         // Get damage tier from our tracker
         int damageTier = win.demistorm.visual_health.client.EntityHealthTracker.getDamageTier(entityId);
         if (damageTier == 0) {
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("Skipping {} - healthy (tier 0)", entityName);
+            }
             return; // Healthy, no damage overlay
         }
 
+        VisualHealth.LOGGER.info("Rendering damage overlay for {} (ID: {}) at tier {}",
+                entityName, entityId, damageTier);
+
         // Get wound texture based on tier and entity UUID (consistent per entity)
-        Random random = new Random(entityId);
+        Random random = new Random(entity.getUUID().getLeastSignificantBits());
         Identifier woundTexture = WoundAssetSelector.getRandomWoundTexture(damageTier, random);
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Selected wound texture: {}", woundTexture);
+        }
 
         // Get parent model (the entity's actual model - creeper, zombie, etc.)
         M model = getParentModel();
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Parent model class: {}", model.getClass().getSimpleName());
+        }
 
         // Scale up slightly to prevent Z-fighting with base model
         poseStack.pushPose();
@@ -61,6 +100,10 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
         // Get RenderType with entityCutoutNoCull (GPU-friendly, no transparency)
         RenderType renderType = RenderTypes.entityCutoutNoCull(woundTexture);
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("RenderType: {}", renderType);
+        }
 
         // Get overlay coordinates (for hurt flash effect)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
@@ -70,8 +113,16 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
         // Submit the entity model again with our wound texture overlay!
         // This renders the entire entity model with our wound texture painted on top
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Submitting model with wound overlay...");
+        }
+
         submitNodeCollector.order(0).submitModel(model, entityRenderState, poseStack, renderType,
                 packedLight, overlay, tint, null, 0, null);
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Model submitted successfully");
+        }
 
         poseStack.popPose();
     }

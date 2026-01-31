@@ -1,17 +1,30 @@
 package win.demistorm.visual_health.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import win.demistorm.visual_health.client.VisualHealthClient;
+import win.demistorm.visual_health.VisualHealth;
 
 public final class FabricClient implements ClientModInitializer {
 
+    private static boolean registrationSuccessful = false;
+
     @Override
     public void onInitializeClient() {
+        VisualHealth.LOGGER.info("Fabric client initialization starting");
+
         // Initialize clientside systems
         VisualHealthClient.initializeClient();
 
-        // Register damage overlay layers to all entity renderers
-        // Must be called after initializeClient() to ensure renderers are ready
-        VisualHealthClient.registerDamageLayers();
+        // Try to register damage overlay layers immediately
+        registrationSuccessful = VisualHealthClient.registerDamageLayers();
+
+        // Set up end-of-tick callback to retry registration if needed
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (!registrationSuccessful) {
+                VisualHealth.LOGGER.debug("Retrying damage layer registration...");
+                registrationSuccessful = VisualHealthClient.registerDamageLayers();
+            }
+        });
     }
 }

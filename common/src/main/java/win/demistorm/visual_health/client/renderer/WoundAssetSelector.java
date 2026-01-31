@@ -84,8 +84,16 @@ public class WoundAssetSelector {
             loadTextures();
         }
 
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Getting wound texture for tier {}", damageTier);
+        }
+
         // Select wound type based on damage tier
         WoundType woundType = selectWoundType(damageTier, random);
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Selected wound type: {}", woundType);
+        }
 
         // Get textures for this type
         List<Identifier> textures = woundTextures.get(woundType);
@@ -95,7 +103,14 @@ public class WoundAssetSelector {
         }
 
         // Return random texture from the list
-        return textures.get(random.nextInt(textures.size()));
+        Identifier texture = textures.get(random.nextInt(textures.size()));
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Selected texture: {} (from {} textures)",
+                    texture, textures.size());
+        }
+
+        return texture;
     }
 
     // Select wound type based on damage tier with some randomness

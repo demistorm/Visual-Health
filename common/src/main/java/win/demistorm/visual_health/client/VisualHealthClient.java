@@ -13,9 +13,6 @@ import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.renderer.DamageOverlayLayer;
 import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Locale;
 import java.util.Map;
 
 // Client initialization (called by each platform)
@@ -67,11 +64,14 @@ public class VisualHealthClient {
 
     // Register damage overlay layers to all living entity renderers
     // Called after entity renderers are registered (in FMLClientSetupEvent for Forge/NeoForge, or onInitializeClient for Fabric)
+    // Returns true if registration succeeded, false if it needs to be retried
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static void registerDamageLayers() {
+    public static boolean registerDamageLayers() {
         if (layersRegistered) {
-            log.warn("Visual Health damage layers already registered, skipping");
-            return;
+            if (VisualHealth.debugMode) {
+                log.debug("Visual Health damage layers already registered, skipping");
+            }
+            return true;
         }
 
         log.info("Registering Visual Health damage overlay layers to entity renderers");
@@ -79,60 +79,62 @@ public class VisualHealthClient {
         Minecraft client = Minecraft.getInstance();
         if (client == null || client.getEntityRenderDispatcher() == null) {
             log.warn("EntityRenderDispatcher not available yet, will retry later");
-            return;
+            return false;
         }
 
         int layersAdded = 0;
         int renderersProcessed = 0;
 
-        try {
-            // Use reflection to access private renderers field
-            Field renderersField = EntityRenderDispatcher.class.getDeclaredField("renderers");
-            renderersField.setAccessible(true);
-            Map<?, ?> renderers = (Map<?, ?>) renderersField.get(client.getEntityRenderDispatcher());
+        // Access fields directly using access widener
+        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
 
-            // Add layer to each LivingEntityRenderer
-            for (Object renderer : renderers.values()) {
-                if (renderer instanceof LivingEntityRenderer livingRenderer) {
-                    addLayerToRenderer(livingRenderer);
-                    layersAdded++;
+        // Check if renderers map is populated
+        if (dispatcher.renderers.isEmpty()) {
+            log.warn("Entity renderers map is empty, will retry later");
+            return false;
+        }
+
+        log.debug("Found {} entity renderers in renderers map", dispatcher.renderers.size());
+
+        // Add layer to each LivingEntityRenderer
+        for (Object renderer : dispatcher.renderers.values()) {
+            if (renderer instanceof LivingEntityRenderer livingRenderer) {
+                addLayerToRenderer(livingRenderer);
+                layersAdded++;
+                if (VisualHealth.debugMode) {
+                    log.debug("Added damage layer to renderer: {}",
+                            livingRenderer.getClass().getSimpleName());
                 }
-                renderersProcessed++;
             }
+            renderersProcessed++;
+        }
 
-            // Handle player skin map using reflection
-            Field playerRenderersField = EntityRenderDispatcher.class.getDeclaredField("playerRenderers");
-            playerRenderersField.setAccessible(true);
-            Map<?, ?> playerRenderers = (Map<?, ?>) playerRenderersField.get(client.getEntityRenderDispatcher());
+        // Handle player skin map
+        log.debug("Found {} player renderers in playerRenderers map", dispatcher.playerRenderers.size());
 
-            for (Object renderer : playerRenderers.values()) {
-                if (renderer instanceof LivingEntityRenderer livingRenderer) {
-                    addLayerToRenderer(livingRenderer);
-                    layersAdded++;
+        for (Object renderer : dispatcher.playerRenderers.values()) {
+            if (renderer instanceof LivingEntityRenderer livingRenderer) {
+                addLayerToRenderer(livingRenderer);
+                layersAdded++;
+                if (VisualHealth.debugMode) {
+                    log.debug("Added damage layer to player renderer: {}",
+                            livingRenderer.getClass().getSimpleName());
                 }
-                renderersProcessed++;
             }
-
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            log.error("Failed to register damage layers via reflection", e);
-            return;
+            renderersProcessed++;
         }
 
         layersRegistered = true;
         log.info("Visual Health registered {} damage overlay layers across {} renderers",
                 layersAdded, renderersProcessed);
+        return true;
     }
 
-    // Helper method to add layer to a renderer (handles wildcard generics and protected method)
+    // Helper method to add layer to a renderer (handles wildcard generics)
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static void addLayerToRenderer(LivingEntityRenderer renderer) {
-        try {
-            // Use reflection to call protected addLayer method
-            Method addLayerMethod = LivingEntityRenderer.class.getDeclaredMethod("addLayer", RenderLayer.class);
-            addLayerMethod.setAccessible(true);
-            addLayerMethod.invoke(renderer, new DamageOverlayLayer(renderer));
-        } catch (Exception e) {
-            log.error("Failed to add damage layer to renderer via reflection", e);
-        }
+        // Access layers field directly using access widener
+        // Add our damage overlay layer
+        renderer.layers.add(new DamageOverlayLayer(renderer));
     }
 }

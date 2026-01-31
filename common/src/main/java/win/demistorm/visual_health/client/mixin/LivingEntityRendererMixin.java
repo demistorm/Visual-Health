@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.EntityHealthTracker;
 import win.demistorm.visual_health.client.VisualHealthRenderContext;
 
@@ -33,6 +34,11 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
             at = @At("RETURN")
     )
     private void visualhealth$trackEntityHealth(T entity, S state, float partialTick, CallbackInfo ci) {
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Mixin extractRenderState called for {} (ID: {})",
+                    entity.getName().getString(), entity.getId());
+        }
+
         // Update entity damage tier in our tracker
         EntityHealthTracker.updateEntityDamageTier(entity);
 
@@ -41,5 +47,18 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
 
         // Store render state for potential future use
         this.visualhealth$currentRenderState = state;
+    }
+
+    // Clean up entity context after rendering completes
+    @Inject(
+            method = "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/CameraRenderState;)V",
+            at = @At("RETURN")
+    )
+    private void visualhealth$cleanupAfterRender(S state, com.mojang.blaze3d.vertex.PoseStack poseStack,
+                                                  net.minecraft.client.renderer.SubmitNodeCollector nodeCollector,
+                                                  net.minecraft.client.renderer.state.CameraRenderState cameraRenderState,
+                                                  CallbackInfo ci) {
+        // Clear the entity context to prevent leaking to other renders
+        VisualHealthRenderContext.clearCurrentEntity();
     }
 }

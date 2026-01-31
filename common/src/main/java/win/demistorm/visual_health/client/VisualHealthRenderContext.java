@@ -1,6 +1,7 @@
 package win.demistorm.visual_health.client;
 
 import net.minecraft.world.entity.LivingEntity;
+import win.demistorm.visual_health.VisualHealth;
 
 // Thread-local context to track which entity is currently being rendered
 // This allows us to map textures back to their entities during RenderType creation
@@ -26,17 +27,14 @@ public final class VisualHealthRenderContext {
     // Set the current entity being rendered
     public static void setCurrentEntity(LivingEntity entity) {
         CURRENT_ENTITY.set(entity);
-        if (entity != null) {
-            System.out.println("[VisualHealth] Set entity context: " + entity.getName().getString() + " (Health: " + entity.getHealth() + "/" + entity.getMaxHealth() + ")");
+        if (entity != null && VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Set entity context: {} (Health: {}/{})",
+                    entity.getName().getString(), entity.getHealth(), entity.getMaxHealth());
         }
     }
 
     // Clear the current entity
     public static void clearCurrentEntity() {
-        LivingEntity entity = CURRENT_ENTITY.get();
-        if (entity != null) {
-            System.out.println("[VisualHealth] Clearing entity context: " + entity.getName().getString());
-        }
         CURRENT_ENTITY.remove();
     }
 

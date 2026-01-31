@@ -1,6 +1,18 @@
-accessWidener	v2	named
+accessWidener   v2 named
+
 # Access widener for Visual Health mod
-# Note: EntityRenderDispatcher field access removed - using reflection instead
+
+# Make EntityRenderDispatcher renderers map accessible
+# Required to register damage overlay layers to all entity renderers
+accessible field net/minecraft/client/renderer/entity/EntityRenderDispatcher renderers Ljava/util/Map;
+
+# Make EntityRenderDispatcher playerRenderers map accessible
+# Required to register damage overlay layers to player skin renderers
+accessible field net/minecraft/client/renderer/entity/EntityRenderDispatcher playerRenderers Ljava/util/Map;
+
+# Make LivingEntityRenderer layers field accessible
+# Required to add damage overlay layer to entity renderers
+accessible field net/minecraft/client/renderer/entity/LivingEntityRenderer layers Ljava/util/List;
 
 # Make sprite field accessible in SpriteCoordinateExpander
 # Required to extract texture being rendered (for applying damage textures)
