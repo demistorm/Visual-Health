@@ -108,8 +108,8 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         // Get overlay coordinates (for hurt flash effect)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
 
-        // White tint (no color modification) - lets greyscale wound texture show as-is
-        int tint = 0xFFFFFFFF;
+        // Blood red tint - turns greyscale wounds into red wounds
+        int tint = 0xFFFF4010;
 
         // Submit the entity model again with our wound texture overlay!
         // This renders the entire entity model with our wound texture painted on top
