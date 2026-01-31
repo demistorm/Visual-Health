@@ -9,5 +9,9 @@ public final class FabricClient implements ClientModInitializer {
     public void onInitializeClient() {
         // Initialize clientside systems
         VisualHealthClient.initializeClient();
+
+        // Register damage overlay layers to all entity renderers
+        // Must be called after initializeClient() to ensure renderers are ready
+        VisualHealthClient.registerDamageLayers();
     }
 }

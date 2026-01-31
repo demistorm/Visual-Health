@@ -13,9 +13,9 @@ public final class VisualHealthNeoForge {
 
         VisualHealth.initialize();
 
-        // Set up client side
+        // Set up client side event handlers
         if (FMLEnvironment.getDist().isClient()) {
-            NeoClient.initialize();
+            NeoClient.register(modEventBus);
         }
 
         VisualHealth.LOGGER.info("Visual Health (NEOFORGE) initialization complete!");
