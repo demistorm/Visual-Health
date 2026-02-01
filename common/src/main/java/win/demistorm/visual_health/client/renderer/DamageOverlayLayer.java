@@ -96,7 +96,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
         // Scale up slightly to prevent Z-fighting with base model
         poseStack.pushPose();
-        poseStack.scale(1.01f, 1.01f, 1.01f);
+        poseStack.scale(1.005f, 1.005f, 1.005f);
 
         // Get RenderType with entityTranslucent (supports smooth alpha blending for wound textures)
         RenderType renderType = RenderTypes.entityTranslucent(woundTexture);

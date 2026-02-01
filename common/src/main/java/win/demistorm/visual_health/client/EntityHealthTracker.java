@@ -65,11 +65,11 @@ public final class EntityHealthTracker {
         float healthPercent = entity.getHealth() / entity.getMaxHealth();
 
         if (healthPercent >= 1.0f) return 0;  // 100% health - No damage
-        if (healthPercent > 0.8f) return 1;   // 99-80% health - Light scratches (4 wounds)
-        if (healthPercent > 0.6f) return 2;   // 79-60% health - Moderate cuts (8 wounds)
-        if (healthPercent > 0.4f) return 3;   // 59-40% health - Heavy wounds (12 wounds)
-        if (healthPercent > 0.2f) return 4;   // 39-20% health - Severe wounds (16 wounds)
-        return 5;                              // 19-0% health - Critical (20 wounds)
+        if (healthPercent > 0.8f) return 1;   // 99-80% health - Light scratches (6 wounds)
+        if (healthPercent > 0.6f) return 2;   // 79-60% health - Moderate cuts (12 wounds)
+        if (healthPercent > 0.4f) return 3;   // 59-40% health - Heavy wounds (18 wounds)
+        if (healthPercent > 0.2f) return 4;   // 39-20% health - Severe wounds (24 wounds)
+        return 5;                              // 19-0% health - Critical (30 wounds)
     }
 
     // Clear all tracked entities (call on resource reload)

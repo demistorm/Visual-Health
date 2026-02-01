@@ -34,8 +34,8 @@ public class WoundTextureGenerator {
             }
 
             // Calculate number of wounds based on damage tier
-            // Each tier adds 4 wounds, so tier 5 has 20 cumulative wounds
-            int woundCount = damageTier * 4;
+            // Each tier adds 6 wounds, so tier 5 has 30 cumulative wounds
+            int woundCount = damageTier * 6;
 
             // Use entity UUID for consistent random seed
             Random random = new Random(entity.getUUID().getLeastSignificantBits());
@@ -49,8 +49,8 @@ public class WoundTextureGenerator {
             // Loop through each tier up to current tier to make wounds cumulative
             int woundIndex = 0;
             for (int tier = 1; tier <= damageTier; tier++) {
-                // Each tier adds 4 wounds
-                for (int i = 0; i < 4; i++) {
+                // Each tier adds 6 wounds
+                for (int i = 0; i < 6; i++) {
                     try {
                         // Get a random wound texture for this tier
                         Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(tier, random);
