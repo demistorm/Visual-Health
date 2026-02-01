@@ -42,10 +42,23 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
         // Update entity damage tier in our tracker
         EntityHealthTracker.updateEntityDamageTier(entity);
 
-        // Set current entity in render context for RenderLayer access
-        VisualHealthRenderContext.setCurrentEntity(entity);
+        // Store entity with render state as key for safe per-entity tracking
+        VisualHealthRenderContext.setCurrentEntity(state, entity);
 
         // Store render state for potential future use
         this.visualhealth$currentRenderState = state;
+    }
+
+    // Clean up entity context after rendering completes
+    @Inject(
+            method = "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/CameraRenderState;)V",
+            at = @At("RETURN")
+    )
+    private void visualhealth$cleanupAfterRender(S state, com.mojang.blaze3d.vertex.PoseStack poseStack,
+                                                  net.minecraft.client.renderer.SubmitNodeCollector nodeCollector,
+                                                  net.minecraft.client.renderer.state.CameraRenderState cameraRenderState,
+                                                  CallbackInfo ci) {
+        // Remove entity from map to prevent cross-contamination
+        VisualHealthRenderContext.clearCurrentEntity(state);
     }
 }

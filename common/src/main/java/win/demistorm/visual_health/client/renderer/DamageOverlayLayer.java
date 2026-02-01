@@ -29,8 +29,8 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
     public void submit(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int packedLight,
                        S entityRenderState, float limbSwing, float limbSwingAmount) {
 
-        // Get the actual entity from render context (set by our mixin during extractRenderState)
-        net.minecraft.world.entity.LivingEntity entity = win.demistorm.visual_health.client.VisualHealthRenderContext.getCurrentEntity();
+        // Get the actual entity from render context using render state as key
+        net.minecraft.world.entity.LivingEntity entity = win.demistorm.visual_health.client.VisualHealthRenderContext.getCurrentEntity(entityRenderState);
 
         // Distance check - skip far entities for performance
         if (entityRenderState.distanceToCameraSq > RENDER_DISTANCE * RENDER_DISTANCE) {

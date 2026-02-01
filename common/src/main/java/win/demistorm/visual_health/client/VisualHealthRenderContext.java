@@ -1,55 +1,39 @@
 package win.demistorm.visual_health.client;
 
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
 
-// Thread-local context to track which entity is currently being rendered
-// This allows us to map textures back to their entities during RenderType creation
+import java.util.WeakHashMap;
+
+// Per-entity render context using WeakHashMap for safe entity tracking
+// Prevents wound textures from bleeding between entities during batched rendering
 public final class VisualHealthRenderContext {
 
     private VisualHealthRenderContext() {
         // Utility class - no instances
     }
 
-    // ThreadLocal to store current entity being rendered
-    // Each rendering thread has its own context
-    private static final ThreadLocal<LivingEntity> CURRENT_ENTITY = new ThreadLocal<>();
+    // WeakHashMap for automatic cleanup and safe entity tracking
+    // Uses LivingEntityRenderState as key to prevent cross-contamination
+    private static final WeakHashMap<LivingEntityRenderState, LivingEntity> ENTITY_MAP = new WeakHashMap<>();
 
-    // Flag to control when texture modification is allowed
-    // Prevents modifying textures for UI, GUI, or non-entity renders
-    private static final ThreadLocal<Boolean> ALLOW_TEXTURE_MODIFY = ThreadLocal.withInitial(() -> false);
-
-    // Get the current entity being rendered
-    public static LivingEntity getCurrentEntity() {
-        return CURRENT_ENTITY.get();
+    // Get the entity for a specific render state
+    public static LivingEntity getCurrentEntity(LivingEntityRenderState renderState) {
+        return ENTITY_MAP.get(renderState);
     }
 
-    // Set the current entity being rendered
-    public static void setCurrentEntity(LivingEntity entity) {
-        CURRENT_ENTITY.set(entity);
+    // Store entity with its render state as key
+    public static void setCurrentEntity(LivingEntityRenderState renderState, LivingEntity entity) {
+        ENTITY_MAP.put(renderState, entity);
         if (entity != null && VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Set entity context: {} (Health: {}/{})",
-                    entity.getName().getString(), entity.getHealth(), entity.getMaxHealth());
+            VisualHealth.LOGGER.debug("Set entity context for {}: {} (Health: {}/{})",
+                    renderState.hashCode(), entity.getName().getString(), entity.getHealth(), entity.getMaxHealth());
         }
     }
 
-    // Clear the current entity
-    public static void clearCurrentEntity() {
-        CURRENT_ENTITY.remove();
-    }
-
-    // Check if texture modification is allowed
-    public static boolean isTextureModifyAllowed() {
-        return ALLOW_TEXTURE_MODIFY.get();
-    }
-
-    // Enable texture modification
-    public static void allowTextureModify() {
-        ALLOW_TEXTURE_MODIFY.set(true);
-    }
-
-    // Disable texture modification
-    public static void preventTextureModify() {
-        ALLOW_TEXTURE_MODIFY.set(false);
+    // Remove entity from map after rendering
+    public static void clearCurrentEntity(LivingEntityRenderState renderState) {
+        ENTITY_MAP.remove(renderState);
     }
 }
