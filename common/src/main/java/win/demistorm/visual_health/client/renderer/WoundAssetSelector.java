@@ -124,8 +124,11 @@ public class WoundAssetSelector {
                     random.nextFloat() < 0.5f ? WoundType.CUT : WoundType.SCRATCH;
             case 3 -> // Heavy damage: mostly wounds, some cuts
                     random.nextFloat() < 0.6f ? WoundType.WOUND : WoundType.CUT;
-            case 4 -> // Critical damage: wounds and drips
+            case 4 -> // Severe damage: wounds and some drips
                     random.nextFloat() < 0.5f ? WoundType.WOUND :
+                            (random.nextFloat() < 0.5f ? WoundType.DRIP : WoundType.WOUND);
+            case 5 -> // Critical damage: lots of wounds and drips
+                    random.nextFloat() < 0.4f ? WoundType.WOUND :
                             (random.nextFloat() < 0.5f ? WoundType.DRIP : WoundType.WOUND);
             default -> WoundType.SCRATCH;
         };

@@ -34,8 +34,8 @@ public class WoundTextureGenerator {
             }
 
             // Calculate number of wounds based on damage tier
-            // Tier 1: 2 wounds, Tier 2: 4 wounds, Tier 3: 6 wounds, Tier 4: 8 wounds
-            int woundCount = damageTier * 2;
+            // Each tier adds 4 wounds, so tier 5 has 20 cumulative wounds
+            int woundCount = damageTier * 4;
 
             // Use entity UUID for consistent random seed
             Random random = new Random(entity.getUUID().getLeastSignificantBits());
@@ -46,10 +46,14 @@ public class WoundTextureGenerator {
             }
 
             // Stamp wound textures onto the base texture
-            for (int i = 0; i < woundCount; i++) {
-                try {
-                    // Get a random wound texture for this tier
-                    Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageTier, random);
+            // Loop through each tier up to current tier to make wounds cumulative
+            int woundIndex = 0;
+            for (int tier = 1; tier <= damageTier; tier++) {
+                // Each tier adds 4 wounds
+                for (int i = 0; i < 4; i++) {
+                    try {
+                        // Get a random wound texture for this tier
+                        Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(tier, random);
 
                     // Load the wound texture from resource manager
                     net.minecraft.server.packs.resources.ResourceManager resourceManager =
@@ -67,14 +71,15 @@ public class WoundTextureGenerator {
                     int posY = random.nextInt(maxY);
 
                     if (VisualHealth.debugMode) {
-                        VisualHealth.LOGGER.debug("Stamping wound {} at ({}, {})", i + 1, posX, posY);
+                        VisualHealth.LOGGER.debug("Stamping wound {} (tier {}) at ({}, {})", ++woundIndex, tier, posX, posY);
                     }
 
                     // Stamp the wound texture onto the base texture
                     stampTexture(woundTexture, woundAsset, posX, posY);
 
-                } catch (Exception e) {
-                    VisualHealth.LOGGER.error("Failed to load or stamp wound texture: {}", e.getMessage(), e);
+                    } catch (Exception e) {
+                        VisualHealth.LOGGER.error("Failed to load or stamp wound texture: {}", e.getMessage(), e);
+                    }
                 }
             }
 
