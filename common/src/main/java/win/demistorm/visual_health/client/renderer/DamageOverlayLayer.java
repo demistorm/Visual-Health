@@ -96,16 +96,16 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
         // Scale up slightly to prevent Z-fighting with base model
         poseStack.pushPose();
-        poseStack.scale(1.005f, 1.005f, 1.005f);
+        poseStack.scale(1.002f, 1.002f, 1.002f);
 
-        // Get RenderType with entityTranslucent (supports smooth alpha blending for wound textures)
-        RenderType renderType = RenderTypes.entityTranslucent(woundTexture);
+        // Try out entityCutoutNoCullZOffset for performance
+        RenderType renderType = RenderTypes.entityCutoutNoCullZOffset(woundTexture);
 
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("RenderType: {}", renderType);
         }
 
-        // Get overlay coordinates (for hurt flash effect)
+        // Get overlay coordinates (required for submitModel, hurt flash disabled with 0.0f)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
 
         // Blood red tint - turns greyscale wounds into red wounds
