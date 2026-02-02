@@ -132,21 +132,46 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         // Get overlay coordinates (required for submitModel, hurt flash disabled with 0.0f)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
 
-        // Configurable tint color - turns greyscale wounds into colored wounds
-        int tint = switch (win.demistorm.visual_health.ConfigHelper.INSTANCE.damageColor) {
-            case RED -> 0xFFFF4010;   // Blood red
-            case BLACK -> 0xFF401010; // Dark gray/black for visibility
-            case WHITE -> 0xFFFFFFFF; // Pure white
-        };
+        // Check for entity-specific damage color override
+        win.demistorm.visual_health.client.EntityDamageOverrides.DamageOverride override =
+                win.demistorm.visual_health.client.EntityDamageOverrides.getOverride(entity.getType());
+
+        // Determine tint color - use override if available, otherwise use config default
+        int tint;
+        boolean isEmissive;
+
+        if (override != null) {
+            // Use entity-specific override
+            tint = override.tintColor();
+            isEmissive = override.isEmissive();
+
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("Using entity override for {}: tint=0x{}, emissive={}",
+                        entity.getName().getString(), Integer.toHexString(tint), isEmissive);
+            }
+        } else {
+            // Use default config color
+            tint = switch (win.demistorm.visual_health.ConfigHelper.INSTANCE.damageColor) {
+                case RED -> 0xFFFF4010;   // Blood red
+                case BLACK -> 0xFF401010; // Dark gray/black for visibility
+                case WHITE -> 0xFFFFFFFF; // Pure white
+            };
+            isEmissive = false;
+        }
+
+        // Apply emissive lighting if needed (full brightness for glow effect)
+        // Packed light format: (skyLight << 20) | (blockLight << 4)
+        // Full brightness = 15 sky + 15 block = 0xF000F0 = 15728880
+        int finalPackedLight = isEmissive ? 0xF000F0 : packedLight;
 
         // Submit the entity model again with our wound texture overlay!
         // This renders the entire entity model with our wound texture painted on top
         if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Submitting model with wound overlay...");
+            VisualHealth.LOGGER.debug("Submitting model with wound overlay... (emissive: {})", isEmissive);
         }
 
         submitNodeCollector.order(0).submitModel(model, entityRenderState, poseStack, renderType,
-                packedLight, overlay, tint, null, 0, null);
+                finalPackedLight, overlay, tint, null, 0, null);
 
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("Model submitted successfully");
