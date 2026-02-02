@@ -9,6 +9,7 @@ import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.server.packs.resources.ReloadableResourceManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.renderer.DamageOverlayLayer;
 import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
@@ -30,6 +31,9 @@ public class VisualHealthClient {
         }
 
         log.info("Visual Health (CLIENT) starting!");
+
+        // Load or create config file
+        win.demistorm.visual_health.ConfigHelper.loadOrCreate();
 
         // Assets will be loaded lazily on first use (when entity takes damage)
         log.info("Visual Health wound textures will load on first use");

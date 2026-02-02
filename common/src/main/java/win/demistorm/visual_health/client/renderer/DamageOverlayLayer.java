@@ -60,6 +60,30 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         int entityId = entity.getId();
         String entityName = entity.getName().getString();
 
+        // Check entity spawn category (Monster vs everything else)
+        net.minecraft.world.entity.MobCategory spawnCategory = entity.getType().getCategory();
+        boolean isMonster = spawnCategory == net.minecraft.world.entity.MobCategory.MONSTER;
+
+        // Apply config-based filtering
+        // If passive mobs are disabled, skip non-monster entities
+        if (!isMonster && !win.demistorm.visual_health.ConfigHelper.INSTANCE.damagePassiveMobs) {
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("Skipping {} - passive mobs disabled, entity is not a monster", entityName);
+            }
+            return;
+        }
+
+        // If villagers are disabled, skip villager-type entities
+        // Villagers and Wandering Traders extend AbstractVillager
+        // Zombie Villagers do NOT extend AbstractVillager (so they get damaged normally if passive mobs are on)
+        if (entity instanceof net.minecraft.world.entity.npc.villager.AbstractVillager &&
+                !win.demistorm.visual_health.ConfigHelper.INSTANCE.damageVillagers) {
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("Skipping {} - villagers disabled", entityName);
+            }
+            return;
+        }
+
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("DamageOverlayLayer.submit() called for {} (entityId: {})",
                     entityName, entityId);
@@ -108,8 +132,12 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         // Get overlay coordinates (required for submitModel, hurt flash disabled with 0.0f)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
 
-        // Blood red tint - turns greyscale wounds into red wounds
-        int tint = 0xFFFF4010;
+        // Configurable tint color - turns greyscale wounds into colored wounds
+        int tint = switch (win.demistorm.visual_health.ConfigHelper.INSTANCE.damageColor) {
+            case RED -> 0xFFFF4010;   // Blood red
+            case BLACK -> 0xFF401010; // Dark gray/black for visibility
+            case WHITE -> 0xFFFFFFFF; // Pure white
+        };
 
         // Submit the entity model again with our wound texture overlay!
         // This renders the entire entity model with our wound texture painted on top

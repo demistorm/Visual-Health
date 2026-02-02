@@ -21,6 +21,9 @@
 		],
 		"client": [
 			"win.demistorm.visual_health.fabric.client.FabricClient"
+		],
+		"modmenu": [
+			"win.demistorm.visual_health.fabric.client.FabricConfigScreen"
 		]
 	},
 	"depends": {

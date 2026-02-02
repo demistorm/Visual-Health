@@ -34,8 +34,8 @@ public class WoundTextureGenerator {
             }
 
             // Calculate number of wounds based on damage tier
-            // Each tier adds 6 wounds, so tier 5 has 30 cumulative wounds
-            int woundCount = damageTier * 6;
+            // Configurable wounds per tier (default 6, so tier 5 has 30 cumulative wounds)
+            int woundCount = damageTier * win.demistorm.visual_health.ConfigHelper.INSTANCE.woundsPerTier;
 
             // Use entity UUID for consistent random seed
             Random random = new Random(entity.getUUID().getLeastSignificantBits());
@@ -48,9 +48,10 @@ public class WoundTextureGenerator {
             // Stamp wound textures onto the base texture
             // Loop through each tier up to current tier to make wounds cumulative
             int woundIndex = 0;
+            int woundsPerTier = win.demistorm.visual_health.ConfigHelper.INSTANCE.woundsPerTier;
             for (int tier = 1; tier <= damageTier; tier++) {
-                // Each tier adds 6 wounds
-                for (int i = 0; i < 6; i++) {
+                // Each tier adds configurable number of wounds
+                for (int i = 0; i < woundsPerTier; i++) {
                     try {
                         // Get a random wound texture for this tier
                         Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(tier, random);
