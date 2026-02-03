@@ -34,6 +34,23 @@ public class EntityDamageOverrides {
         // Zombie: Sickly yellow-green damage for infected appearance
         OVERRIDE_MAP.put(EntityType.ZOMBIE, new DamageOverride(0xFF863B22, false));
 
+        OVERRIDE_MAP.put(EntityType.SKELETON, new DamageOverride(0xFF000000, false));
+
+        OVERRIDE_MAP.put(EntityType.STRAY, new DamageOverride(0xFF000000, false));
+
+        OVERRIDE_MAP.put(EntityType.SPIDER, new DamageOverride(0xFFC4D3FF, false));
+
+        OVERRIDE_MAP.put(EntityType.CAVE_SPIDER, new DamageOverride(0xFFC4D3FF, false));
+
+        OVERRIDE_MAP.put(EntityType.HUSK, new DamageOverride(0xFF863B22, false));
+
+        OVERRIDE_MAP.put(EntityType.ZOMBIE_HORSE, new DamageOverride(0xFF863B22, false));
+
+        OVERRIDE_MAP.put(EntityType.ZOMBIE_NAUTILUS, new DamageOverride(0xFF863B22, false));
+
+        OVERRIDE_MAP.put(EntityType.ZOMBIE_VILLAGER, new DamageOverride(0xFF863B22, false));
+
+
         VisualHealth.LOGGER.info("Loaded {} entity damage overrides", OVERRIDE_MAP.size());
     }
 
