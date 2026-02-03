@@ -118,12 +118,15 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             VisualHealth.LOGGER.debug("Parent model class: {}", model.getClass().getSimpleName());
         }
 
+        // Welp, the damage overlay's scale
+        float modelScale = 1.001f;
+
         // Scale up slightly to prevent Z-fighting with base model
         poseStack.pushPose();
-        poseStack.scale(1.002f, 1.002f, 1.002f);
+        poseStack.scale(modelScale, modelScale, modelScale);
 
-        // Try out entityCutoutNoCullZOffset for performance
-        RenderType renderType = RenderTypes.entityCutoutNoCullZOffset(woundTexture);
+        // Try out entityCutoutNoCull for performance
+        RenderType renderType = RenderTypes.entityCutoutNoCull(woundTexture);
 
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("RenderType: {}", renderType);
