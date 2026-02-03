@@ -19,7 +19,7 @@ import win.demistorm.visual_health.VisualHealth;
 public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends EntityModel<? super S>>
         extends RenderLayer<S, M> {
 
-    private static final int RENDER_DISTANCE = 24; // Blocks
+    private static final int RENDER_DISTANCE = 96; // Blocks
 
     public DamageOverlayLayer(RenderLayerParent<S, M> renderer) {
         super(renderer);
@@ -120,7 +120,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         }
 
         // Welp, the damage overlay's scale
-        float modelScale = 1.001f;
+        float modelScale = 1.002f;
 
         // Get overlay coordinates (required for submitModel, hurt flash disabled with 0.0f)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
@@ -145,8 +145,8 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         } else {
             // Use default config color
             tint = switch (win.demistorm.visual_health.ConfigHelper.INSTANCE.damageColor) {
-                case RED -> 0xFFFF4010;   // Blood red
-                case BLACK -> 0xFF401010; // Dark gray/black for visibility
+                case RED -> 0xFF9F0000;   // Blood red
+                case BLACK -> 0xFF000000; // Black
                 case WHITE -> 0xFFFFFFFF; // Pure white
             };
             isEmissive = false;
@@ -166,7 +166,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             renderType = RenderTypes.entityTranslucentEmissive(woundTexture);
             finalPackedLight = LightTexture.FULL_BRIGHT; // Full brightness for glow
         } else {
-            renderType = RenderTypes.entityCutoutNoCull(woundTexture);
+            renderType = RenderTypes.entityCutoutNoCullZOffset(woundTexture);
             finalPackedLight = packedLight; // Normal lighting
         }
 

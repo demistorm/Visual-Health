@@ -29,10 +29,10 @@ public class EntityDamageOverrides {
 
         // Enderman: Light purple damage with emissive glow
         // Uses entityTranslucentEmissive for true glow effect in dark areas
-        OVERRIDE_MAP.put(EntityType.ENDERMAN, new DamageOverride(0xFFB080FF, true));
+        OVERRIDE_MAP.put(EntityType.ENDERMAN, new DamageOverride(0xFFD080FF, true));
 
         // Zombie: Sickly yellow-green damage for infected appearance
-        OVERRIDE_MAP.put(EntityType.ZOMBIE, new DamageOverride(0xFFA0A030, false));
+        OVERRIDE_MAP.put(EntityType.ZOMBIE, new DamageOverride(0xFF863B22, false));
 
         VisualHealth.LOGGER.info("Loaded {} entity damage overrides", OVERRIDE_MAP.size());
     }
