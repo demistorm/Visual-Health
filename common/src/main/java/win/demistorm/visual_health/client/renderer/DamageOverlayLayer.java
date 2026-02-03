@@ -1,6 +1,7 @@
 package win.demistorm.visual_health.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -121,17 +122,6 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         // Welp, the damage overlay's scale
         float modelScale = 1.001f;
 
-        // Scale up slightly to prevent Z-fighting with base model
-        poseStack.pushPose();
-        poseStack.scale(modelScale, modelScale, modelScale);
-
-        // Try out entityCutoutNoCull for performance
-        RenderType renderType = RenderTypes.entityCutoutNoCull(woundTexture);
-
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("RenderType: {}", renderType);
-        }
-
         // Get overlay coordinates (required for submitModel, hurt flash disabled with 0.0f)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
 
@@ -162,10 +152,27 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             isEmissive = false;
         }
 
-        // Apply emissive lighting if needed (full brightness for glow effect)
-        // Packed light format: (skyLight << 20) | (blockLight << 4)
-        // Full brightness = 15 sky + 15 block = 0xF000F0 = 15728880
-        int finalPackedLight = isEmissive ? 0xF000F0 : packedLight;
+        // Scale up slightly to prevent Z-fighting with base model
+        poseStack.pushPose();
+        poseStack.scale(modelScale, modelScale, modelScale);
+
+        // Determine render type based on emissive setting
+        // Emissive entities use entityTranslucentEmissive for true glow effect
+        // Non-emissive use entityCutoutNoCull for performance
+        RenderType renderType;
+        int finalPackedLight;
+
+        if (isEmissive) {
+            renderType = RenderTypes.entityTranslucentEmissive(woundTexture);
+            finalPackedLight = LightTexture.FULL_BRIGHT; // Full brightness for glow
+        } else {
+            renderType = RenderTypes.entityCutoutNoCull(woundTexture);
+            finalPackedLight = packedLight; // Normal lighting
+        }
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("RenderType: {}, isEmissive: {}", renderType, isEmissive);
+        }
 
         // Submit the entity model again with our wound texture overlay!
         // This renders the entire entity model with our wound texture painted on top

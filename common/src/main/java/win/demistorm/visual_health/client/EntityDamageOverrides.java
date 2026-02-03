@@ -13,7 +13,10 @@ public class EntityDamageOverrides {
     // Custom damage settings for a specific entity type
     public record DamageOverride(int tintColor, boolean isEmissive) {
         // tintColor: ARGB hex color (e.g., 0xFFFF4010 for red)
-        // isEmissive: whether to render at full brightness (glow in dark)
+        // isEmissive: whether to use emissive rendering (glow effect)
+        //   - true: uses entityTranslucentEmissive render type with full brightness
+        //   - false: uses entityCutoutNoCull with normal lighting
+        //   Emissive rendering creates a true glow/bloom effect visible in darkness
     }
 
     // Hardcoded map of entity type overrides
@@ -24,7 +27,8 @@ public class EntityDamageOverrides {
         // Creeper: Dark green damage to match its explosive nature
         OVERRIDE_MAP.put(EntityType.CREEPER, new DamageOverride(0xFF204020, false));
 
-        // Enderman: Light purple damage that glows (emissive) for otherworldly effect
+        // Enderman: Light purple damage with emissive glow
+        // Uses entityTranslucentEmissive for true glow effect in dark areas
         OVERRIDE_MAP.put(EntityType.ENDERMAN, new DamageOverride(0xFFB080FF, true));
 
         // Zombie: Sickly yellow-green damage for infected appearance
