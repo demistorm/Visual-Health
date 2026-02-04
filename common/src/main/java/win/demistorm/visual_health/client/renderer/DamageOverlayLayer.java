@@ -102,11 +102,20 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         VisualHealth.LOGGER.info("Rendering damage overlay for {} (ID: {}) at tier {}",
                 entityName, entityId, damageTier);
 
+        // Get entity's actual texture size from our hardcoded index
+        win.demistorm.visual_health.client.TextureSizeIndex.TextureSize textureSizeInfo =
+                win.demistorm.visual_health.client.TextureSizeIndex.getTextureSize(entity.getType());
+        int textureWidth = textureSizeInfo.width();
+        int textureHeight = textureSizeInfo.height();
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Entity {} texture size: {}x{}",
+                    entityName, textureWidth, textureHeight);
+        }
+
         // Generate a composite wound texture sized for the entity
-        // Most entities use 64x64 textures, but some may vary
-        int textureSize = 64; // Default size for most mobs (creeper, zombie, etc.)
         Identifier woundTexture = win.demistorm.visual_health.client.texture.WoundTextureGenerator.generateWoundedTexture(
-                entity, damageTier, textureSize, textureSize);
+                entity, damageTier, textureWidth, textureHeight);
 
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("Generated wound texture: {}", woundTexture);
