@@ -1,9 +1,11 @@
 package win.demistorm.visual_health.client;
 
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 // Track damage tiers for entities by their ID
@@ -17,10 +19,22 @@ public final class EntityHealthTracker {
     // Map entity ID -> damage tier (0-4)
     private static final Map<Integer, Integer> ENTITY_DAMAGE_TIERS = new ConcurrentHashMap<>();
 
+    // Entities that should never show damage (hardcoded blacklist)
+    private static final Set<EntityType<?>> DISABLED_ENTITIES = Set.of(
+            EntityType.IRON_GOLEM,
+            EntityType.COPPER_GOLEM,
+            EntityType.SNOW_GOLEM
+    );
+
     // Update the damage tier for an entity
     // Called during extractRenderState when entity data is fresh
     public static void updateEntityDamageTier(LivingEntity entity) {
         if (entity == null) {
+            return;
+        }
+
+        // Skip damage tracking for disabled entities
+        if (DISABLED_ENTITIES.contains(entity.getType())) {
             return;
         }
 
