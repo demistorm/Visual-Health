@@ -41,7 +41,7 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.RABBIT, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.SHEEP, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.SKELETON_HORSE, new TextureSize(64, 64));
-        TEXTURE_SIZES.put(EntityType.SNIFFER, new TextureSize(64, 64));
+        TEXTURE_SIZES.put(EntityType.SNIFFER, new TextureSize(192, 192));
         TEXTURE_SIZES.put(EntityType.SQUID, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.STRIDER, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.TADPOLE, new TextureSize(64, 32));

@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.resources.Identifier;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.EntityDamageColors;
 
 // Renders wound overlay on living entities based on health percentage
 // Uses entityCutoutNoCull for performance (GPU-friendly batching)
@@ -135,8 +136,8 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
 
         // Check for entity-specific damage color override
-        win.demistorm.visual_health.client.EntityDamageOverrides.DamageOverride override =
-                win.demistorm.visual_health.client.EntityDamageOverrides.getOverride(entity.getType());
+        EntityDamageColors.DamageOverride override =
+                EntityDamageColors.getOverride(entity.getType());
 
         // Determine tint color - use override if available, otherwise use config default
         int tint;

@@ -8,7 +8,7 @@ import java.util.Map;
 
 // Manages entity-specific damage color and emissive overrides
 // Hardcoded mappings for mobs with custom wound appearances
-public class EntityDamageOverrides {
+public class EntityDamageColors {
 
     // Custom damage settings for a specific entity type
     public record DamageOverride(int tintColor, boolean isEmissive) {
@@ -34,9 +34,13 @@ public class EntityDamageOverrides {
         // Zombie: Sickly yellow-green damage for infected appearance
         OVERRIDE_MAP.put(EntityType.ZOMBIE, new DamageOverride(0xFF863B22, false));
 
-        OVERRIDE_MAP.put(EntityType.SKELETON, new DamageOverride(0xFF000000, false));
+        OVERRIDE_MAP.put(EntityType.SKELETON, new DamageOverride(0xFFA79F97, false));
 
-        OVERRIDE_MAP.put(EntityType.STRAY, new DamageOverride(0xFF000000, false));
+        OVERRIDE_MAP.put(EntityType.STRAY, new DamageOverride(0xFFA79F97, false));
+
+        OVERRIDE_MAP.put(EntityType.WITHER_SKELETON, new DamageOverride(0xFFA79F97, false));
+
+        OVERRIDE_MAP.put(EntityType.WITHER, new DamageOverride(0xFFA79F97, false));
 
         OVERRIDE_MAP.put(EntityType.SPIDER, new DamageOverride(0xFFC4D3FF, false));
 
