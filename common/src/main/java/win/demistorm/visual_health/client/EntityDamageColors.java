@@ -34,13 +34,15 @@ public class EntityDamageColors {
         // Zombie: Sickly yellow-green damage for infected appearance
         OVERRIDE_MAP.put(EntityType.ZOMBIE, new DamageOverride(0xFF863B22, false));
 
-        OVERRIDE_MAP.put(EntityType.SKELETON, new DamageOverride(0xFFA79F97, false));
+        OVERRIDE_MAP.put(EntityType.SKELETON, new DamageOverride(0xFF776E65, false));
 
-        OVERRIDE_MAP.put(EntityType.STRAY, new DamageOverride(0xFFA79F97, false));
+        OVERRIDE_MAP.put(EntityType.STRAY, new DamageOverride(0xFF776E65, false));
 
-        OVERRIDE_MAP.put(EntityType.WITHER_SKELETON, new DamageOverride(0xFFA79F97, false));
+        OVERRIDE_MAP.put(EntityType.WITHER_SKELETON, new DamageOverride(0xFF776E65, false));
 
-        OVERRIDE_MAP.put(EntityType.WITHER, new DamageOverride(0xFFA79F97, false));
+        OVERRIDE_MAP.put(EntityType.WITHER, new DamageOverride(0xFF776E65, false));
+
+        OVERRIDE_MAP.put(EntityType.SKELETON_HORSE, new DamageOverride(0xFF776E65, false));
 
         OVERRIDE_MAP.put(EntityType.SPIDER, new DamageOverride(0xFFC4D3FF, false));
 
@@ -61,10 +63,5 @@ public class EntityDamageColors {
     // Get damage override for an entity type, or null if none exists
     public static DamageOverride getOverride(EntityType<?> entityType) {
         return OVERRIDE_MAP.get(entityType);
-    }
-
-    // Check if an entity type has a custom override
-    public static boolean hasOverride(EntityType<?> entityType) {
-        return OVERRIDE_MAP.containsKey(entityType);
     }
 }
