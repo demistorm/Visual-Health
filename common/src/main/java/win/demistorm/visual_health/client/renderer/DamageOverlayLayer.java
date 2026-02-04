@@ -130,7 +130,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         }
 
         // Welp, the damage overlay's scale
-        float modelScale = 1.002f;
+        float modelScale = 1.00f;
 
         // Get overlay coordinates (required for submitModel, hurt flash disabled with 0.0f)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
