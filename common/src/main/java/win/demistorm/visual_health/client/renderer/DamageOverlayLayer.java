@@ -130,7 +130,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         }
 
         // Welp, the damage overlay's scale
-        float modelScale = 1.00f;
+        float modelScale = 1.0f;
 
         // Get overlay coordinates (required for submitModel, hurt flash disabled with 0.0f)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
@@ -184,8 +184,38 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             VisualHealth.LOGGER.debug("RenderType: {}, isEmissive: {}", renderType, isEmissive);
         }
 
+        // Check if this is an EMF model and bypass its texture override for the wound overlay
+        // EMF updates lastTextureOverride each time it renders with an override.
+        // We increment entityRenderCount to force an update, then clear textureOverride.
+        // EMF will then see "lastTextureOverride == entityRenderCount" and skip the override!
+        if (model instanceof traben.entity_model_features.models.IEMFModel emfModel) {
+            var emfRoot = emfModel.emf$getEMFRootModel();
+            var emfManager = traben.entity_model_features.EMFManager.getInstance();
+
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("EMF model detected, clearing texture overrides for wound overlay");
+            }
+
+            // Step 1: Increment render count so EMF will update lastTextureOverride next time it checks
+            emfManager.entityRenderCount++;
+
+            // Step 2: Clear textureOverride from all parts
+            for (var part : emfRoot.getAllVanillaPartsEMF()) {
+                if (part.textureOverride != null) {
+                    if (VisualHealth.debugMode) {
+                        VisualHealth.LOGGER.debug("Cleared textureOverride for part: {}", part.toStringShort());
+                    }
+                    part.textureOverride = null;
+                }
+            }
+
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("entityRenderCount is now: {}", emfManager.entityRenderCount);
+            }
+        }
+
         // Submit the entity model again with our wound texture overlay!
-        // This renders the entire entity model with our wound texture painted on top
+        // EMF will skip the override (textureOverride is null) and use our wound texture
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("Submitting model with wound overlay... (emissive: {})", isEmissive);
         }

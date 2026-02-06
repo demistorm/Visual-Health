@@ -34,6 +34,12 @@ subprojects {
             url = "https://maven.terraformersmc.com/"
         }
 
+        // Modrinth Maven for Vivecraft dependency
+        maven {
+            name = "Modrinth"
+            url = "https://api.modrinth.com/maven"
+        }
+
         // Architectury Maven for cross-loader utilities
         maven {
             name = "Architectury"

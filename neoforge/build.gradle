@@ -49,6 +49,10 @@ dependencies {
     // Include the common module with all our shared VR logic
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }
+
+    // EMF compat
+    modCompileOnly "maven.modrinth:4I1XuqiY:3.0.11-neoforge-1.21.11"
+
 }
 
 // Process resources and expand version placeholders
