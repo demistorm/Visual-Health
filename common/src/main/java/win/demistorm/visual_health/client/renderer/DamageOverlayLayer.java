@@ -103,6 +103,22 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         VisualHealth.LOGGER.info("Rendering damage overlay for {} (ID: {}) at tier {}",
                 entityName, entityId, damageTier);
 
+        // Get parent model (the entity's actual model - creeper, zombie, etc.)
+        M model = getParentModel();
+
+        // Check for EMF model with texture overrides - apply damage directly to variant textures
+        // If EMF damage is applied, skip the separate overlay render
+        if (win.demistorm.visual_health.client.EMFDamageHelper.applyEMFDamageIfPresent(
+                model, entity, damageTier)) {
+
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("EMF damage applied, skipping overlay render for {}", entityName);
+            }
+
+            // EMF damage is baked into the variant texture, no need for separate overlay
+            return;
+        }
+
         // Get entity's actual texture size from our hardcoded index
         win.demistorm.visual_health.client.TextureSizeIndex.TextureSize textureSizeInfo =
                 win.demistorm.visual_health.client.TextureSizeIndex.getTextureSize(entity.getType());
@@ -122,15 +138,8 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             VisualHealth.LOGGER.debug("Generated wound texture: {}", woundTexture);
         }
 
-        // Get parent model (the entity's actual model - creeper, zombie, etc.)
-        M model = getParentModel();
-
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Parent model class: {}", model.getClass().getSimpleName());
-        }
-
         // Welp, the damage overlay's scale
-        float modelScale = 1.0f;
+        float modelScale = 1.20f;
 
         // Get overlay coordinates (required for submitModel, hurt flash disabled with 0.0f)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
@@ -184,38 +193,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             VisualHealth.LOGGER.debug("RenderType: {}, isEmissive: {}", renderType, isEmissive);
         }
 
-        // Check if this is an EMF model and bypass its texture override for the wound overlay
-        // EMF updates lastTextureOverride each time it renders with an override.
-        // We increment entityRenderCount to force an update, then clear textureOverride.
-        // EMF will then see "lastTextureOverride == entityRenderCount" and skip the override!
-        if (model instanceof traben.entity_model_features.models.IEMFModel emfModel) {
-            var emfRoot = emfModel.emf$getEMFRootModel();
-            var emfManager = traben.entity_model_features.EMFManager.getInstance();
-
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("EMF model detected, clearing texture overrides for wound overlay");
-            }
-
-            // Step 1: Increment render count so EMF will update lastTextureOverride next time it checks
-            emfManager.entityRenderCount++;
-
-            // Step 2: Clear textureOverride from all parts
-            for (var part : emfRoot.getAllVanillaPartsEMF()) {
-                if (part.textureOverride != null) {
-                    if (VisualHealth.debugMode) {
-                        VisualHealth.LOGGER.debug("Cleared textureOverride for part: {}", part.toStringShort());
-                    }
-                    part.textureOverride = null;
-                }
-            }
-
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("entityRenderCount is now: {}", emfManager.entityRenderCount);
-            }
-        }
-
         // Submit the entity model again with our wound texture overlay!
-        // EMF will skip the override (textureOverride is null) and use our wound texture
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("Submitting model with wound overlay... (emissive: {})", isEmissive);
         }
