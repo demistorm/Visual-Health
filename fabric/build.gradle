@@ -57,6 +57,9 @@ dependencies {
     // EMF compat
     modCompileOnly "maven.modrinth:4I1XuqiY:3.0.11-fabric-1.21.11"
 
+    // ETF compat
+    modCompileOnly "maven.modrinth:BVzZfTc1:7.0.8-fabric-1.21.11"
+
     // MixinExtras for advanced mixin features
 }
 

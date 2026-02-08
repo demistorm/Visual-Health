@@ -5,16 +5,16 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import traben.entity_model_features.models.IEMFModel;
 import traben.entity_model_features.models.parts.EMFModelPart;
+import traben.entity_texture_features.ETFApi;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator;
 
-import java.util.Map;
-import java.util.WeakHashMap;
-
 /**
  * Helper class for applying damage to EMF variant textures.
- * Detects EMF models with texture overrides and replaces them with damaged versions.
- * Preserves original variant textures to allow damage tier updates.
+ * Detects EMF models with texture overrides and generates per-entity wound textures.
+ *
+ * Uses per-entity texture registration instead of modifying shared model parts,
+ * ensuring each entity gets its correct wound texture without affecting others.
  */
 public final class EMFDamageHelper {
 
@@ -22,36 +22,12 @@ public final class EMFDamageHelper {
         // Utility class - no instances
     }
 
-    // Track original variant textures before we replace them
-    // Uses WeakHashMap for automatic cleanup when model parts are garbage collected
-    private static final Map<EMFModelPart, Identifier> ORIGINAL_VARIANTS = new WeakHashMap<>();
-
     /**
-     * Store the original variant texture for a model part.
+     * Check if the entity has an EMF model with texture overrides, and if so, register wound textures.
      *
-     * @param part The EMF model part
-     * @param originalVariant The original texture override
-     */
-    private static void storeOriginalVariant(EMFModelPart part, Identifier originalVariant) {
-        ORIGINAL_VARIANTS.put(part, originalVariant);
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Stored original variant {} for part {}",
-                    originalVariant, part.toStringShort());
-        }
-    }
-
-    /**
-     * Get the original variant texture for a model part.
-     *
-     * @param part The EMF model part
-     * @return The original variant, or null if not stored
-     */
-    private static Identifier getOriginalVariant(EMFModelPart part) {
-        return ORIGINAL_VARIANTS.get(part);
-    }
-
-    /**
-     * Check if the entity has an EMF model with texture overrides, and if so, apply damage.
+     * Instead of modifying the shared EMF model part's textureOverride field (which would affect
+     * all entities of the same type), we generate wound textures and register them per-entity.
+     * The render mixin will swap these textures in at render time.
      *
      * @param model The entity model
      * @param entity The entity being rendered
@@ -119,57 +95,43 @@ public final class EMFDamageHelper {
             }
         }
 
-        // Apply damage to all parts with texture overrides
-        int partsModified = 0;
+        // Generate wound texture for the first part with texture override
+        // All parts with textureOverride will use the same variant texture
+        Identifier woundTexture = null;
         for (var part : emfRoot.getAllVanillaPartsEMF()) {
             if (part.textureOverride != null) {
-                // Get or store the original variant texture
-                Identifier originalVariant = getOriginalVariant(part);
+                // Get ETF's variant of EMF's texture (handles variants, emissives, etc.)
+                Identifier etfProcessedTexture = ETFApi.getCurrentETFVariantTextureOfEntity(
+                        entity, part.textureOverride);
 
-                if (originalVariant == null) {
-                    // First time seeing this part - store the original variant
-                    originalVariant = part.textureOverride;
-                    storeOriginalVariant(part, originalVariant);
-
-                    if (VisualHealth.debugMode) {
-                        VisualHealth.LOGGER.debug("Stored original variant {} for part {}",
-                                originalVariant, part.toStringShort());
-                    }
-                }
-
-                // Always generate damage from the ORIGINAL variant, not the current override
-                // This prevents trying to load our damaged textures as the base for new damage
-                Identifier damagedVariant = EMFDamageTextureGenerator.generateDamagedVariant(
-                        originalVariant, entity, damageTier, tint);
-
-                // Replace the override with the damaged version
-                part.textureOverride = damagedVariant;
-
-                if (VisualHealth.debugMode) {
-                    VisualHealth.LOGGER.debug("Replaced override {} with damaged variant {} (from original {}) for part {}",
-                            part.textureOverride, damagedVariant, originalVariant, part.toStringShort());
-                }
-
-                partsModified++;
+                // Generate wound texture from the ETF-processed texture
+                woundTexture = EMFDamageTextureGenerator.generateDamagedVariant(
+                        etfProcessedTexture, entity, damageTier, tint);
+                break; // Only need to generate once
             }
         }
 
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("EMF damage applied to {} parts for {}",
-                    partsModified, entity.getName().getString());
+        if (woundTexture != null) {
+            // Register this wound texture for this specific entity by its ID
+            // Using entity ID instead of UUID for better EMF compatibility
+            EMFPerEntityTextures.setWoundTextureById(String.valueOf(entity.getId()), woundTexture);
+
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("Registered wound texture {} for entity ID {}",
+                        woundTexture, entity.getId());
+            }
+
+            return true; // Damage applied, skip normal overlay render
         }
 
-        return true; // Damage applied, skip normal overlay render
+        return false;
     }
 
     /**
-     * Clear the original variants cache.
-     * Should be called when resources are reloaded or when needed to free memory.
+     * Clear the per-entity texture mappings.
+     * Should be called when resources are reloaded.
      */
     public static void clearCache() {
-        ORIGINAL_VARIANTS.clear();
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("EMF original variants cache cleared");
-        }
+        EMFPerEntityTextures.clearAll();
     }
 }

@@ -6,7 +6,9 @@
   "mixins": [
   ],
   "client": [
-    "LivingEntityRendererMixin"
+    "LivingEntityRendererMixin",
+    "EMFModelPartRenderMixin",
+    "EMFModelPartAccessor"
   ],
   "server": [],
   "injectors": {
