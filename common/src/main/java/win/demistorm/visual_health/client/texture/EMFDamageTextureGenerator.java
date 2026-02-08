@@ -43,8 +43,8 @@ public class EMFDamageTextureGenerator {
             int damageTier,
             int tint
     ) {
-        // Create cache key
-        String cacheKey = variantTexture.toString() + "_tier" + damageTier + "_" + entity.getUUID();
+        // Create cache key using entity ID (matches texture ID generation)
+        String cacheKey = variantTexture.toString() + "_tier" + damageTier + "_entity" + entity.getId();
 
         // Check cache
         if (DAMAGE_CACHE.containsKey(cacheKey)) {
@@ -60,6 +60,16 @@ public class EMFDamageTextureGenerator {
             // Load the variant texture
             net.minecraft.server.packs.resources.ResourceManager resourceManager =
                     net.minecraft.client.Minecraft.getInstance().getResourceManager();
+
+            // Check if texture exists in resource pack (skip if it's a dynamic texture we already generated)
+            if (variantTexture.getNamespace().equals("visualhealth") &&
+                    variantTexture.getPath().startsWith("dynamic/emf_damage/")) {
+                // This is one of our dynamically generated textures, already in cache
+                if (VisualHealth.debugMode) {
+                    VisualHealth.LOGGER.debug("Skipping generation for existing dynamic texture: {}", variantTexture);
+                }
+                return variantTexture;
+            }
 
             NativeImage variantImage;
             try (var resource = resourceManager.open(variantTexture)) {
@@ -77,8 +87,8 @@ public class EMFDamageTextureGenerator {
             // Calculate number of wounds based on damage tier
             int woundCount = damageTier * win.demistorm.visual_health.ConfigHelper.INSTANCE.woundsPerTier;
 
-            // Use entity UUID for consistent random seed
-            Random random = new Random(entity.getUUID().getLeastSignificantBits());
+            // Use entity ID for consistent random seed (matches cache key)
+            Random random = new Random(entity.getId());
 
             // Stamp wound textures onto the variant
             int woundIndex = 0;

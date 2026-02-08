@@ -105,6 +105,7 @@ public final class EMFDamageHelper {
                         entity, part.textureOverride);
 
                 // Generate wound texture from the ETF-processed texture
+                // This will check its internal cache and avoid regenerating
                 woundTexture = EMFDamageTextureGenerator.generateDamagedVariant(
                         etfProcessedTexture, entity, damageTier, tint);
                 break; // Only need to generate once
