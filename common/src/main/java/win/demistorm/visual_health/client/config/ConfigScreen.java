@@ -23,13 +23,13 @@ public final class ConfigScreen {
         private final Minecraft client = Minecraft.getInstance();
 
         // Track current values for UI
-        private int woundsPerTierValue = ConfigHelper.INSTANCE.woundsPerTier;
+        private int woundDensityValue = ConfigHelper.INSTANCE.woundDensityPercentage;
         private boolean damagePassiveMobsValue = ConfigHelper.INSTANCE.damagePassiveMobs;
         private boolean damageVillagersValue = ConfigHelper.INSTANCE.damageVillagers;
         private ConfigHelper.DamageColor damageColorValue = ConfigHelper.INSTANCE.damageColor;
 
         // UI widgets
-        private VisualHealthConfigSlider woundsSlider;
+        private VisualHealthConfigSlider densitySlider;
         private Button passiveMobsButton;
         private Button villagersButton;
         private Button colorButton;
@@ -52,13 +52,13 @@ public final class ConfigScreen {
                                     Component.literal("Reset"),
                                     btn -> {
                                         // Reset all config values to defaults
-                                        woundsPerTierValue = 6;
+                                        woundDensityValue = 50;
                                         damagePassiveMobsValue = true;
                                         damageVillagersValue = false;
                                         damageColorValue = ConfigHelper.DamageColor.RED;
 
                                         // Update UI immediately
-                                        woundsSlider.setValue(6);
+                                        densitySlider.setValue(50);
                                         updatePassiveMobsButton();
                                         updateVillagersButton();
                                         updateColorButton();
@@ -67,21 +67,21 @@ public final class ConfigScreen {
                             .tooltip(Tooltip.create(Component.literal("Reset all settings to default")))
                             .build());
 
-            // Slider for wounds per tier (1-10)
-            woundsSlider = new VisualHealthConfigSlider(
+            // Slider for wound density percentage (10-100%)
+            densitySlider = new VisualHealthConfigSlider(
                     width / 2 - 80,  // x position (centered)
                     height / 6 - 10, // y position
                     160,             // width
                     20,              // height
-                    1,               // min value
-                    10,              // max value
-                    woundsPerTierValue, // current value
-                    value -> Component.literal("Wounds per Tier: " + value), // message formatter
+                    10,              // min value (10% minimum)
+                    100,             // max value (100% maximum)
+                    woundDensityValue, // current value
+                    value -> Component.literal("Wound Density: " + value + "%"), // message formatter
                     value -> {
-                        woundsPerTierValue = value; // Update tracked value
+                        woundDensityValue = value; // Update tracked value
                     }
             );
-            addRenderableWidget(woundsSlider);
+            addRenderableWidget(densitySlider);
 
             // Toggle for passive mobs
             passiveMobsButton = Button.builder(
@@ -131,7 +131,7 @@ public final class ConfigScreen {
                                     Component.literal("Done"),
                                     btn -> {
                                         // Apply all values to config
-                                        ConfigHelper.INSTANCE.woundsPerTier = woundsPerTierValue;
+                                        ConfigHelper.INSTANCE.woundDensityPercentage = woundDensityValue;
                                         ConfigHelper.INSTANCE.damagePassiveMobs = damagePassiveMobsValue;
                                         ConfigHelper.INSTANCE.damageVillagers = damageVillagersValue;
                                         ConfigHelper.INSTANCE.damageColor = damageColorValue;
@@ -149,8 +149,8 @@ public final class ConfigScreen {
                                             VisualHealth.LOGGER.error("Failed to reload wound textures", e);
                                         }
 
-                                        VisualHealth.LOGGER.info("Visual Health config saved: {} wounds per tier, passive mobs: {}, villagers: {}, color: {}",
-                                                woundsPerTierValue, damagePassiveMobsValue, damageVillagersValue, damageColorValue);
+                                        VisualHealth.LOGGER.info("Visual Health config saved: {}% wound density, passive mobs: {}, villagers: {}, color: {}",
+                                                woundDensityValue, damagePassiveMobsValue, damageVillagersValue, damageColorValue);
 
                                         // Return to parent screen
                                         client.setScreen(parent);

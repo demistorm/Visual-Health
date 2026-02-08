@@ -4,7 +4,6 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
 import win.demistorm.visual_health.VisualHealth;
-import win.demistorm.visual_health.neoforge.client.ClientEvents;
 
 @Mod(VisualHealth.MOD_ID)
 public final class VisualHealthNeoForge {
@@ -17,8 +16,8 @@ public final class VisualHealthNeoForge {
         // Set up client side event handlers
         if (FMLEnvironment.getDist().isClient()) {
             NeoClient.register(modEventBus);
-            // Register damage event handler
-            ClientEvents.register();
+            // Note: Damage event tracking is now handled via LivingEntityMixin
+            // This works on both Fabric and NeoForge without platform-specific code
         }
 
         VisualHealth.LOGGER.info("Visual Health (NEOFORGE) initialization complete!");

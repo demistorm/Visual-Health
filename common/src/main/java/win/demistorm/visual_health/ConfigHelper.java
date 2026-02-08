@@ -20,7 +20,11 @@ public final class ConfigHelper {
 
     // Config settings with defaults
     public static final class Data {
-        public int woundsPerTier = 6;                // How many wounds to add per damage tier (1-10)
+        // Percentage-based wound density (10-100%)
+        // Higher values = more wounds per tier, scales with texture size
+        // 10% = sparse, 50% = medium density, 100% = maximum coverage
+        public int woundDensityPercentage = 50;
+
         public boolean damagePassiveMobs = true;     // Show damage on passive mobs (animals, etc.)
         public boolean damageVillagers = false;      // Show damage on Villagers and Wandering Traders
         public DamageColor damageColor = DamageColor.RED; // Color of damage effects
@@ -47,8 +51,8 @@ public final class ConfigHelper {
         Data loaded = read();
         write(loaded); // Ensure file exists with current values
         copyInto(loaded, INSTANCE);
-        VisualHealth.LOGGER.info("Visual Health config loaded: {} wounds per tier, passive mobs: {}, villagers: {}, color: {}",
-                INSTANCE.woundsPerTier, INSTANCE.damagePassiveMobs, INSTANCE.damageVillagers, INSTANCE.damageColor);
+        VisualHealth.LOGGER.info("Visual Health config loaded: {}% wound density, passive mobs: {}, villagers: {}, color: {}",
+                INSTANCE.woundDensityPercentage, INSTANCE.damagePassiveMobs, INSTANCE.damageVillagers, INSTANCE.damageColor);
     }
 
     // Read config from disk
@@ -76,7 +80,7 @@ public final class ConfigHelper {
 
     // Copy values from one Data object to another
     private static void copyInto(Data from, Data to) {
-        to.woundsPerTier = from.woundsPerTier;
+        to.woundDensityPercentage = from.woundDensityPercentage;
         to.damagePassiveMobs = from.damagePassiveMobs;
         to.damageVillagers = from.damageVillagers;
         to.damageColor = from.damageColor;

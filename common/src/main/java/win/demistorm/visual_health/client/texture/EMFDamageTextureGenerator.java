@@ -91,10 +91,17 @@ public class EMFDamageTextureGenerator {
                 }
             }
 
-            // Calculate wound count based on texture area (scaling)
+            // Calculate wound count based on texture area (scaling) and density percentage
             double areaScale = (variantImage.getWidth() * variantImage.getHeight()) /
                     (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
-            int woundsPerTier = (int) (win.demistorm.visual_health.ConfigHelper.INSTANCE.woundsPerTier * areaScale);
+
+            // Base wound count from percentage (10-100% scales to 3-12 wounds per tier at 64x64)
+            // 10% = 3 wounds, 50% = 7 wounds, 100% = 12 wounds
+            int densityPercent = win.demistorm.visual_health.ConfigHelper.INSTANCE.woundDensityPercentage;
+            int baseWoundsPerTier = 2 + (densityPercent * 10) / 100;
+
+            // Scale by texture area so larger mobs get proportionally more wounds
+            int woundsPerTier = (int) (baseWoundsPerTier * areaScale);
 
             // Use entity ID for consistent random seed (matches cache key)
             Random random = new Random(entity.getId());

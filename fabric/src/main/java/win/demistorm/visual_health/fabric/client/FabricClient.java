@@ -2,8 +2,6 @@ package win.demistorm.visual_health.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
-import win.demistorm.visual_health.client.DamageEventHandler;
 import win.demistorm.visual_health.client.VisualHealthClient;
 import win.demistorm.visual_health.VisualHealth;
 
@@ -29,16 +27,9 @@ public final class FabricClient implements ClientModInitializer {
             }
         });
 
-        // Register damage event handler for weapon type tracking
-        ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
-            // Track damage on client side for visual wound system
-            if (entity.level().isClientSide()) {
-                DamageEventHandler.onLivingDamage(entity, source);
-            }
-            // Return true to allow damage (we're just tracking, not cancelling)
-            return true;
-        });
+        // Note: Damage event tracking is now handled via LivingEntityMixin
+        // This works on both Fabric and NeoForge without platform-specific code
 
-        VisualHealth.LOGGER.info("Fabric client initialization complete (damage events registered)");
+        VisualHealth.LOGGER.info("Fabric client initialization complete");
     }
 }
