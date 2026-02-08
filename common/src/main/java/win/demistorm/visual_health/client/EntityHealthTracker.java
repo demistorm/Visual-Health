@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-// Track damage tiers for entities by their ID
+// Track damage tiers and damage types for entities by their ID
 // In 1.21.11+, render state doesn't contain health, so we track it separately
 public final class EntityHealthTracker {
 
@@ -16,8 +16,12 @@ public final class EntityHealthTracker {
         // Utility class - no instances
     }
 
-    // Map entity ID -> damage tier (0-4)
+    // Map entity ID -> damage tier (0-5)
     private static final Map<Integer, Integer> ENTITY_DAMAGE_TIERS = new ConcurrentHashMap<>();
+
+    // Map entity ID -> (tier -> damage type)
+    // Tracks which weapon caused damage at each tier
+    private static final Map<Integer, Map<Integer, DamageType>> ENTITY_TIER_DAMAGE_TYPES = new ConcurrentHashMap<>();
 
     // Entities that should never show damage (hardcoded blacklist)
     private static final Set<EntityType<?>> DISABLED_ENTITIES = Set.of(
@@ -41,6 +45,25 @@ public final class EntityHealthTracker {
         int tier = calculateDamageTier(entity);
         int oldTier = ENTITY_DAMAGE_TIERS.getOrDefault(entity.getId(), 0);
         ENTITY_DAMAGE_TIERS.put(entity.getId(), tier);
+
+        // If entity healed (tier decreased), clear texture cache and remove damage types for lost tiers
+        if (tier < oldTier) {
+            clearTiersAbove(entity.getId(), tier);
+            VisualHealth.LOGGER.debug("Entity {} healed from tier {} to tier {}, cleared cache for lost tiers",
+                    entity.getName().getString(), oldTier, tier);
+        }
+
+        // If entity took damage (tier increased), record the damage type for the new tier
+        if (tier > oldTier) {
+            // Get the last damage type from the DamageEventHandler
+            DamageType damageType = DamageEventHandler.getLastDamageType(entity.getId());
+            setDamageTypeForTier(entity.getId(), tier, damageType);
+
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("Entity {} tier increased {} -> {}, assigned damage type: {}",
+                        entity.getName().getString(), oldTier, tier, damageType);
+            }
+        }
 
         // Only log if entity has damage (tier > 0) or tier changed
         if (tier > 0 || oldTier != tier) {
@@ -90,6 +113,52 @@ public final class EntityHealthTracker {
     public static void clearAll() {
         int count = ENTITY_DAMAGE_TIERS.size();
         ENTITY_DAMAGE_TIERS.clear();
-        VisualHealth.LOGGER.info("Cleared all entity damage tiers ({} entities)", count);
+        ENTITY_TIER_DAMAGE_TYPES.clear();
+        VisualHealth.LOGGER.info("Cleared all entity damage tiers and damage types ({} entities)", count);
+    }
+
+    // Set the damage type that caused a specific tier for an entity
+    // Called by DamageEventHandler when entity takes damage
+    public static void setDamageTypeForTier(int entityId, int tier, DamageType damageType) {
+        ENTITY_TIER_DAMAGE_TYPES.computeIfAbsent(entityId, k -> new ConcurrentHashMap<>()).put(tier, damageType);
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Set damage type {} for entity ID {} tier {}",
+                    damageType, entityId, tier);
+        }
+    }
+
+    // Get the damage type that caused a specific tier for an entity
+    // Returns GENERIC if no damage type was recorded for this tier
+    public static DamageType getDamageTypeForTier(int entityId, int tier) {
+        Map<Integer, DamageType> tierMap = ENTITY_TIER_DAMAGE_TYPES.get(entityId);
+        if (tierMap == null) {
+            return DamageType.GENERIC;
+        }
+        return tierMap.getOrDefault(tier, DamageType.GENERIC);
+    }
+
+    // Clear damage types for all tiers above the specified tier
+    // Called when entity heals and loses damage tiers
+    private static void clearTiersAbove(int entityId, int maxTier) {
+        Map<Integer, DamageType> tierMap = ENTITY_TIER_DAMAGE_TYPES.get(entityId);
+        if (tierMap != null) {
+            // Remove all tiers greater than maxTier
+            tierMap.keySet().removeIf(tier -> tier > maxTier);
+        }
+
+        // Clear texture cache for this entity's tiers above maxTier
+        win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearEntityTiers(entityId, maxTier + 1, 5);
+        win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator.clearEntityTiers(entityId, maxTier + 1, 5);
+    }
+
+    // Remove an entity from all trackers when it's removed from world
+    public static void removeEntityCompletely(int entityId) {
+        if (ENTITY_DAMAGE_TIERS.containsKey(entityId)) {
+            ENTITY_DAMAGE_TIERS.remove(entityId);
+            ENTITY_TIER_DAMAGE_TYPES.remove(entityId);
+            DamageEventHandler.clearLastDamageType(entityId);
+            VisualHealth.LOGGER.debug("Removed entity ID {} from all damage trackers", entityId);
+        }
     }
 }

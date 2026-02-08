@@ -2,6 +2,7 @@ package win.demistorm.visual_health.client.renderer;
 
 import net.minecraft.resources.Identifier;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.DamageType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,67 +10,46 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-// Selects wound texture identifiers based on damage tier
+// Selects wound texture identifiers based on damage type
 // Returns texture IDs for RenderLayer system, not actual image data
 public class WoundAssetSelector {
 
     private static final String MODID = "visualhealth";
     private static final String TEXTURE_FOLDER = "damage";
 
-    // Cached texture identifiers organized by wound type
-    private static Map<WoundType, List<Identifier>> woundTextures = new HashMap<>();
+    // Cached texture identifiers organized by damage type
+    private static Map<DamageType, List<Identifier>> woundTextures = new HashMap<>();
     private static boolean texturesLoaded = false;
-
-    // Wound types matching our asset folder structure
-    public enum WoundType {
-        SCRATCH("scratches", "scratch"),
-        CUT("cuts", "cut"),
-        WOUND("wounds", "wound"),
-        DRIP("drips", "drip");
-
-        final String folderName;
-        final String texturePrefix;
-
-        WoundType(String folderName, String texturePrefix) {
-            this.folderName = folderName;
-            this.texturePrefix = texturePrefix;
-        }
-    }
 
     // Load texture identifiers (not actual image data)
     public static void loadTextures() {
         VisualHealth.LOGGER.info("Loading wound texture identifiers for Visual Health");
 
-        // Load texture identifiers for each wound type
-        woundTextures.put(WoundType.SCRATCH, loadTexturesFromFolder(WoundType.SCRATCH));
-        woundTextures.put(WoundType.CUT, loadTexturesFromFolder(WoundType.CUT));
-        woundTextures.put(WoundType.WOUND, loadTexturesFromFolder(WoundType.WOUND));
-        woundTextures.put(WoundType.DRIP, loadTexturesFromFolder(WoundType.DRIP));
+        // Load texture identifiers for each damage type
+        for (DamageType damageType : DamageType.values()) {
+            woundTextures.put(damageType, loadTexturesFromFolder(damageType));
+        }
 
         int totalTextures = 0;
         for (List<Identifier> list : woundTextures.values()) {
             totalTextures += list.size();
         }
 
-        VisualHealth.LOGGER.info("Loaded {} wound texture identifiers (scratches: {}, cuts: {}, wounds: {}, drips: {})",
-                totalTextures,
-                woundTextures.get(WoundType.SCRATCH).size(),
-                woundTextures.get(WoundType.CUT).size(),
-                woundTextures.get(WoundType.WOUND).size(),
-                woundTextures.get(WoundType.DRIP).size());
+        VisualHealth.LOGGER.info("Loaded {} wound texture identifiers across {} damage types",
+                totalTextures, DamageType.values().length);
 
         texturesLoaded = true;
     }
 
     // Load texture identifiers from a specific folder
-    // We assume textures are named: scratch1.png, scratch2.png, etc.
-    private static List<Identifier> loadTexturesFromFolder(WoundType woundType) {
+    // We assume textures are named: sword1.png, axe1.png, etc.
+    private static List<Identifier> loadTexturesFromFolder(DamageType damageType) {
         List<Identifier> textures = new ArrayList<>();
 
         // Load texture #1 (we only have one texture per type for now)
         for (int i = 1; i <= 1; i++) {
             Identifier textureId = Identifier.fromNamespaceAndPath(MODID,
-                    TEXTURE_FOLDER + "/" + woundType.folderName + "/" + woundType.texturePrefix + i + ".png");
+                    TEXTURE_FOLDER + "/" + damageType.getFolderName() + "/" + damageType.getTexturePrefix() + i + ".png");
 
             // Note: We don't check if the texture exists here
             // The rendering system will handle missing textures gracefully
@@ -79,28 +59,21 @@ public class WoundAssetSelector {
         return textures;
     }
 
-    // Get a random wound texture identifier based on damage tier
-    public static Identifier getRandomWoundTexture(int damageTier, Random random) {
+    // Get a random wound texture identifier based on damage type
+    public static Identifier getRandomWoundTexture(DamageType damageType, Random random) {
         // Lazy loading
         if (!texturesLoaded) {
             loadTextures();
         }
 
         if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Getting wound texture for tier {}", damageTier);
-        }
-
-        // Select wound type based on damage tier
-        WoundType woundType = selectWoundType(damageTier, random);
-
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Selected wound type: {}", woundType);
+            VisualHealth.LOGGER.debug("Getting wound texture for damage type: {}", damageType);
         }
 
         // Get textures for this type
-        List<Identifier> textures = woundTextures.get(woundType);
+        List<Identifier> textures = woundTextures.get(damageType);
         if (textures == null || textures.isEmpty()) {
-            VisualHealth.LOGGER.warn("No textures found for wound type: {}", woundType);
+            VisualHealth.LOGGER.warn("No textures found for damage type: {}", damageType);
             return getFallbackTexture();
         }
 
@@ -115,28 +88,9 @@ public class WoundAssetSelector {
         return texture;
     }
 
-    // Select wound type based on damage tier with some randomness
-    private static WoundType selectWoundType(int damageTier, Random random) {
-        return switch (damageTier) {
-            case 1 -> // Light damage: mostly scratches, some cuts
-                    random.nextFloat() < 0.7f ? WoundType.SCRATCH : WoundType.CUT;
-            case 2 -> // Moderate damage: mix of cuts and scratches
-                    random.nextFloat() < 0.5f ? WoundType.CUT : WoundType.SCRATCH;
-            case 3 -> // Heavy damage: mostly wounds, some cuts
-                    random.nextFloat() < 0.6f ? WoundType.WOUND : WoundType.CUT;
-            case 4 -> // Severe damage: wounds and some drips
-                    random.nextFloat() < 0.5f ? WoundType.WOUND :
-                            (random.nextFloat() < 0.5f ? WoundType.DRIP : WoundType.WOUND);
-            case 5 -> // Critical damage: lots of wounds and drips
-                    random.nextFloat() < 0.4f ? WoundType.WOUND :
-                            (random.nextFloat() < 0.5f ? WoundType.DRIP : WoundType.WOUND);
-            default -> WoundType.SCRATCH;
-        };
-    }
-
     // Fallback texture if none found
     private static Identifier getFallbackTexture() {
-        return Identifier.fromNamespaceAndPath(MODID, "damage/scratches/scratch1.png");
+        return Identifier.fromNamespaceAndPath(MODID, "damage/generic/generic1.png");
     }
 
     // Clean up on resource reload

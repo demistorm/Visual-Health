@@ -5,11 +5,15 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
-import traben.entity_model_features.models.parts.EMFModelPart;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.DamageType;
+import win.demistorm.visual_health.client.EntityHealthTracker;
+import win.demistorm.visual_health.client.TintCalculator;
 import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -28,13 +32,16 @@ public class EMFDamageTextureGenerator {
     // Value: Dynamic texture identifier
     private static final Map<String, Identifier> DAMAGE_CACHE = new HashMap<>();
 
+    // Base reference texture size for wound count scaling
+    private static final int BASE_TEXTURE_SIZE = 64;
+
     /**
      * Generate a damaged version of an EMF variant texture.
      *
      * @param variantTexture The EMF variant texture (e.g., creeper_rock)
      * @param entity The entity being damaged
      * @param damageTier The damage tier (1-5)
-     * @param tint The tint color to apply to wounds (ARGB format)
+     * @param tint The tint color to apply to wounds (ARGB format) - DEPRECATED, kept for compatibility
      * @return Identifier for the damaged variant texture
      */
     public static Identifier generateDamagedVariant(
@@ -53,8 +60,8 @@ public class EMFDamageTextureGenerator {
 
         try {
             if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Generating EMF damaged variant: {} (tier {}, tint 0x{})",
-                        variantTexture, damageTier, Integer.toHexString(tint));
+                VisualHealth.LOGGER.debug("Generating EMF damaged variant: {} (tier {})",
+                        variantTexture, damageTier);
             }
 
             // Load the variant texture
@@ -84,20 +91,48 @@ public class EMFDamageTextureGenerator {
                 }
             }
 
-            // Calculate number of wounds based on damage tier
-            int woundCount = damageTier * win.demistorm.visual_health.ConfigHelper.INSTANCE.woundsPerTier;
+            // Calculate wound count based on texture area (scaling)
+            double areaScale = (variantImage.getWidth() * variantImage.getHeight()) /
+                    (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
+            int woundsPerTier = (int) (win.demistorm.visual_health.ConfigHelper.INSTANCE.woundsPerTier * areaScale);
 
             // Use entity ID for consistent random seed (matches cache key)
             Random random = new Random(entity.getId());
 
+            // Calculate minimum distance between wounds for rejection sampling
+            int minDistance = (int) Math.sqrt(variantImage.getWidth() * variantImage.getHeight()) / 4;
+
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("EMF generation: area scale={:.2f}, wounds per tier={}, min distance={}",
+                        areaScale, woundsPerTier, minDistance);
+            }
+
+            // Track wound positions for rejection sampling (reset per tier)
+            List<int[]> rejectedPositions = new ArrayList<>();
+
             // Stamp wound textures onto the variant
             int woundIndex = 0;
-            int woundsPerTier = win.demistorm.visual_health.ConfigHelper.INSTANCE.woundsPerTier;
             for (int tier = 1; tier <= damageTier; tier++) {
+                // Clear position tracking for each tier (allow overlap between tiers)
+                rejectedPositions.clear();
+
+                // Get the damage type that caused this tier
+                DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
+
+                // Get the appropriate tint for this damage type
+                // NOTE: This replaces the deprecated tint parameter
+                int woundTint = TintCalculator.getTintForDamageType(damageType, entity);
+
+                if (VisualHealth.debugMode) {
+                    VisualHealth.LOGGER.debug("Tier {}: damage type={}, tint=0x{}",
+                            tier, damageType, Integer.toHexString(woundTint));
+                }
+
+                // Stamp wounds for this tier
                 for (int i = 0; i < woundsPerTier; i++) {
                     try {
-                        // Get a random wound texture for this tier
-                        Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(tier, random);
+                        // Get a random wound texture for this damage type
+                        Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, random);
 
                         // Load the wound texture
                         NativeImage woundAsset;
@@ -105,25 +140,25 @@ public class EMFDamageTextureGenerator {
                             woundAsset = NativeImage.read(resource);
                         }
 
-                        // Apply tint to wound texture
-                        NativeImage tintedWound = applyTint(woundAsset, tint);
+                        // CRITICAL: Apply tint to wound BEFORE stamping
+                        // Use shared TintUtils.applyTint() instead of local method
+                        NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
 
-                        // Random position for this wound (stay within bounds)
-                        int maxX = damagedVariant.getWidth() - tintedWound.getWidth();
-                        int maxY = damagedVariant.getHeight() - tintedWound.getHeight();
-                        int posX = random.nextInt(Math.max(1, maxX));
-                        int posY = random.nextInt(Math.max(1, maxY));
+                        // Find position using rejection sampling for even distribution
+                        int[] position = findValidPosition(variantImage.getWidth(), variantImage.getHeight(),
+                                tintedWound.getWidth(), tintedWound.getHeight(), rejectedPositions, minDistance, random);
 
                         if (VisualHealth.debugMode) {
-                            VisualHealth.LOGGER.debug("Stamping wound {} (tier {}) at ({}, {})",
-                                    ++woundIndex, tier, posX, posY);
+                            VisualHealth.LOGGER.debug("Stamping wound {} (tier {}, {}) at ({}, {})",
+                                    ++woundIndex, tier, damageType, position[0], position[1]);
                         }
 
                         // Stamp the tinted wound onto the variant texture
-                        stampTexture(damagedVariant, tintedWound, posX, posY);
+                        stampTexture(damagedVariant, tintedWound, position[0], position[1]);
 
                         // Clean up tinted wound
                         tintedWound.close();
+                        woundAsset.close();
 
                     } catch (Exception e) {
                         VisualHealth.LOGGER.error("Failed to load or stamp wound texture: {}", e.getMessage(), e);
@@ -141,7 +176,7 @@ public class EMFDamageTextureGenerator {
             }
 
             DynamicTexture texture = new DynamicTexture(
-                    () -> dynamicTextureId.toString(),
+                    dynamicTextureId::toString,
                     damagedVariant
             );
 
@@ -161,51 +196,79 @@ public class EMFDamageTextureGenerator {
         }
     }
 
-    /**
-     * Apply a tint color to a wound texture.
-     * Tints the RGB channels while preserving alpha.
-     *
-     * @param wound The wound texture to tint
-     * @param tint The tint color (ARGB format)
-     * @return A new tinted wound texture
-     */
-    private static NativeImage applyTint(NativeImage wound, int tint) {
-        // Extract tint components
-        int tintR = (tint >> 16) & 0xFF;
-        int tintG = (tint >> 8) & 0xFF;
-        int tintB = tint & 0xFF;
+    // Find a valid position for a wound using rejection sampling
+    // Ensures wounds are evenly distributed by maintaining minimum distance
+    // Returns [x, y] position
+    private static int[] findValidPosition(int textureWidth, int textureHeight, int woundWidth, int woundHeight,
+                                           List<int[]> existingPositions, int minDistance, Random random) {
+        int maxAttempts = 100; // Prevent infinite loop
+        int attempt = 0;
 
-        // Create a new image for the tinted wound
-        NativeImage tinted = new NativeImage(wound.getWidth(), wound.getHeight(), true);
+        while (attempt < maxAttempts) {
+            // Generate random position
+            int maxX = textureWidth - woundWidth;
+            int maxY = textureHeight - woundHeight;
+            int x = random.nextInt(Math.max(1, maxX));
+            int y = random.nextInt(Math.max(1, maxY));
 
-        for (int y = 0; y < wound.getHeight(); y++) {
-            for (int x = 0; x < wound.getWidth(); x++) {
-                int pixel = wound.getPixel(x, y);
-                int alpha = (pixel >> 24) & 0xFF;
-
-                // Skip fully transparent pixels
-                if (alpha == 0) {
-                    continue;
+            // Check if position is valid (not too close to existing wounds)
+            boolean isValid = true;
+            for (int[] existing : existingPositions) {
+                double distance = Math.sqrt(Math.pow(x - existing[0], 2) + Math.pow(y - existing[1], 2));
+                if (distance < minDistance) {
+                    isValid = false;
+                    break;
                 }
+            }
 
-                // Get original RGB
-                int r = (pixel >> 16) & 0xFF;
-                int g = (pixel >> 8) & 0xFF;
-                int b = pixel & 0xFF;
+            if (isValid) {
+                // Found a valid position
+                int[] position = new int[]{x, y};
+                existingPositions.add(position);
+                return position;
+            }
 
-                // Apply tint using multiply blending
-                // This preserves the wound details while applying the color
-                int tintedR = (r * tintR) / 255;
-                int tintedG = (g * tintG) / 255;
-                int tintedB = (b * tintB) / 255;
+            attempt++;
+        }
 
-                // Combine with original alpha
-                int tintedPixel = (alpha << 24) | (tintedR << 16) | (tintedG << 8) | tintedB;
-                tinted.setPixel(x, y, tintedPixel);
+        // Couldn't find ideal position after max attempts, use last random position
+        int x = random.nextInt(Math.max(1, textureWidth - woundWidth));
+        int y = random.nextInt(Math.max(1, textureHeight - woundHeight));
+        int[] position = new int[]{x, y};
+        existingPositions.add(position);
+        return position;
+    }
+
+    // Clear texture cache for specific entity tiers
+    // Called when entity heals and loses damage tiers
+    public static void clearEntityTiers(int entityId, int minTier, int maxTier) {
+        int cleared = 0;
+        List<String> keysToRemove = new ArrayList<>();
+
+        for (String key : DAMAGE_CACHE.keySet()) {
+            if (key.contains("_entity" + entityId + "_tier")) {
+                // Extract tier number from key
+                String tierStr = key.substring(key.lastIndexOf("tier") + 4);
+                try {
+                    int tier = Integer.parseInt(tierStr);
+                    if (tier >= minTier && tier <= maxTier) {
+                        keysToRemove.add(key);
+                    }
+                } catch (NumberFormatException e) {
+                    // Invalid key format, skip
+                }
             }
         }
 
-        return tinted;
+        for (String key : keysToRemove) {
+            DAMAGE_CACHE.remove(key);
+            cleared++;
+        }
+
+        if (cleared > 0 && VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Cleared {} EMF damage texture cache entries for entity ID {} (tiers {}-{})",
+                    cleared, entityId, minTier, maxTier);
+        }
     }
 
     /**
@@ -238,19 +301,24 @@ public class EMFDamageTextureGenerator {
                 int baseX = posX + x;
                 int baseY = posY + y;
                 int basePixel = baseTexture.getPixel(baseX, baseY);
-                int baseAlpha = (basePixel >> 24) & 0xFF;
-
-                // Simple alpha blending (stamp overlays base)
-                float alphaRatio = stampAlpha / 255.0f;
-                int blendedR = blendChannel((basePixel >> 16) & 0xFF, (stampPixel >> 16) & 0xFF, alphaRatio);
-                int blendedG = blendChannel((basePixel >> 8) & 0xFF, (stampPixel >> 8) & 0xFF, alphaRatio);
-                int blendedB = blendChannel(basePixel & 0xFF, stampPixel & 0xFF, alphaRatio);
-                int blendedA = Math.min(255, baseAlpha + stampAlpha);
-
-                int blendedPixel = (blendedA << 24) | (blendedR << 16) | (blendedG << 8) | blendedB;
+                int blendedPixel = getBlendedPixel(basePixel, stampAlpha, stampPixel);
                 baseTexture.setPixel(baseX, baseY, blendedPixel);
             }
         }
+    }
+
+    private static int getBlendedPixel(int basePixel, int stampAlpha, int stampPixel) {
+        int baseAlpha = (basePixel >> 24) & 0xFF;
+
+        // Simple alpha blending (stamp overlays base)
+        float alphaRatio = stampAlpha / 255.0f;
+        int blendedR = blendChannel((basePixel >> 16) & 0xFF, (stampPixel >> 16) & 0xFF, alphaRatio);
+        int blendedG = blendChannel((basePixel >> 8) & 0xFF, (stampPixel >> 8) & 0xFF, alphaRatio);
+        int blendedB = blendChannel(basePixel & 0xFF, stampPixel & 0xFF, alphaRatio);
+        int blendedA = Math.min(255, baseAlpha + stampAlpha);
+
+        int blendedPixel = (blendedA << 24) | (blendedR << 16) | (blendedG << 8) | blendedB;
+        return blendedPixel;
     }
 
     /**

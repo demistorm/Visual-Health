@@ -144,31 +144,17 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         // Get overlay coordinates (required for submitModel, hurt flash disabled with 0.0f)
         int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
 
-        // Check for entity-specific damage color override
+        // Check for entity-specific emissive setting
         EntityDamageColors.DamageOverride override =
                 EntityDamageColors.getOverride(entity.getType());
 
-        // Determine tint color - use override if available, otherwise use config default
-        int tint;
-        boolean isEmissive;
+        // Determine if entity should be emissive
+        // NOTE: Tint is no longer applied here - wounds are pre-tinted during generation
+        boolean isEmissive = override != null && override.isEmissive();
 
-        if (override != null) {
-            // Use entity-specific override
-            tint = override.tintColor();
-            isEmissive = override.isEmissive();
-
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Using entity override for {}: tint=0x{}, emissive={}",
-                        entity.getName().getString(), Integer.toHexString(tint), isEmissive);
-            }
-        } else {
-            // Use default config color
-            tint = switch (win.demistorm.visual_health.ConfigHelper.INSTANCE.damageColor) {
-                case RED -> 0xFF9F0000;   // Blood red
-                case BLACK -> 0xFF000000; // Black
-                case WHITE -> 0xFFFFFFFF; // Pure white
-            };
-            isEmissive = false;
+        if (VisualHealth.debugMode && isEmissive) {
+            VisualHealth.LOGGER.debug("Entity {} is using emissive rendering",
+                    entity.getName().getString());
         }
 
         // Scale up slightly to prevent Z-fighting with base model
@@ -193,13 +179,17 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             VisualHealth.LOGGER.debug("RenderType: {}, isEmissive: {}", renderType, isEmissive);
         }
 
+        // CRITICAL: Pass white (0xFFFFFFFF) as tint since wounds are pre-tinted during generation
+        // This allows different wound types to have different colors on the same texture
+        int identityTint = 0xFFFFFFFF; // White = no color change
+
         // Submit the entity model again with our wound texture overlay!
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("Submitting model with wound overlay... (emissive: {})", isEmissive);
         }
 
         submitNodeCollector.order(0).submitModel(model, entityRenderState, poseStack, renderType,
-                finalPackedLight, overlay, tint, null, 0, null);
+                finalPackedLight, overlay, identityTint, null, 0, null);
 
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("Model submitted successfully");

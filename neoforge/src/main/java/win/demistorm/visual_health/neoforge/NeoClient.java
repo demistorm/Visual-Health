@@ -15,7 +15,11 @@ public class NeoClient {
 
     // Register damage overlay layers during client setup
     private static void onClientSetup(FMLClientSetupEvent event) {
+        VisualHealth.LOGGER.info("NeoForge client initialization starting");
+
         VisualHealthClient.initializeClient();
         VisualHealthClient.registerDamageLayers();
+
+        VisualHealth.LOGGER.info("NeoForge client initialization complete");
     }
 }
