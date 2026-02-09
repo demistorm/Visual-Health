@@ -129,13 +129,16 @@ public final class EntityHealthTracker {
     }
 
     // Get the damage type that caused a specific tier for an entity
-    // Returns GENERIC if no damage type was recorded for this tier
+    // Returns SWORD if no damage type was recorded (game reload scenario)
+    // This ensures wounds use proper colors (entity override or config color)
     public static DamageType getDamageTypeForTier(int entityId, int tier) {
         Map<Integer, DamageType> tierMap = ENTITY_TIER_DAMAGE_TYPES.get(entityId);
         if (tierMap == null) {
-            return DamageType.GENERIC;
+            // No damage type data (game reload or new entity)
+            // Default to SWORD so wounds use proper colors (override or config)
+            return DamageType.SWORD;
         }
-        return tierMap.getOrDefault(tier, DamageType.GENERIC);
+        return tierMap.getOrDefault(tier, DamageType.SWORD);
     }
 
     // Clear damage types for all tiers above the specified tier

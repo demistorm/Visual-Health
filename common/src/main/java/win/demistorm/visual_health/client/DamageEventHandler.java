@@ -24,8 +24,9 @@ public final class DamageEventHandler {
 
     // Get the last damage type that hit an entity
     // Called by EntityHealthTracker when assigning damage types to tiers
+    // Defaults to SWORD for better visual consistency after game reload
     public static DamageType getLastDamageType(int entityId) {
-        return LAST_DAMAGE_TYPE.getOrDefault(entityId, DamageType.GENERIC);
+        return LAST_DAMAGE_TYPE.getOrDefault(entityId, DamageType.SWORD);
     }
 
     // Clear the last damage type for an entity
@@ -63,7 +64,7 @@ public final class DamageEventHandler {
             ItemStack weapon = attacker.getMainHandItem();
 
             if (weapon.isEmpty()) {
-                return DamageType.GENERIC; // Empty hand or unrecognized = generic
+                return DamageType.GENERIC; // Empty hand = generic (punches)
             }
 
             // Use ItemTags for weapon detection (1.21.11+ API)
