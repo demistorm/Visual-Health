@@ -138,4 +138,19 @@ public final class EntityHealthTracker {
         win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearEntityTiers(entityId, maxTier + 1, 5);
         win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator.clearEntityTiers(entityId, maxTier + 1, 5);
     }
+
+    // Clear all entity tracking data
+    // Called on resource reload to prevent stale entity ID mappings
+    public static void clearAllCaches() {
+        int tierCount = ENTITY_DAMAGE_TIERS.size();
+        int damageTypeCount = ENTITY_TIER_DAMAGE_TYPES.size();
+
+        ENTITY_DAMAGE_TIERS.clear();
+        ENTITY_TIER_DAMAGE_TYPES.clear();
+
+        if (tierCount > 0 || damageTypeCount > 0) {
+            VisualHealth.LOGGER.info("Cleared {} entity tier mappings and {} damage type mappings on resource reload",
+                    tierCount, damageTypeCount);
+        }
+    }
 }

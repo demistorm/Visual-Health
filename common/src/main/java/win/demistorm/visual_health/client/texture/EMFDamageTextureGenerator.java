@@ -276,6 +276,17 @@ public class EMFDamageTextureGenerator {
         }
     }
 
+    // Clear all cached textures
+    // Called on resource reload to invalidate all texture identifiers
+    public static void clearAllCaches() {
+        int cacheSize = DAMAGE_CACHE.size();
+        DAMAGE_CACHE.clear();
+
+        if (cacheSize > 0) {
+            VisualHealth.LOGGER.info("Cleared {} EMF damage texture cache entries on resource reload", cacheSize);
+        }
+    }
+
     /**
      * Stamp a texture onto a base texture at the specified position.
      * Uses alpha blending for smooth edges.

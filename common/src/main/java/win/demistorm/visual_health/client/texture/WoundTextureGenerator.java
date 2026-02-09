@@ -246,6 +246,17 @@ public class WoundTextureGenerator {
         }
     }
 
+    // Clear all cached textures
+    // Called on resource reload to invalidate all texture identifiers
+    public static void clearAllCaches() {
+        int cacheSize = WOUND_CACHE.size();
+        WOUND_CACHE.clear();
+
+        if (cacheSize > 0) {
+            VisualHealth.LOGGER.info("Cleared {} wound texture cache entries on resource reload", cacheSize);
+        }
+    }
+
     // Stamp a small texture onto a base texture at the specified position
     // Handles alpha blending for smooth wound edges
     private static void stampTexture(NativeImage baseTexture, NativeImage stamp, int posX, int posY) {

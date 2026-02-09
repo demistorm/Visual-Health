@@ -44,4 +44,17 @@ public final class EMFPerEntityTextures {
     public static Identifier getWoundTextureById(String entityId) {
         return ENTITY_WOUND_TEXTURES.get(entityId);
     }
+
+    /**
+     * Clear all per-entity wound texture mappings.
+     * Called on resource reload to prevent stale entity ID mappings.
+     */
+    public static void clearAllCaches() {
+        int cacheSize = ENTITY_WOUND_TEXTURES.size();
+        ENTITY_WOUND_TEXTURES.clear();
+
+        if (cacheSize > 0) {
+            VisualHealth.LOGGER.info("Cleared {} EMF per-entity texture mappings on resource reload", cacheSize);
+        }
+    }
 }

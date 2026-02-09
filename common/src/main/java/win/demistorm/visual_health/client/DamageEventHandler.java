@@ -35,6 +35,17 @@ public final class DamageEventHandler {
         LAST_DAMAGE_TYPE.remove(entityId);
     }
 
+    // Clear all damage type tracking
+    // Called on resource reload to prevent entity ID reuse issues
+    public static void clearAllCaches() {
+        int cacheSize = LAST_DAMAGE_TYPE.size();
+        LAST_DAMAGE_TYPE.clear();
+
+        if (cacheSize > 0) {
+            VisualHealth.LOGGER.info("Cleared {} last damage type mappings on resource reload", cacheSize);
+        }
+    }
+
     // Called when a living entity is damaged on the client
     // Detects the weapon type and updates the damage tracker
     public static void onLivingDamage(LivingEntity entity, DamageSource source) {

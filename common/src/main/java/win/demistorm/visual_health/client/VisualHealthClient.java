@@ -36,15 +36,50 @@ public class VisualHealthClient {
         log.info("Visual Health client initialization complete!");
     }
 
+    // Force re-registration of damage overlay layers
+    // Called on resource reload to ensure layers persist even if renderers are recreated
+    public static void forceReRegisterLayers() {
+        log.info("Forcing re-registration of damage overlay layers after resource reload");
+
+        // Reset the flag to allow re-registration
+        layersRegistered = false;
+
+        // Re-register layers to all entity renderers
+        boolean success = registerDamageLayers();
+
+        if (success) {
+            log.info("Successfully re-registered damage overlay layers after resource reload");
+        } else {
+            log.warn("Failed to re-register damage overlay layers after resource reload, will retry on next tick");
+        }
+    }
+
     // Called when resources are reloaded (F3+T, resource pack changes, etc.)
     // This method is loader-agnostic and should be called from loader-specific reload listeners
     public static void onResourcesReloaded() {
-        log.info("Visual Health detected resource reload, clearing wound texture cache");
+        log.info("Visual Health detected resource reload, performing full reset");
 
-        // Clear wound texture identifiers
+        // Step 1: Force re-registration of damage overlay layers
+        // Must happen BEFORE cache clearing in case renderers were recreated
+        forceReRegisterLayers();
+
+        // Step 2: Clear all texture generation caches
+        // These caches hold texture identifiers that become invalid after reload
+        win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator.clearAllCaches();
+        win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearAllCaches();
+
+        // Step 3: Clear per-entity texture mappings (entity IDs can be reused after reload)
+        win.demistorm.visual_health.client.EMFPerEntityTextures.clearAllCaches();
+
+        // Step 4: Clear entity health tracking data (entity IDs can be reused after reload)
+        win.demistorm.visual_health.client.EntityHealthTracker.clearAllCaches();
+
+        // Step 5: Clear damage event handler (entity IDs can be reused after reload)
+        win.demistorm.visual_health.client.DamageEventHandler.clearAllCaches();
+
+        // Step 6: Clear and reload wound texture identifiers
         WoundAssetSelector.cleanup();
 
-        // Reload wound texture identifiers
         try {
             WoundAssetSelector.loadTextures();
             log.info("Visual Health reloaded wound textures successfully");
@@ -59,7 +94,7 @@ public class VisualHealthClient {
                     Component.literal("[Visual Health] Resource reload detected"),
                     true);
         }
-        System.out.println("[Visual Health] Resource reload detected");
+        System.out.println("[Visual Health] Resource reload detected - full reset complete");
     }
 
     // Register damage overlay layers to all living entity renderers
