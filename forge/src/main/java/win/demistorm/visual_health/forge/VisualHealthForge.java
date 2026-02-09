@@ -17,6 +17,7 @@ public class VisualHealthForge {
         // Set up client side
         if (FMLEnvironment.dist == Dist.CLIENT) {
             ForgeClient.initialize();
+            win.demistorm.visual_health.forge.client.ForgeConfigScreen.register();
         }
 
         VisualHealth.LOGGER.info("Visual Health (FORGE) initialization complete!");
