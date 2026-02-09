@@ -2,6 +2,8 @@ package win.demistorm.visual_health.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.server.packs.PackType;
 import win.demistorm.visual_health.client.VisualHealthClient;
 import win.demistorm.visual_health.VisualHealth;
 
@@ -27,8 +29,8 @@ public final class FabricClient implements ClientModInitializer {
             }
         });
 
-        // Note: Damage event tracking is now handled via LivingEntityMixin
-        // This works on both Fabric and NeoForge without platform-specific code
+        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES)
+                .registerReloadListener(new VisualHealthFabricReloadListener());
 
         VisualHealth.LOGGER.info("Fabric client initialization complete");
     }

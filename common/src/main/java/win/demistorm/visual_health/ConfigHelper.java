@@ -50,7 +50,7 @@ public final class ConfigHelper {
     public static void loadOrCreate() {
         Data loaded = read();
         write(loaded); // Ensure file exists with current values
-        copyInto(loaded, INSTANCE);
+        copyInto(loaded);
         VisualHealth.LOGGER.info("Visual Health config loaded: {}% wound density, passive mobs: {}, villagers: {}, color: {}",
                 INSTANCE.woundDensityPercentage, INSTANCE.damagePassiveMobs, INSTANCE.damageVillagers, INSTANCE.damageColor);
     }
@@ -79,11 +79,11 @@ public final class ConfigHelper {
     }
 
     // Copy values from one Data object to another
-    private static void copyInto(Data from, Data to) {
-        to.woundDensityPercentage = from.woundDensityPercentage;
-        to.damagePassiveMobs = from.damagePassiveMobs;
-        to.damageVillagers = from.damageVillagers;
-        to.damageColor = from.damageColor;
+    private static void copyInto(Data from) {
+        ConfigHelper.INSTANCE.woundDensityPercentage = from.woundDensityPercentage;
+        ConfigHelper.INSTANCE.damagePassiveMobs = from.damagePassiveMobs;
+        ConfigHelper.INSTANCE.damageVillagers = from.damageVillagers;
+        ConfigHelper.INSTANCE.damageColor = from.damageColor;
     }
 
     // Save current INSTANCE to disk (convenience method for config screen)

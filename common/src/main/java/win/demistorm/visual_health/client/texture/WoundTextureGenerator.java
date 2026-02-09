@@ -152,7 +152,7 @@ public class WoundTextureGenerator {
             // Wrap the NativeImage in a DynamicTexture for GPU upload
             // Supplier provides the texture name for debugging
             DynamicTexture texture = new DynamicTexture(
-                    () -> dynamicTextureId.toString(),
+                    dynamicTextureId::toString,
                     woundTexture
             );
 
@@ -243,15 +243,6 @@ public class WoundTextureGenerator {
         if (cleared > 0 && VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("Cleared {} wound texture cache entries for entity ID {} (tiers {}-{})",
                     cleared, entityId, minTier, maxTier);
-        }
-    }
-
-    // Clear all wound texture cache
-    public static void clearCache() {
-        int count = WOUND_CACHE.size();
-        WOUND_CACHE.clear();
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Cleared all wound texture cache entries ({} entries)", count);
         }
     }
 

@@ -47,7 +47,7 @@ public class WoundAssetSelector {
         List<Identifier> textures = new ArrayList<>();
 
         // Load texture #1 (we only have one texture per type for now)
-        for (int i = 1; i <= 1; i++) {
+        for (int i = 1; i == 1; i++) {
             Identifier textureId = Identifier.fromNamespaceAndPath(MODID,
                     TEXTURE_FOLDER + "/" + damageType.getFolderName() + "/" + damageType.getTexturePrefix() + i + ".png");
 

@@ -89,14 +89,6 @@ public final class EntityHealthTracker {
         return tier;
     }
 
-    // Remove entity from tracker when it's removed from world
-    public static void removeEntity(int entityId) {
-        if (ENTITY_DAMAGE_TIERS.containsKey(entityId)) {
-            ENTITY_DAMAGE_TIERS.remove(entityId);
-            VisualHealth.LOGGER.debug("Removed entity ID {} from damage tracker", entityId);
-        }
-    }
-
     // Calculate damage tier based on health percentage
     private static int calculateDamageTier(LivingEntity entity) {
         float healthPercent = entity.getHealth() / entity.getMaxHealth();
@@ -107,14 +99,6 @@ public final class EntityHealthTracker {
         if (healthPercent > 0.4f) return 3;   // 59-40% health - Heavy wounds (18 wounds)
         if (healthPercent > 0.2f) return 4;   // 39-20% health - Severe wounds (24 wounds)
         return 5;                              // 19-0% health - Critical (30 wounds)
-    }
-
-    // Clear all tracked entities (call on resource reload)
-    public static void clearAll() {
-        int count = ENTITY_DAMAGE_TIERS.size();
-        ENTITY_DAMAGE_TIERS.clear();
-        ENTITY_TIER_DAMAGE_TYPES.clear();
-        VisualHealth.LOGGER.info("Cleared all entity damage tiers and damage types ({} entities)", count);
     }
 
     // Set the damage type that caused a specific tier for an entity
@@ -153,15 +137,5 @@ public final class EntityHealthTracker {
         // Clear texture cache for this entity's tiers above maxTier
         win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearEntityTiers(entityId, maxTier + 1, 5);
         win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator.clearEntityTiers(entityId, maxTier + 1, 5);
-    }
-
-    // Remove an entity from all trackers when it's removed from world
-    public static void removeEntityCompletely(int entityId) {
-        if (ENTITY_DAMAGE_TIERS.containsKey(entityId)) {
-            ENTITY_DAMAGE_TIERS.remove(entityId);
-            ENTITY_TIER_DAMAGE_TYPES.remove(entityId);
-            DamageEventHandler.clearLastDamageType(entityId);
-            VisualHealth.LOGGER.debug("Removed entity ID {} from all damage trackers", entityId);
-        }
     }
 }

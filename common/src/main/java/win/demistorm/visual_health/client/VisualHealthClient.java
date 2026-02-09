@@ -3,18 +3,12 @@ package win.demistorm.visual_health.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
-import net.minecraft.server.packs.resources.ReloadableResourceManager;
+import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.renderer.DamageOverlayLayer;
 import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
-
-import java.util.Map;
 
 // Client initialization (called by each platform)
 public class VisualHealthClient {
@@ -38,38 +32,40 @@ public class VisualHealthClient {
         // Assets will be loaded lazily on first use (when entity takes damage)
         log.info("Visual Health wound textures will load on first use");
 
-        // Register resource reload listener to handle resource pack changes
-        // Cast to ReloadableResourceManager to access registerReloadListener
-        Minecraft client = Minecraft.getInstance();
-        if (client != null && client.getResourceManager() instanceof ReloadableResourceManager) {
-            ReloadableResourceManager reloadManager = (ReloadableResourceManager) client.getResourceManager();
-            reloadManager.registerReloadListener(new ResourceManagerReloadListener() {
-                @Override
-                public void onResourceManagerReload(ResourceManager resourceManager) {
-                    log.info("Visual Health detected resource reload, clearing wound texture cache");
-
-                    // Clear wound texture identifiers
-                    WoundAssetSelector.cleanup();
-
-                    // Reload wound texture identifiers
-                    try {
-                        WoundAssetSelector.loadTextures();
-                        log.info("Visual Health reloaded wound textures successfully");
-                    } catch (Exception e) {
-                        log.error("Failed to reload wound textures", e);
-                    }
-                }
-            });
-        }
-
         initialized = true;
         log.info("Visual Health client initialization complete!");
+    }
+
+    // Called when resources are reloaded (F3+T, resource pack changes, etc.)
+    // This method is loader-agnostic and should be called from loader-specific reload listeners
+    public static void onResourcesReloaded() {
+        log.info("Visual Health detected resource reload, clearing wound texture cache");
+
+        // Clear wound texture identifiers
+        WoundAssetSelector.cleanup();
+
+        // Reload wound texture identifiers
+        try {
+            WoundAssetSelector.loadTextures();
+            log.info("Visual Health reloaded wound textures successfully");
+        } catch (Exception e) {
+            log.error("Failed to reload wound textures", e);
+        }
+
+        // Send chat message to player
+        Minecraft client = Minecraft.getInstance();
+        if (client.player != null) {
+            client.player.displayClientMessage(
+                    Component.literal("[Visual Health] Resource reload detected"),
+                    true);
+        }
+        System.out.println("[Visual Health] Resource reload detected");
     }
 
     // Register damage overlay layers to all living entity renderers
     // Called after entity renderers are registered (in FMLClientSetupEvent for Forge/NeoForge, or onInitializeClient for Fabric)
     // Returns true if registration succeeded, false if it needs to be retried
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"rawtypes"})
     public static boolean registerDamageLayers() {
         if (layersRegistered) {
             if (VisualHealth.debugMode) {
@@ -81,16 +77,19 @@ public class VisualHealthClient {
         log.info("Registering Visual Health damage overlay layers to entity renderers");
 
         Minecraft client = Minecraft.getInstance();
-        if (client == null || client.getEntityRenderDispatcher() == null) {
-            log.warn("EntityRenderDispatcher not available yet, will retry later");
-            return false;
-        }
 
         int layersAdded = 0;
         int renderersProcessed = 0;
 
         // Access fields directly using access widener
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+
+        // Check if dispatcher exists yet (might be null during early initialization)
+        //noinspection ConstantValue
+        if (dispatcher == null) {
+            log.warn("EntityRenderDispatcher is null, will retry later");
+            return false;
+        }
 
         // Check if renderers map is populated
         if (dispatcher.renderers.isEmpty()) {

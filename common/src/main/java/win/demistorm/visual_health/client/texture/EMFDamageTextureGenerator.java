@@ -41,14 +41,12 @@ public class EMFDamageTextureGenerator {
      * @param variantTexture The EMF variant texture (e.g., creeper_rock)
      * @param entity The entity being damaged
      * @param damageTier The damage tier (1-5)
-     * @param tint The tint color to apply to wounds (ARGB format) - DEPRECATED, kept for compatibility
      * @return Identifier for the damaged variant texture
      */
     public static Identifier generateDamagedVariant(
             Identifier variantTexture,
             LivingEntity entity,
-            int damageTier,
-            int tint
+            int damageTier
     ) {
         // Create cache key using entity ID (matches texture ID generation)
         String cacheKey = variantTexture.toString() + "_tier" + damageTier + "_entity" + entity.getId();
@@ -324,8 +322,7 @@ public class EMFDamageTextureGenerator {
         int blendedB = blendChannel(basePixel & 0xFF, stampPixel & 0xFF, alphaRatio);
         int blendedA = Math.min(255, baseAlpha + stampAlpha);
 
-        int blendedPixel = (blendedA << 24) | (blendedR << 16) | (blendedG << 8) | blendedB;
-        return blendedPixel;
+        return (blendedA << 24) | (blendedR << 16) | (blendedG << 8) | blendedB;
     }
 
     /**
@@ -340,13 +337,4 @@ public class EMFDamageTextureGenerator {
         return (int)(base * (1.0f - alphaRatio) + stamp * alphaRatio);
     }
 
-    /**
-     * Clear the damage cache (e.g., when resources are reloaded).
-     */
-    public static void clearCache() {
-        DAMAGE_CACHE.clear();
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("EMF damage texture cache cleared");
-        }
-    }
 }

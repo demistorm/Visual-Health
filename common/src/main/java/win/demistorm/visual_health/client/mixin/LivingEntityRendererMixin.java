@@ -21,9 +21,6 @@ import win.demistorm.visual_health.client.VisualHealthRenderContext;
 public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>>
         extends EntityRenderer<T, S> {
 
-    @Unique
-    private S visualhealth$currentRenderState;
-
     protected LivingEntityRendererMixin(EntityRendererProvider.Context context) {
         super(context);
     }
@@ -46,7 +43,6 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
         VisualHealthRenderContext.setCurrentEntity(state, entity);
 
         // Store render state for potential future use
-        this.visualhealth$currentRenderState = state;
     }
 
     // Clean up entity context after rendering completes

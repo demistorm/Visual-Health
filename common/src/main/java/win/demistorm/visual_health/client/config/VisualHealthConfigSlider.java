@@ -53,11 +53,6 @@ public class VisualHealthConfigSlider extends AbstractSliderButton {
         return Mth.clamp((int)(minValue + (maxValue - minValue) * this.value), minValue, maxValue);
     }
 
-    // Get the current slider value (convenience method)
-    public int getValue() {
-        return getCurrentIntValue();
-    }
-
     // Set the slider to a specific value (for reset functionality)
     public void setValue(int value) {
         this.value = (double)(value - minValue) / (maxValue - minValue);

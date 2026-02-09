@@ -4,7 +4,6 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import traben.entity_model_features.models.IEMFModel;
-import traben.entity_model_features.models.parts.EMFModelPart;
 import traben.entity_texture_features.ETFApi;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator;
@@ -12,7 +11,6 @@ import win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator;
 /**
  * Helper class for applying damage to EMF variant textures.
  * Detects EMF models with texture overrides and generates per-entity wound textures.
- *
  * Uses per-entity texture registration instead of modifying shared model parts,
  * ensuring each entity gets its correct wound texture without affecting others.
  */
@@ -24,7 +22,6 @@ public final class EMFDamageHelper {
 
     /**
      * Check if the entity has an EMF model with texture overrides, and if so, register wound textures.
-     *
      * Instead of modifying the shared EMF model part's textureOverride field (which would affect
      * all entities of the same type), we generate wound textures and register them per-entity.
      * The render mixin will swap these textures in at render time.
@@ -45,6 +42,15 @@ public final class EMFDamageHelper {
         }
 
         var emfRoot = emfModel.emf$getEMFRootModel();
+
+        // Check if EMF root exists (might be null for some models)
+        if (emfRoot == null) {
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("EMF model detected but root is null for {}",
+                        entity.getName().getString());
+            }
+            return false;
+        }
 
         // Check if any parts have texture overrides
         boolean hasOverrides = false;
@@ -107,7 +113,7 @@ public final class EMFDamageHelper {
                 // Generate wound texture from the ETF-processed texture
                 // This will check its internal cache and avoid regenerating
                 woundTexture = EMFDamageTextureGenerator.generateDamagedVariant(
-                        etfProcessedTexture, entity, damageTier, tint);
+                        etfProcessedTexture, entity, damageTier);
                 break; // Only need to generate once
             }
         }
@@ -126,13 +132,5 @@ public final class EMFDamageHelper {
         }
 
         return false;
-    }
-
-    /**
-     * Clear the per-entity texture mappings.
-     * Should be called when resources are reloaded.
-     */
-    public static void clearCache() {
-        EMFPerEntityTextures.clearAll();
     }
 }

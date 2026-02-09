@@ -4,7 +4,6 @@ import net.minecraft.resources.Identifier;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -44,30 +43,5 @@ public final class EMFPerEntityTextures {
      */
     public static Identifier getWoundTextureById(String entityId) {
         return ENTITY_WOUND_TEXTURES.get(entityId);
-    }
-
-    /**
-     * Remove wound texture when entity despawns or heals to tier 0.
-     *
-     * @param entityId The integer ID of the entity (as String)
-     */
-    public static void removeWoundTextureById(String entityId) {
-        Identifier removed = ENTITY_WOUND_TEXTURES.remove(entityId);
-        if (removed != null && VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Removed wound texture {} for entity ID {}",
-                    removed, entityId);
-        }
-    }
-
-    /**
-     * Clear all wound textures.
-     * Should be called on resource reload or world unload.
-     */
-    public static void clearAll() {
-        int size = ENTITY_WOUND_TEXTURES.size();
-        ENTITY_WOUND_TEXTURES.clear();
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Cleared {} EMF wound texture mappings", size);
-        }
     }
 }

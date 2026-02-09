@@ -16,6 +16,7 @@ public final class VisualHealthNeoForge {
         // Set up client side event handlers
         if (FMLEnvironment.getDist().isClient()) {
             NeoClient.register(modEventBus);
+            NeoClient.register(modB);
             // Note: Damage event tracking is now handled via LivingEntityMixin
             // This works on both Fabric and NeoForge without platform-specific code
         }

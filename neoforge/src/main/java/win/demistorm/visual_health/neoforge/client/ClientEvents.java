@@ -1,10 +1,12 @@
 package win.demistorm.visual_health.neoforge.client;
 
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.DamageEventHandler;
+import win.demistorm.visual_health.client.VisualHealthClient;
 
 // Client-side event handlers for NeoForge
 // Registered manually to NeoForge EVENT_BUS (no @EventBusSubscriber)
