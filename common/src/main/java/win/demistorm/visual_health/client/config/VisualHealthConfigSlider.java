@@ -13,6 +13,7 @@ public class VisualHealthConfigSlider extends AbstractSliderButton {
 
     private final int minValue;
     private final int maxValue;
+    private final int step;
     private final Consumer<Integer> onValueChanged;
     private final Function<Integer, Component> messageFormatter;
 
@@ -20,16 +21,26 @@ public class VisualHealthConfigSlider extends AbstractSliderButton {
     // x, y, width, height: Position and size
     // minValue, maxValue: Range of integer values
     // currentValue: Initial value
+    // step: Step size (e.g., 10 for 10% intervals)
     // messageFormatter: Function to format the current value into a display message
     // onValueChanged: Callback when value changes
     public VisualHealthConfigSlider(int x, int y, int width, int height,
                                     int minValue, int maxValue, int currentValue,
                                     Function<Integer, Component> messageFormatter,
                                     Consumer<Integer> onValueChanged) {
+        this(x, y, width, height, minValue, maxValue, currentValue, 1, messageFormatter, onValueChanged);
+    }
+
+    // Create a slider with step size support
+    public VisualHealthConfigSlider(int x, int y, int width, int height,
+                                    int minValue, int maxValue, int currentValue, int step,
+                                    Function<Integer, Component> messageFormatter,
+                                    Consumer<Integer> onValueChanged) {
         super(x, y, width, height, Component.empty(),
               (double)(currentValue - minValue) / (maxValue - minValue));
         this.minValue = minValue;
         this.maxValue = maxValue;
+        this.step = step;
         this.messageFormatter = messageFormatter;
         this.onValueChanged = onValueChanged;
         updateMessage();
@@ -41,6 +52,19 @@ public class VisualHealthConfigSlider extends AbstractSliderButton {
         setMessage(messageFormatter.apply(getCurrentIntValue()));
     }
 
+    // Called when user drags the slider handle
+    // Override to make the slider visually snap to step intervals
+    @Override
+    protected void onDrag(net.minecraft.client.input.MouseButtonEvent mouseButtonEvent, double dragAmountX, double dragAmountY) {
+        // Let parent update the value based on mouse position
+        super.onDrag(mouseButtonEvent, dragAmountX, dragAmountY);
+
+        // Now snap the visual position to the nearest step interval
+        int snappedValue = getCurrentIntValue();
+        this.value = (double)(snappedValue - minValue) / (maxValue - minValue);
+        updateMessage();
+    }
+
     // Called when user releases the slider handle
     // Applies the new value to the config
     @Override
@@ -49,8 +73,11 @@ public class VisualHealthConfigSlider extends AbstractSliderButton {
     }
 
     // Convert the internal double value to an integer in the correct range
+    // Snaps to the nearest step interval for precise control
     private int getCurrentIntValue() {
-        return Mth.clamp((int)(minValue + (maxValue - minValue) * this.value), minValue, maxValue);
+        int rawValue = Mth.clamp((int)(minValue + (maxValue - minValue) * this.value), minValue, maxValue);
+        // Round to nearest step interval
+        return Math.round(rawValue / (float)step) * step;
     }
 
     // Set the slider to a specific value (for reset functionality)
