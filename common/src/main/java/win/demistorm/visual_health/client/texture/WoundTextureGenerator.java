@@ -57,10 +57,10 @@ public class WoundTextureGenerator {
             // Calculate wound count based on texture area (scaling) and density percentage
             double areaScale = (baseWidth * baseHeight) / (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
 
-            // Base wound count from percentage (10-100% scales to 3-12 wounds per tier at 64x64)
-            // 10% = 3 wounds, 50% = 7 wounds, 100% = 12 wounds
+            // Base wound count from percentage (10-100% scales linearly 6-62 wounds per tier at 64x64)
+            // 10% = 6 wounds per tier, 100% = 62 wounds per tier (250 wounds at tier 4)
             int densityPercent = win.demistorm.visual_health.ConfigHelper.INSTANCE.woundDensityPercentage;
-            int baseWoundsPerTier = 2 + (densityPercent * 10) / 100;
+            int baseWoundsPerTier = (densityPercent * 62) / 100;
 
             // Scale by texture area so larger mobs get proportionally more wounds
             int woundsPerTier = (int) (baseWoundsPerTier * areaScale);
@@ -70,8 +70,10 @@ public class WoundTextureGenerator {
             Random random = new Random(entity.getUUID().getLeastSignificantBits());
 
             // Calculate minimum distance between wounds for rejection sampling
-            // Based on texture size to ensure even distribution at any scale
-            int minDistance = (int) Math.sqrt(baseWidth * baseHeight) / 4;
+            // Scales inversely with wound count - more wounds means tighter spacing for even coverage
+            // This ensures that as wound density increases, they can still be placed without excessive rejection
+            int distanceFactor = 6 + (totalWounds / 15);
+            int minDistance = Math.max(4, (int) Math.sqrt(baseWidth * baseHeight) / distanceFactor);
 
             if (VisualHealth.debugMode) {
                 VisualHealth.LOGGER.debug("Generating {}x{} wound texture (area scale: {:.2f}) with {} wounds for {}",

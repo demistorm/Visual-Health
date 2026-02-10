@@ -67,7 +67,7 @@ public final class ConfigScreen {
                             .tooltip(Tooltip.create(Component.literal("Reset all settings to default")))
                             .build());
 
-            // Slider for wound density percentage (10-100%)
+            // Slider for wound density percentage (10-100% in 10% increments)
             densitySlider = new VisualHealthConfigSlider(
                     width / 2 - 80,  // x position (centered)
                     height / 6 - 10, // y position
@@ -76,6 +76,7 @@ public final class ConfigScreen {
                     10,              // min value (10% minimum)
                     100,             // max value (100% maximum)
                     woundDensityValue, // current value
+                    10,              // step size (10% intervals)
                     value -> Component.literal("Wound Density: " + value + "%"), // message formatter
                     value -> {
                         woundDensityValue = value; // Update tracked value
