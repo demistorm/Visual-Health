@@ -53,6 +53,9 @@ dependencies {
     // EMF compat
     modCompileOnly "maven.modrinth:4I1XuqiY:3.0.11-neoforge-1.21.11"
 
+    // ETF compat
+    modCompileOnly "maven.modrinth:BVzZfTc1:7.0.8-neoforge-1.21.11"
+
 }
 
 // Process resources and expand version placeholders
