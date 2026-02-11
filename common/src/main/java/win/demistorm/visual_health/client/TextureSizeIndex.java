@@ -59,7 +59,7 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.IRON_GOLEM, new TextureSize(128, 128));
         TEXTURE_SIZES.put(EntityType.LLAMA, new TextureSize(128, 64));
         TEXTURE_SIZES.put(EntityType.PANDA, new TextureSize(64, 64));
-        TEXTURE_SIZES.put(EntityType.POLAR_BEAR, new TextureSize(64, 64));
+        TEXTURE_SIZES.put(EntityType.POLAR_BEAR, new TextureSize(128, 64));
         TEXTURE_SIZES.put(EntityType.SPIDER, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.WOLF, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.ZOMBIFIED_PIGLIN, new TextureSize(64, 64));
@@ -74,7 +74,8 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.ELDER_GUARDIAN, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.ENDERMITE, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.EVOKER, new TextureSize(64, 64));
-        TEXTURE_SIZES.put(EntityType.GHAST, new TextureSize(64, 64));
+        TEXTURE_SIZES.put(EntityType.GHAST, new TextureSize(128, 64));
+        TEXTURE_SIZES.put(EntityType.HAPPY_GHAST, new TextureSize(128, 128));
         TEXTURE_SIZES.put(EntityType.GUARDIAN, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.HOGLIN, new TextureSize(128, 64));
         TEXTURE_SIZES.put(EntityType.HUSK, new TextureSize(64, 64));
