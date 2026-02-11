@@ -13,7 +13,7 @@ public final class VisualHealth {
     public static final boolean debugMode = true;
 
     static {
-        Configurator.setLevel(MOD_ID, debugMode ? Level.DEBUG : Level.INFO);
+        Configurator.setLevel(VisualHealth.class.getName(), debugMode ? Level.DEBUG : Level.INFO);
     }
 
     public static void initialize() {
