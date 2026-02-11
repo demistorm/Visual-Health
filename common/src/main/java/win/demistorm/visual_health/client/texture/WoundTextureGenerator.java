@@ -13,6 +13,10 @@ import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
 import java.util.*;
 
+import static win.demistorm.visual_health.client.texture.AlphaMaskCache.maskWoundOnInvisiblePixels;
+import static win.demistorm.visual_health.client.texture.AlphaMaskCache.getOrGenerateAlphaMask;
+import static win.demistorm.visual_health.client.texture.TextureLocator.getEntityTexture;
+
 // Generates composite textures with wound effects stamped onto them
 // Creates entity-sized textures with wound overlays for the RenderLayer system
 public class WoundTextureGenerator {
@@ -63,6 +67,18 @@ public class WoundTextureGenerator {
             for (int y = 0; y < baseHeight; y++) {
                 for (int x = 0; x < baseWidth; x++) {
                     woundTexture.setPixel(x, y, transparent);
+                }
+            }
+
+            // Get the entity's actual texture (including variants) for alpha masking
+            Identifier entityTexture = getEntityTexture(entity);
+            boolean[][] alphaMask = null;
+
+            if (entityTexture != null) {
+                alphaMask = getOrGenerateAlphaMask(entityTexture);
+                if (VisualHealth.debugMode) {
+                    VisualHealth.LOGGER.debug("Got alpha mask for texture {}: {}",
+                            entityTexture, alphaMask != null ? "success" : "null");
                 }
             }
 
@@ -144,6 +160,12 @@ public class WoundTextureGenerator {
 
                         // Stamp the tinted wound onto the base texture
                         stampTexture(woundTexture, tintedWound, position[0], position[1]);
+
+                        // Mask out wound pixels that fall on invisible areas of the entity texture
+                        // This prevents floating wounds on invisible model parts while allowing partial wounds
+                        if (alphaMask != null) {
+                            maskWoundOnInvisiblePixels(woundTexture, alphaMask, position[0], position[1]);
+                        }
 
                         // Clean up tinted wound (important!)
                         tintedWound.close();
@@ -323,6 +345,9 @@ public class WoundTextureGenerator {
         int cacheSize = WOUND_CACHE.size();
         WOUND_CACHE.clear();
         WOUND_IMAGE_CACHE.clear();
+
+        // Clear alpha mask cache as well
+        win.demistorm.visual_health.client.texture.AlphaMaskCache.clearAllCaches();
 
         if (cacheSize > 0) {
             VisualHealth.LOGGER.info("Cleared {} wound texture cache entries on resource reload", cacheSize);
