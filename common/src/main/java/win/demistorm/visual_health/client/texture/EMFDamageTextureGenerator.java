@@ -117,14 +117,9 @@ public class EMFDamageTextureGenerator {
                         areaScale, woundsPerTier);
             }
 
-            // Track wound positions for rejection sampling (reset per tier)
-            List<int[]> rejectedPositions = new ArrayList<>();
-
             // Stamp wound textures onto the variant
             int woundIndex = 0;
             for (int tier = 1; tier <= damageTier; tier++) {
-                // Clear position tracking for each tier (allow overlap between tiers)
-                rejectedPositions.clear();
 
                 // Get the damage type that caused this tier
                 DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
@@ -139,11 +134,8 @@ public class EMFDamageTextureGenerator {
                 }
                 Random tierRandom = new Random(tierSeed);
 
-                // Calculate minimum distance for THIS TIER based on fixed per-tier wound count
-                // This ensures each tier uses consistent spacing regardless of viewing tier 2 or tier 3
-                int tierWounds = woundsPerTier * 1;  // Just this tier's wounds
-                int tierDistanceFactor = 6 + (tierWounds / 15);
-                int tierMinDistance = Math.max(4, (int) (Math.sqrt(variantImage.getWidth() * variantImage.getHeight()) / tierDistanceFactor * 0.3));
+                // Pre-shuffle grid ONCE for this tier (ensures consistency)
+                int[] tierCells = shuffleGrid(variantImage.getWidth(), variantImage.getHeight(), tierRandom);
 
                 // Get the appropriate tint for this damage type
                 // NOTE: This replaces the deprecated tint parameter
@@ -170,9 +162,10 @@ public class EMFDamageTextureGenerator {
                         // Use shared TintUtils.applyTint() instead of local method
                         NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
 
-                        // Find position using rejection sampling for even distribution
-                        int[] position = findValidPosition(variantImage.getWidth(), variantImage.getHeight(),
-                                tintedWound.getWidth(), tintedWound.getHeight(), rejectedPositions, tierMinDistance, tierRandom);
+                        // Find position using fuzzy grid distribution for even coverage
+                        int[] position = getFuzzyGridPosition(variantImage.getWidth(), variantImage.getHeight(),
+                                tintedWound.getWidth(), tintedWound.getHeight(),
+                                tierCells, i, tierRandom);
 
                         if (VisualHealth.debugMode) {
                             VisualHealth.LOGGER.debug("Stamping wound {} (tier {}, {}) at ({}, {})",
@@ -222,47 +215,65 @@ public class EMFDamageTextureGenerator {
         }
     }
 
-    // Find a valid position for a wound using rejection sampling
-    // Ensures wounds are evenly distributed by maintaining minimum distance
-    // Returns [x, y] position
-    private static int[] findValidPosition(int textureWidth, int textureHeight, int woundWidth, int woundHeight,
-                                           List<int[]> existingPositions, int minDistance, Random random) {
-        int maxAttempts = 100; // Prevent infinite loop
-        int attempt = 0;
+    // Shuffle grid cells into random order for consistent per-tier wound placement
+    // Uses 8x8 pixel cells to ensure even coverage across entire texture including edges
+    private static int[] shuffleGrid(int textureWidth, int textureHeight, Random random) {
+        // Grid cells are always 8x8 pixels
+        int gridCols = textureWidth / 8;
+        int gridRows = textureHeight / 8;
+        int totalCells = gridRows * gridCols;
 
-        while (attempt < maxAttempts) {
-            // Generate random position
-            int maxX = textureWidth - woundWidth;
-            int maxY = textureHeight - woundHeight;
-            int x = random.nextInt(Math.max(1, maxX));
-            int y = random.nextInt(Math.max(1, maxY));
-
-            // Check if position is valid (not too close to existing wounds)
-            boolean isValid = true;
-            for (int[] existing : existingPositions) {
-                double distance = Math.sqrt(Math.pow(x - existing[0], 2) + Math.pow(y - existing[1], 2));
-                if (distance < minDistance) {
-                    isValid = false;
-                    break;
-                }
-            }
-
-            if (isValid) {
-                // Found a valid position
-                int[] position = new int[]{x, y};
-                existingPositions.add(position);
-                return position;
-            }
-
-            attempt++;
+        int[] cells = new int[totalCells];
+        for (int i = 0; i < totalCells; i++) {
+            cells[i] = i;
         }
 
-        // Couldn't find ideal position after max attempts, use last random position
-        int x = random.nextInt(Math.max(1, textureWidth - woundWidth));
-        int y = random.nextInt(Math.max(1, textureHeight - woundHeight));
-        int[] position = new int[]{x, y};
-        existingPositions.add(position);
-        return position;
+        // Fisher-Yates shuffle
+        for (int i = totalCells - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            int temp = cells[i];
+            cells[i] = cells[j];
+            cells[j] = temp;
+        }
+
+        return cells;
+    }
+
+    // Get fuzzy grid position for wound placement
+    // Picks from pre-shuffled grid and adds random offset (-10 to +10 pixels) for natural look
+    private static int[] getFuzzyGridPosition(int textureWidth, int textureHeight,
+                                               int woundWidth, int woundHeight,
+                                               int[] shuffledCells, int woundIndex,
+                                               Random random) {
+        // Grid cells are 8x8 pixels
+        int gridCols = textureWidth / 8;
+        int gridRows = textureHeight / 8;
+        int cellWidth = 8;
+        int cellHeight = 8;
+
+        // Pick cell from shuffled array (wrap if more wounds than cells)
+        int totalCells = gridRows * gridCols;
+        int cellIndex = shuffledCells[woundIndex % totalCells];
+        int cellRow = cellIndex / gridCols;
+        int cellCol = cellIndex % gridCols;
+
+        // Calculate cell center (always 8x8 grid, shifted +1 Y)
+        int centerX = cellCol * cellWidth + cellWidth / 2;
+        int centerY = cellRow * cellHeight + cellHeight / 2;
+
+        // Add fuzziness (-8 to +8 pixels) for natural distribution
+        int offsetX = random.nextInt(17) - 8;
+        int offsetY = random.nextInt(17) - 8;
+
+        // Calculate final position (wound centered at cell center)
+        int x = centerX + offsetX - woundWidth / 2;
+        int y = centerY + offsetY - woundHeight / 2;
+
+        // Clamp to texture bounds (prevent negative or out-of-bounds placement)
+        x = Math.max(0, Math.min(textureWidth - woundWidth, x));
+        y = Math.max(0, Math.min(textureHeight - woundHeight, y));
+
+        return new int[]{x, y};
     }
 
     // Clear texture cache for specific entity tiers
