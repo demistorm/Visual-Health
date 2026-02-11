@@ -48,8 +48,19 @@ public class EMFDamageTextureGenerator {
             LivingEntity entity,
             int damageTier
     ) {
-        // Create cache key using entity ID (matches texture ID generation)
-        String cacheKey = variantTexture.toString() + "_tier" + damageTier + "_entity" + entity.getId();
+        // Build cache key that includes damage type history
+        // This ensures different weapon combinations get different cached textures
+        // Format: variantTexture_tier#_entityId_weapon1_weapon2_...
+        StringBuilder cacheKeyBuilder = new StringBuilder();
+        cacheKeyBuilder.append(variantTexture.toString()).append("_tier").append(damageTier).append("_entity").append(entity.getId());
+
+        // Include damage type for each tier in the cache key
+        for (int tier = 1; tier <= damageTier; tier++) {
+            DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
+            cacheKeyBuilder.append("_").append(damageType.name());
+        }
+
+        String cacheKey = cacheKeyBuilder.toString();
 
         // Check cache
         if (DAMAGE_CACHE.containsKey(cacheKey)) {
@@ -100,20 +111,10 @@ public class EMFDamageTextureGenerator {
 
             // Scale by texture area so larger mobs get proportionally more wounds
             int woundsPerTier = (int) (baseWoundsPerTier * areaScale);
-            int totalWounds = woundsPerTier * damageTier;
-
-            // Use entity ID for consistent random seed (matches cache key)
-            Random random = new Random(entity.getId());
-
-            // Calculate minimum distance between wounds for rejection sampling
-            // Scales inversely with wound count - more wounds means tighter spacing for even coverage
-            // This ensures that as wound density increases, they can still be placed without excessive rejection
-            int distanceFactor = 6 + (totalWounds / 15);
-            int minDistance = Math.max(4, (int) Math.sqrt(variantImage.getWidth() * variantImage.getHeight()) / distanceFactor);
 
             if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("EMF generation: area scale={:.2f}, wounds per tier={}, min distance={}",
-                        areaScale, woundsPerTier, minDistance);
+                VisualHealth.LOGGER.debug("EMF generation: area scale={:.2f}, wounds per tier={}",
+                        areaScale, woundsPerTier);
             }
 
             // Track wound positions for rejection sampling (reset per tier)
@@ -128,6 +129,22 @@ public class EMFDamageTextureGenerator {
                 // Get the damage type that caused this tier
                 DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
 
+                // Create a tier-specific random seed to ensure wounds stay in consistent positions
+                // The seed includes the weapon sequence up to this tier, so tier 1-2 wounds
+                // are in the same positions whether viewing tier 2 or tier 3
+                long tierSeed = entity.getId();
+                for (int t = 1; t <= tier; t++) {
+                    DamageType dt = EntityHealthTracker.getDamageTypeForTier(entity.getId(), t);
+                    tierSeed = tierSeed * 31 + dt.name().hashCode();
+                }
+                Random tierRandom = new Random(tierSeed);
+
+                // Calculate minimum distance for THIS TIER based on fixed per-tier wound count
+                // This ensures each tier uses consistent spacing regardless of viewing tier 2 or tier 3
+                int tierWounds = woundsPerTier * 1;  // Just this tier's wounds
+                int tierDistanceFactor = 6 + (tierWounds / 15);
+                int tierMinDistance = Math.max(4, (int) (Math.sqrt(variantImage.getWidth() * variantImage.getHeight()) / tierDistanceFactor * 0.3));
+
                 // Get the appropriate tint for this damage type
                 // NOTE: This replaces the deprecated tint parameter
                 int woundTint = TintCalculator.getTintForDamageType(damageType, entity);
@@ -141,7 +158,7 @@ public class EMFDamageTextureGenerator {
                 for (int i = 0; i < woundsPerTier; i++) {
                     try {
                         // Get a random wound texture for this damage type
-                        Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, random);
+                        Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
 
                         // Load the wound texture
                         NativeImage woundAsset;
@@ -155,7 +172,7 @@ public class EMFDamageTextureGenerator {
 
                         // Find position using rejection sampling for even distribution
                         int[] position = findValidPosition(variantImage.getWidth(), variantImage.getHeight(),
-                                tintedWound.getWidth(), tintedWound.getHeight(), rejectedPositions, minDistance, random);
+                                tintedWound.getWidth(), tintedWound.getHeight(), rejectedPositions, tierMinDistance, tierRandom);
 
                         if (VisualHealth.debugMode) {
                             VisualHealth.LOGGER.debug("Stamping wound {} (tier {}, {}) at ({}, {})",
@@ -255,9 +272,21 @@ public class EMFDamageTextureGenerator {
         List<String> keysToRemove = new ArrayList<>();
 
         for (String key : DAMAGE_CACHE.keySet()) {
-            if (key.contains("_entity" + entityId + "_tier")) {
-                // Extract tier number from key
-                String tierStr = key.substring(key.lastIndexOf("tier") + 4);
+            if (key.contains("_entity" + entityId + "_")) {
+                // Extract tier number from key (format: variantTexture_tier#_entityId_weapon1_weapon2_...)
+                // Find the position of "_tier" and "_entity"
+                int tierStartIndex = key.indexOf("_tier");
+                if (tierStartIndex == -1) {
+                    continue; // Invalid key format
+                }
+
+                // Find the underscore after the tier number (before "_entity")
+                int tierEndIndex = key.indexOf("_entity", tierStartIndex);
+                if (tierEndIndex == -1) {
+                    continue; // Invalid key format
+                }
+
+                String tierStr = key.substring(tierStartIndex + 5, tierEndIndex); // +5 to skip "_tier"
                 try {
                     int tier = Integer.parseInt(tierStr);
                     if (tier >= minTier && tier <= maxTier) {

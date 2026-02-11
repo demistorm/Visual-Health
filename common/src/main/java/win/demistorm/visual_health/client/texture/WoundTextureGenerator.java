@@ -11,11 +11,7 @@ import win.demistorm.visual_health.client.EntityHealthTracker;
 import win.demistorm.visual_health.client.TintCalculator;
 import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 // Generates composite textures with wound effects stamped onto them
 // Creates entity-sized textures with wound overlays for the RenderLayer system
@@ -30,14 +26,30 @@ public class WoundTextureGenerator {
     // Value: Dynamic texture identifier
     private static final Map<String, Identifier> WOUND_CACHE = new HashMap<>();
 
+    // Cache texture data for debugging/saving
+    // Key: entityId + damageTier
+    // Value: NativeImage
+    private static final Map<String, NativeImage> WOUND_IMAGE_CACHE = new HashMap<>();
+
     // Base reference texture size for wound count scaling
     private static final int BASE_TEXTURE_SIZE = 64;
 
     // Generate a texture with wounds stamped onto it
     // Returns a texture identifier that can be used with entity models
     public static Identifier generateWoundedTexture(LivingEntity entity, int damageTier, int baseWidth, int baseHeight) {
-        // Check cache first
-        String cacheKey = entity.getId() + "_tier" + damageTier;
+        // Build cache key that includes damage type history
+        // This ensures different weapon combinations get different cached textures
+        // Format: entityId_tier#_weapon1_weapon2_...
+        StringBuilder cacheKeyBuilder = new StringBuilder();
+        cacheKeyBuilder.append(entity.getId()).append("_tier").append(damageTier);
+
+        // Include damage type for each tier in the cache key
+        for (int tier = 1; tier <= damageTier; tier++) {
+            DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
+            cacheKeyBuilder.append("_").append(damageType.name());
+        }
+
+        String cacheKey = cacheKeyBuilder.toString();
         if (WOUND_CACHE.containsKey(cacheKey)) {
             return WOUND_CACHE.get(cacheKey);
         }
@@ -64,34 +76,31 @@ public class WoundTextureGenerator {
 
             // Scale by texture area so larger mobs get proportionally more wounds
             int woundsPerTier = (int) (baseWoundsPerTier * areaScale);
-            int totalWounds = woundsPerTier * damageTier;
-
-            // Use entity UUID for consistent random seed
-            Random random = new Random(entity.getUUID().getLeastSignificantBits());
-
-            // Calculate minimum distance between wounds for rejection sampling
-            // Scales inversely with wound count - more wounds means tighter spacing for even coverage
-            // This ensures that as wound density increases, they can still be placed without excessive rejection
-            int distanceFactor = 6 + (totalWounds / 15);
-            int minDistance = Math.max(4, (int) Math.sqrt(baseWidth * baseHeight) / distanceFactor);
 
             if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Generating {}x{} wound texture (area scale: {:.2f}) with {} wounds for {}",
-                        baseWidth, baseHeight, areaScale, totalWounds, entity.getName().getString());
+                VisualHealth.LOGGER.debug("Generating {}x{} wound texture (area scale: {:.2f}) with {} wounds per tier for {}",
+                        baseWidth, baseHeight, areaScale, woundsPerTier, entity.getName().getString());
             }
-
-            // Track wound positions for rejection sampling (reset per tier)
-            List<int[]> rejectedPositions = new ArrayList<>();
 
             // Stamp wound textures onto the base texture
             // Loop through each tier up to current tier to make wounds cumulative
             int woundIndex = 0;
             for (int tier = 1; tier <= damageTier; tier++) {
-                // Clear position tracking for each tier (allow overlap between tiers)
-                rejectedPositions.clear();
-
                 // Get the damage type that caused this tier
                 DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
+
+                // Create a tier-specific random seed to ensure wounds stay in consistent positions
+                // The seed includes the weapon sequence up to this tier, so tier 1-2 wounds
+                // are in the same positions whether viewing tier 2 or tier 3
+                long tierSeed = entity.getUUID().getLeastSignificantBits();
+                for (int t = 1; t <= tier; t++) {
+                    DamageType dt = EntityHealthTracker.getDamageTypeForTier(entity.getId(), t);
+                    tierSeed = tierSeed * 31 + dt.name().hashCode();
+                }
+                Random tierRandom = new Random(tierSeed);
+
+                // Pre-shuffle grid ONCE for this tier (ensures consistency)
+                int[] tierCells = shuffleGrid(baseWidth, baseHeight, tierRandom);
 
                 // Get the appropriate tint for this damage type
                 int woundTint = TintCalculator.getTintForDamageType(damageType, entity);
@@ -105,7 +114,7 @@ public class WoundTextureGenerator {
                 for (int i = 0; i < woundsPerTier; i++) {
                     try {
                         // Get a random wound texture for this damage type
-                        Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, random);
+                        Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
 
                         // Load the wound texture from resource manager
                         net.minecraft.server.packs.resources.ResourceManager resourceManager =
@@ -120,9 +129,13 @@ public class WoundTextureGenerator {
                         // Each wound gets tinted individually based on its damage type
                         NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
 
-                        // Find position using rejection sampling for even distribution
-                        int[] position = findValidPosition(baseWidth, baseHeight, tintedWound.getWidth(),
-                                tintedWound.getHeight(), rejectedPositions, minDistance, random);
+                        // Find position using fuzzy grid distribution for even coverage
+                        int[] position = getFuzzyGridPosition(baseWidth, baseHeight,
+                                tintedWound.getWidth(), tintedWound.getHeight(),
+                                tierCells, i, tierRandom);
+
+                        VisualHealth.LOGGER.info("Stamping wound at ({},{}) - wound size {}x{}",
+                                position[0], position[1], tintedWound.getWidth(), tintedWound.getHeight());
 
                         if (VisualHealth.debugMode) {
                             VisualHealth.LOGGER.debug("Stamping wound {} (tier {}, {}) at ({}, {})",
@@ -163,6 +176,7 @@ public class WoundTextureGenerator {
 
             // Cache the result
             WOUND_CACHE.put(cacheKey, dynamicTextureId);
+            WOUND_IMAGE_CACHE.put(cacheKey, woundTexture);
 
             return dynamicTextureId;
 
@@ -172,48 +186,96 @@ public class WoundTextureGenerator {
         }
     }
 
-    // Find a valid position for a wound using rejection sampling
-    // Ensures wounds are evenly distributed by maintaining minimum distance
-    // Returns [x, y] position
-    private static int[] findValidPosition(int textureWidth, int textureHeight, int woundWidth, int woundHeight,
-                                           List<int[]> existingPositions, int minDistance, Random random) {
-        int maxAttempts = 100; // Prevent infinite loop
-        int attempt = 0;
+    // Shuffle grid cells into random order for consistent per-tier wound placement
+    // Uses 8x8 pixel cells to ensure even coverage across entire texture including edges
+    private static int[] shuffleGrid(int textureWidth, int textureHeight, Random random) {
+        // Grid cells are always 8x8 pixels
+        int gridCols = textureWidth / 8;
+        int gridRows = textureHeight / 8;
+        int totalCells = gridRows * gridCols;
 
-        while (attempt < maxAttempts) {
-            // Generate random position
-            int maxX = textureWidth - woundWidth;
-            int maxY = textureHeight - woundHeight;
-            int x = random.nextInt(Math.max(1, maxX));
-            int y = random.nextInt(Math.max(1, maxY));
-
-            // Check if position is valid (not too close to existing wounds)
-            boolean isValid = true;
-            for (int[] existing : existingPositions) {
-                double distance = Math.sqrt(Math.pow(x - existing[0], 2) + Math.pow(y - existing[1], 2));
-                if (distance < minDistance) {
-                    isValid = false;
-                    break;
-                }
-            }
-
-            if (isValid) {
-                // Found a valid position
-                int[] position = new int[]{x, y};
-                existingPositions.add(position);
-                return position;
-            }
-
-            attempt++;
+        int[] cells = new int[totalCells];
+        for (int i = 0; i < totalCells; i++) {
+            cells[i] = i;
         }
 
-        // Couldn't find ideal position after max attempts, use last random position
-        // (better than failing, wounds will just be closer together)
-        int x = random.nextInt(Math.max(1, textureWidth - woundWidth));
-        int y = random.nextInt(Math.max(1, textureHeight - woundHeight));
-        int[] position = new int[]{x, y};
-        existingPositions.add(position);
-        return position;
+        // Fisher-Yates shuffle
+        for (int i = totalCells - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            int temp = cells[i];
+            cells[i] = cells[j];
+            cells[j] = temp;
+        }
+
+        return cells;
+    }
+
+    // Get fuzzy grid position for wound placement
+    // Picks from pre-shuffled grid and adds random offset (-10 to +10 pixels) for natural look
+    private static int[] getFuzzyGridPosition(int textureWidth, int textureHeight,
+                                               int woundWidth, int woundHeight,
+                                               int[] shuffledCells, int woundIndex,
+                                               Random random) {
+        // Grid cells are 8x8 pixels
+        int gridCols = textureWidth / 8;
+        int gridRows = textureHeight / 8;
+        int cellWidth = 8;
+        int cellHeight = 8;
+
+        // Pick cell from shuffled array (wrap if more wounds than cells)
+        int totalCells = gridRows * gridCols;
+        int cellIndex = shuffledCells[woundIndex % totalCells];
+        int cellRow = cellIndex / gridCols;
+        int cellCol = cellIndex % gridCols;
+
+        // Calculate cell center (always 8x8 grid, shifted +1 Y)
+        int centerX = cellCol * cellWidth + cellWidth / 2;
+        int centerY = cellRow * cellHeight + cellHeight / 2;
+
+        // Add fuzziness (-8 to +8 pixels) for natural distribution
+        int offsetX = random.nextInt(17) - 8;
+        int offsetY = random.nextInt(17) - 8;
+
+        // Calculate final position (wound centered at cell center)
+        int x = centerX + offsetX - woundWidth / 2;
+        int y = centerY + offsetY - woundHeight / 2;
+
+        // Clamp to texture bounds (prevent negative or out-of-bounds placement)
+        x = Math.max(0, Math.min(textureWidth - woundWidth, x));
+        y = Math.max(0, Math.min(textureHeight - woundHeight, y));
+
+        return new int[]{x, y};
+    }
+
+    // Save all currently cached wound textures to VHDamage directory
+    public static void saveAllCachedTextures() {
+        java.io.File outputDir = new java.io.File("VHDamage");
+        if (!outputDir.exists()) {
+            outputDir.mkdirs();
+        }
+
+        int savedCount = 0;
+        for (Map.Entry<String, NativeImage> entry : WOUND_IMAGE_CACHE.entrySet()) {
+            String cacheKey = entry.getKey();
+            NativeImage image = entry.getValue();
+
+            // Create safe filename from cache key
+            String filename = cacheKey.replaceAll("[^a-zA-Z0-9_-]", "_") + ".png";
+            java.io.File outputFile = new java.io.File(outputDir, filename);
+
+            try {
+                image.writeToFile(outputFile);
+                savedCount++;
+
+                if (VisualHealth.debugMode) {
+                    VisualHealth.LOGGER.debug("Saved wound texture: {}", filename);
+                }
+            } catch (Exception e) {
+                VisualHealth.LOGGER.error("Failed to save wound texture {}: {}", filename, e.getMessage());
+            }
+        }
+
+        VisualHealth.LOGGER.info("Saved {} wound texture(s) to VHDamage directory", savedCount);
     }
 
     // Clear texture cache for specific entity tiers
@@ -224,8 +286,14 @@ public class WoundTextureGenerator {
 
         for (String key : WOUND_CACHE.keySet()) {
             if (key.startsWith(entityId + "_tier")) {
-                // Extract tier number from key
-                String tierStr = key.substring(key.lastIndexOf("tier") + 4);
+                // Extract tier number from key (format: entityId_tier#_weapon1_weapon2_...)
+                // Find the underscore after the tier number
+                int tierEndIndex = key.indexOf("_", key.indexOf("tier") + 4);
+                if (tierEndIndex == -1) {
+                    tierEndIndex = key.length(); // No weapon sequence in key
+                }
+
+                String tierStr = key.substring(key.indexOf("tier") + 4, tierEndIndex);
                 try {
                     int tier = Integer.parseInt(tierStr);
                     if (tier >= minTier && tier <= maxTier) {
@@ -239,6 +307,7 @@ public class WoundTextureGenerator {
 
         for (String key : keysToRemove) {
             WOUND_CACHE.remove(key);
+            WOUND_IMAGE_CACHE.remove(key);
             cleared++;
         }
 
@@ -253,6 +322,7 @@ public class WoundTextureGenerator {
     public static void clearAllCaches() {
         int cacheSize = WOUND_CACHE.size();
         WOUND_CACHE.clear();
+        WOUND_IMAGE_CACHE.clear();
 
         if (cacheSize > 0) {
             VisualHealth.LOGGER.info("Cleared {} wound texture cache entries on resource reload", cacheSize);

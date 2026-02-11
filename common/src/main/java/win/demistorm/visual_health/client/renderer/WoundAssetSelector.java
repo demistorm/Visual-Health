@@ -42,7 +42,7 @@ public class WoundAssetSelector {
     }
 
     // Load texture identifiers from a specific folder
-    // We assume textures are named: sword1.png, axe1.png, etc.
+    // We assume textures are named: sword2.png, axe1.png, etc.
     private static List<Identifier> loadTexturesFromFolder(DamageType damageType) {
         List<Identifier> textures = new ArrayList<>();
 
