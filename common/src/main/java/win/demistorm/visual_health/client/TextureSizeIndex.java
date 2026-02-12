@@ -25,37 +25,50 @@ public class TextureSizeIndex {
         // ===== PASSIVE MOBS =====
 
         TEXTURE_SIZES.put(EntityType.ALLAY, new TextureSize(32, 32));
+        TEXTURE_SIZES.put(EntityType.ARMADILLO, new TextureSize(64, 64));
+        TEXTURE_SIZES.put(EntityType.BAT, new TextureSize(32, 32));
         TEXTURE_SIZES.put(EntityType.CAT, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.CHICKEN, new TextureSize(64, 32));
+        TEXTURE_SIZES.put(EntityType.COD, new TextureSize(32, 32));
         TEXTURE_SIZES.put(EntityType.COW, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.DONKEY, new TextureSize(64, 64));
-        TEXTURE_SIZES.put(EntityType.FOX, new TextureSize(64, 32));
-        TEXTURE_SIZES.put(EntityType.FROG, new TextureSize(64, 32));
+        TEXTURE_SIZES.put(EntityType.FOX, new TextureSize(48, 32));
+        TEXTURE_SIZES.put(EntityType.FROG, new TextureSize(48, 48));
         TEXTURE_SIZES.put(EntityType.GLOW_SQUID, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.HORSE, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.MOOSHROOM, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.MULE, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.OCELOT, new TextureSize(64, 32));
-        TEXTURE_SIZES.put(EntityType.PARROT, new TextureSize(64, 32));
+        TEXTURE_SIZES.put(EntityType.PARROT, new TextureSize(32, 32));
         TEXTURE_SIZES.put(EntityType.PIG, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.RABBIT, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.SHEEP, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.SKELETON_HORSE, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.SNIFFER, new TextureSize(192, 192));
         TEXTURE_SIZES.put(EntityType.SQUID, new TextureSize(64, 32));
-        TEXTURE_SIZES.put(EntityType.STRIDER, new TextureSize(64, 64));
-        TEXTURE_SIZES.put(EntityType.TADPOLE, new TextureSize(64, 32));
-        TEXTURE_SIZES.put(EntityType.TROPICAL_FISH, new TextureSize(64, 32));
-        TEXTURE_SIZES.put(EntityType.TURTLE, new TextureSize(64, 64));
+        TEXTURE_SIZES.put(EntityType.STRIDER, new TextureSize(64, 128));
+        TEXTURE_SIZES.put(EntityType.TADPOLE, new TextureSize(16, 16));
+        TEXTURE_SIZES.put(EntityType.TROPICAL_FISH, new TextureSize(32, 32));
+        TEXTURE_SIZES.put(EntityType.TURTLE, new TextureSize(128, 64));
         TEXTURE_SIZES.put(EntityType.VILLAGER, new TextureSize(64, 64));
+        
+        TEXTURE_SIZES.put(EntityType.PUFFERFISH, new TextureSize(32, 32));
+        TEXTURE_SIZES.put(EntityType.SALMON, new TextureSize(32, 32));
+
+        // ===== MISC ENTITIES =====
+
+        TEXTURE_SIZES.put(EntityType.CREAKING, new TextureSize(64, 64));
+        TEXTURE_SIZES.put(EntityType.SNOW_GOLEM, new TextureSize(64, 64));
+        TEXTURE_SIZES.put(EntityType.WANDERING_TRADER, new TextureSize(64, 64));
 
         // ===== NEUTRAL MOBS =====
 
         TEXTURE_SIZES.put(EntityType.BEE, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.CAVE_SPIDER, new TextureSize(64, 32));
-        TEXTURE_SIZES.put(EntityType.DOLPHIN, new TextureSize(64, 32));
+        TEXTURE_SIZES.put(EntityType.DOLPHIN, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.ENDERMAN, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.GOAT, new TextureSize(64, 64));
+        TEXTURE_SIZES.put(EntityType.GUARDIAN, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.IRON_GOLEM, new TextureSize(128, 128));
         TEXTURE_SIZES.put(EntityType.LLAMA, new TextureSize(128, 64));
         TEXTURE_SIZES.put(EntityType.PANDA, new TextureSize(64, 64));
@@ -67,8 +80,8 @@ public class TextureSizeIndex {
         // ===== HOSTILE MOBS =====
 
         TEXTURE_SIZES.put(EntityType.BLAZE, new TextureSize(64, 32));
-        TEXTURE_SIZES.put(EntityType.BOGGED, new TextureSize(64, 64));
-        TEXTURE_SIZES.put(EntityType.BREEZE, new TextureSize(64, 64));
+        TEXTURE_SIZES.put(EntityType.BOGGED, new TextureSize(64, 32));
+        TEXTURE_SIZES.put(EntityType.BREEZE, new TextureSize(32, 32));
         TEXTURE_SIZES.put(EntityType.CREEPER, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.DROWNED, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.ELDER_GUARDIAN, new TextureSize(64, 64));
@@ -76,7 +89,6 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.EVOKER, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.GHAST, new TextureSize(128, 64));
         TEXTURE_SIZES.put(EntityType.HAPPY_GHAST, new TextureSize(128, 128));
-        TEXTURE_SIZES.put(EntityType.GUARDIAN, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.HOGLIN, new TextureSize(128, 64));
         TEXTURE_SIZES.put(EntityType.HUSK, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.ILLUSIONER, new TextureSize(64, 64));
@@ -94,8 +106,8 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.VEX, new TextureSize(32, 32));
         TEXTURE_SIZES.put(EntityType.VINDICATOR, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.WARDEN, new TextureSize(128, 128));
-        TEXTURE_SIZES.put(EntityType.WITCH, new TextureSize(64, 64));
-        TEXTURE_SIZES.put(EntityType.WITHER, new TextureSize(64, 32));
+        TEXTURE_SIZES.put(EntityType.WITCH, new TextureSize(64, 128));
+        TEXTURE_SIZES.put(EntityType.WITHER, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.WITHER_SKELETON, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.ZOGLIN, new TextureSize(128, 64));
         TEXTURE_SIZES.put(EntityType.ZOMBIE, new TextureSize(64, 64));
