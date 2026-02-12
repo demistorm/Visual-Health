@@ -130,6 +130,9 @@ public class TextureSizeIndex {
         // Fast path: check hardcoded map first
         TextureSize cachedSize = TEXTURE_SIZES.get(entity.getType());
         if (cachedSize != null) {
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.info("Loaded hardcoded texture size");
+            }
             return cachedSize;
         }
 
