@@ -119,9 +119,10 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             return;
         }
 
-        // Get entity's actual texture size from our hardcoded index
+        // Get entity's actual texture size with fallback chain
+        // 1. Hardcoded map (fast path for vanilla), 2. Dynamic detection, 3. 64x64 default
         win.demistorm.visual_health.client.TextureSizeIndex.TextureSize textureSizeInfo =
-                win.demistorm.visual_health.client.TextureSizeIndex.getTextureSize(entity.getType());
+                win.demistorm.visual_health.client.TextureSizeIndex.getTextureSize(entity);
         int textureWidth = textureSizeInfo.width();
         int textureHeight = textureSizeInfo.height();
 

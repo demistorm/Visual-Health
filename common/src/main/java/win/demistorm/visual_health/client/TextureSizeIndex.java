@@ -1,6 +1,10 @@
 package win.demistorm.visual_health.client;
 
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import win.demistorm.visual_health.client.texture.AlphaMaskCache;
+import win.demistorm.visual_health.client.texture.TextureLocator;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.HashMap;
@@ -118,9 +122,48 @@ public class TextureSizeIndex {
         VisualHealth.LOGGER.info("Loaded {} entity texture sizes", TEXTURE_SIZES.size());
     }
 
-    // Get the texture size for an entity type, or default to 64x64 if not found
-    public static TextureSize getTextureSize(EntityType<?> entityType) {
-        return TEXTURE_SIZES.getOrDefault(entityType, DEFAULT_SIZE);
+    // Get the texture size for a living entity with fallback chain:
+    // 1. Check hardcoded map (fast path for vanilla mobs)
+    // 2. Dynamically detect from actual texture (for modded mobs)
+    // 3. Fall back to 64x64 if detection fails
+    public static TextureSize getTextureSize(LivingEntity entity) {
+        // Fast path: check hardcoded map first
+        TextureSize cachedSize = TEXTURE_SIZES.get(entity.getType());
+        if (cachedSize != null) {
+            return cachedSize;
+        }
+
+        // Dynamic detection: load actual texture and get dimensions
+        try {
+            Identifier textureId = TextureLocator.getEntityTexture(entity);
+            if (textureId != null) {
+                AlphaMaskCache.TextureSize dynamicSize = AlphaMaskCache.getOrGenerateTextureSize(textureId);
+                if (dynamicSize != null) {
+                    // Cache the dynamically discovered size for future use
+                    TextureSize sizeWrapper = new TextureSize(dynamicSize.width(), dynamicSize.height());
+                    TEXTURE_SIZES.put(entity.getType(), sizeWrapper);
+
+                    if (VisualHealth.debugMode) {
+                        VisualHealth.LOGGER.info("Dynamically detected texture size {}x{} for {} (ID: {})",
+                                dynamicSize.width(), dynamicSize.height(),
+                                entity.getName().getString(), entity.getId());
+                    }
+
+                    return sizeWrapper;
+                }
+            }
+        } catch (Exception e) {
+            VisualHealth.LOGGER.warn("Failed to dynamically detect texture size for {}: {}",
+                    entity.getName().getString(), e.getMessage());
+        }
+
+        // Final fallback: default to 64x64
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Using default texture size 64x64 for {} (not in index and dynamic detection failed)",
+                    entity.getName().getString());
+        }
+
+        return DEFAULT_SIZE;
     }
 
     // Private constructor to prevent instantiation

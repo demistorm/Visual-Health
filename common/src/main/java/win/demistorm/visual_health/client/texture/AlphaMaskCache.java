@@ -16,6 +16,59 @@ public class AlphaMaskCache {
 
     private static final Map<Identifier, boolean[][]> ALPHA_CACHE = new ConcurrentHashMap<>();
 
+    private static final Map<Identifier, TextureSize> DIMENSION_CACHE = new ConcurrentHashMap<>();
+
+    public record TextureSize(int width, int height) {
+    }
+
+    public static TextureSize getOrGenerateTextureSize(Identifier textureId) {
+        if (DIMENSION_CACHE.containsKey(textureId)) {
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("Dimension cache HIT for texture {}", textureId);
+            }
+            return DIMENSION_CACHE.get(textureId);
+        }
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Dimension cache MISS for texture {}, loading to get dimensions", textureId);
+        }
+
+        TextureSize textureSize = generateTextureSize(textureId);
+        if (textureSize != null) {
+            DIMENSION_CACHE.put(textureId, textureSize);
+        }
+        return textureSize;
+    }
+
+    private static TextureSize generateTextureSize(Identifier textureId) {
+        try {
+            if (VisualHealth.debugMode) {
+                VisualHealth.LOGGER.debug("Loading texture dimensions for {}", textureId);
+            }
+
+            ResourceManager resourceManager = net.minecraft.client.Minecraft.getInstance().getResourceManager();
+
+            try (var resource = resourceManager.open(textureId);
+                 NativeImage image = NativeImage.read(resource)) {
+
+                int width = image.getWidth();
+                int height = image.getHeight();
+                TextureSize textureSize = new TextureSize(width, height);
+
+                if (VisualHealth.debugMode) {
+                    VisualHealth.LOGGER.debug("Got texture dimensions for {}: {}x{}",
+                            textureId, width, height);
+                }
+
+                return textureSize;
+            }
+        } catch (Exception e) {
+            VisualHealth.LOGGER.error("Failed to get texture dimensions for {}: {}",
+                    textureId, e.getMessage());
+            return null;
+        }
+    }
+
     public static boolean[][] getOrGenerateAlphaMask(Identifier textureId) {
         if (ALPHA_CACHE.containsKey(textureId)) {
             if (VisualHealth.debugMode) {
@@ -156,11 +209,14 @@ public class AlphaMaskCache {
     }
 
     public static void clearAllCaches() {
-        int cacheSize = ALPHA_CACHE.size();
+        int alphaCacheSize = ALPHA_CACHE.size();
+        int dimensionCacheSize = DIMENSION_CACHE.size();
         ALPHA_CACHE.clear();
+        DIMENSION_CACHE.clear();
 
-        if (cacheSize > 0) {
-            VisualHealth.LOGGER.info("Cleared {} alpha mask cache entries on resource reload", cacheSize);
+        if (alphaCacheSize > 0 || dimensionCacheSize > 0) {
+            VisualHealth.LOGGER.info("Cleared {} alpha mask and {} dimension cache entries on resource reload",
+                    alphaCacheSize, dimensionCacheSize);
         }
     }
 }
