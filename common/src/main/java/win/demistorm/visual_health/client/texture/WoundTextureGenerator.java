@@ -353,6 +353,18 @@ public class WoundTextureGenerator {
         }
     }
 
+    // Clear only texture caches (preserve alpha masks)
+    // Called when config changes to regenerate textures with new settings
+    public static void clearTextureCaches() {
+        int cacheSize = WOUND_CACHE.size();
+        WOUND_CACHE.clear();
+        WOUND_IMAGE_CACHE.clear();
+
+        if (cacheSize > 0) {
+            VisualHealth.LOGGER.info("Cleared {} wound texture cache entries on config change", cacheSize);
+        }
+    }
+
     // Stamp a small texture onto a base texture at the specified position
     // Handles alpha blending for smooth wound edges
     private static void stampTexture(NativeImage baseTexture, NativeImage stamp, int posX, int posY) {

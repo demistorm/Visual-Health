@@ -8,7 +8,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
-import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
 // Main configuration screen for Visual Health
 // Follows VR Throwing Extensions design pattern for consistency
@@ -140,15 +139,8 @@ public final class ConfigScreen {
                                         // Save config to disk
                                         ConfigHelper.save();
 
-                                        // Clear texture cache so changes take effect immediately
-                                        WoundAssetSelector.cleanup();
-
-                                        // Reload wound texture identifiers with new settings
-                                        try {
-                                            WoundAssetSelector.loadTextures();
-                                        } catch (Exception e) {
-                                            VisualHealth.LOGGER.error("Failed to reload wound textures", e);
-                                        }
+                                        // Clear texture caches so changes take effect immediately
+                                        ConfigHelper.clearTextureCaches();
 
                                         VisualHealth.LOGGER.info("Visual Health config saved: {}% wound density, passive mobs: {}, villagers: {}, color: {}",
                                                 woundDensityValue, damagePassiveMobsValue, damageVillagersValue, damageColorValue);

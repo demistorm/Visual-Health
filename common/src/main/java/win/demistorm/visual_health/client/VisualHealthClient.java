@@ -71,13 +71,7 @@ public class VisualHealthClient {
         // Step 3: Clear per-entity texture mappings (entity IDs can be reused after reload)
         win.demistorm.visual_health.client.EMFPerEntityTextures.clearAllCaches();
 
-        // Step 4: Clear entity health tracking data (entity IDs can be reused after reload)
-        win.demistorm.visual_health.client.EntityHealthTracker.clearAllCaches();
-
-        // Step 5: Clear damage event handler (entity IDs can be reused after reload)
-        win.demistorm.visual_health.client.DamageEventHandler.clearAllCaches();
-
-        // Step 6: Clear and reload wound texture identifiers
+        // Step 4: Clear and reload wound texture identifiers
         WoundAssetSelector.cleanup();
 
         try {
