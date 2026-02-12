@@ -113,7 +113,7 @@ public class EMFDamageTextureGenerator {
             int woundsPerTier = (int) (baseWoundsPerTier * areaScale);
 
             if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("EMF generation: area scale={:.2f}, wounds per tier={}",
+                VisualHealth.LOGGER.debug("EMF generation: area scale={}, wounds per tier={}",
                         areaScale, woundsPerTier);
             }
 

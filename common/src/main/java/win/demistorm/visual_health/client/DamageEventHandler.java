@@ -29,12 +29,6 @@ public final class DamageEventHandler {
         return LAST_DAMAGE_TYPE.getOrDefault(entityId, DamageType.SWORD);
     }
 
-    // Clear the last damage type for an entity
-    // Called when entity is removed from world
-    public static void clearLastDamageType(int entityId) {
-        LAST_DAMAGE_TYPE.remove(entityId);
-    }
-
     // Clear all damage type tracking
     // Called on resource reload to prevent entity ID reuse issues
     public static void clearAllCaches() {

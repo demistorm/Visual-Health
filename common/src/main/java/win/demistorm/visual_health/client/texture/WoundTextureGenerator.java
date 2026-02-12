@@ -13,7 +13,6 @@ import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
 import java.util.*;
 
-import static win.demistorm.visual_health.client.texture.AlphaMaskCache.maskWoundOnInvisiblePixels;
 import static win.demistorm.visual_health.client.texture.AlphaMaskCache.getOrGenerateAlphaMask;
 import static win.demistorm.visual_health.client.texture.TextureLocator.getEntityTexture;
 
@@ -94,7 +93,7 @@ public class WoundTextureGenerator {
             int woundsPerTier = (int) (baseWoundsPerTier * areaScale);
 
             if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Generating {}x{} wound texture (area scale: {:.2f}) with {} wounds per tier for {}",
+                VisualHealth.LOGGER.debug("Generating {}x{} wound texture (area scale: {}) with {} wounds per tier for {}",
                         baseWidth, baseHeight, areaScale, woundsPerTier, entity.getName().getString());
             }
 

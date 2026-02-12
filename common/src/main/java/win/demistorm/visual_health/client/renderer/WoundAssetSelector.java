@@ -18,7 +18,7 @@ public class WoundAssetSelector {
     private static final String TEXTURE_FOLDER = "damage";
 
     // Cached texture identifiers organized by damage type
-    private static Map<DamageType, List<Identifier>> woundTextures = new HashMap<>();
+    private static final Map<DamageType, List<Identifier>> woundTextures = new HashMap<>();
     private static boolean texturesLoaded = false;
 
     // Load texture identifiers (not actual image data)

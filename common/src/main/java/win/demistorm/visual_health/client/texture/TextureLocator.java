@@ -20,23 +20,7 @@ public class TextureLocator {
             Minecraft client = Minecraft.getInstance();
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
 
-            if (dispatcher == null) {
-                if (VisualHealth.debugMode) {
-                    VisualHealth.LOGGER.debug("EntityRenderDispatcher is null, cannot get texture for {}",
-                            entity.getName().getString());
-                }
-                return null;
-            }
-
             EntityRenderer<?, ?> baseRenderer = dispatcher.getRenderer(entity);
-
-            if (baseRenderer == null) {
-                if (VisualHealth.debugMode) {
-                    VisualHealth.LOGGER.debug("Renderer is null for {}, cannot get texture",
-                            entity.getName().getString());
-                }
-                return null;
-            }
 
             if (!(baseRenderer instanceof LivingEntityRenderer<?, ?, ?> livingRenderer)) {
                 if (VisualHealth.debugMode) {
