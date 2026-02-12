@@ -161,12 +161,6 @@ public class WoundTextureGenerator {
                         // Stamp the tinted wound onto the base texture
                         stampTexture(woundTexture, tintedWound, position[0], position[1]);
 
-                        // Mask out wound pixels that fall on invisible areas of the entity texture
-                        // This prevents floating wounds on invisible model parts while allowing partial wounds
-                        if (alphaMask != null) {
-                            maskWoundOnInvisiblePixels(woundTexture, alphaMask, position[0], position[1]);
-                        }
-
                         // Clean up tinted wound (important!)
                         tintedWound.close();
                         woundAsset.close();
@@ -175,6 +169,12 @@ public class WoundTextureGenerator {
                         VisualHealth.LOGGER.error("Failed to load or stamp wound texture: {}", e.getMessage(), e);
                     }
                 }
+            }
+
+            // Apply alpha mask to entire texture after all wounds are stamped
+            // This prevents floating wounds on invisible model parts while allowing partial wounds
+            if (alphaMask != null) {
+                win.demistorm.visual_health.client.texture.AlphaMaskCache.applyAlphaMaskToTexture(woundTexture, alphaMask);
             }
 
             // Register the composite texture as a dynamic texture

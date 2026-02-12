@@ -84,6 +84,40 @@ public class AlphaMaskCache {
         }
     }
 
+    public static void applyAlphaMaskToTexture(NativeImage woundTexture, boolean[][] alphaMask) {
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Starting alpha mask application to entire texture ({}x{})",
+                    woundTexture.getWidth(), woundTexture.getHeight());
+        }
+
+        int width = woundTexture.getWidth();
+        int height = woundTexture.getHeight();
+        int pixelsCleared = 0;
+        int pixelsKept = 0;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (x >= alphaMask.length || y >= alphaMask[0].length) {
+                    woundTexture.setPixel(x, y, 0x00000000);
+                    pixelsCleared++;
+                    continue;
+                }
+
+                if (!alphaMask[x][y]) {
+                    woundTexture.setPixel(x, y, 0x00000000);
+                    pixelsCleared++;
+                } else {
+                    pixelsKept++;
+                }
+            }
+        }
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Alpha mask application complete - cleared: {}, kept: {}, total: {}",
+                    pixelsCleared, pixelsKept, width * height);
+        }
+    }
+
     public static void maskWoundOnInvisiblePixels(NativeImage woundTexture, boolean[][] alphaMask, int posX, int posY) {
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("Starting alpha masking at position ({}, {})", posX, posY);
