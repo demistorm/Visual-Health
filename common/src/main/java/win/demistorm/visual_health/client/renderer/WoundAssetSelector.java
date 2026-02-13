@@ -1,6 +1,9 @@
 package win.demistorm.visual_health.client.renderer;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.Resource;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.DamageType;
 
@@ -9,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Predicate;
 
 // Selects wound texture identifiers based on damage type
 // Returns texture IDs for RenderLayer system, not actual image data
@@ -42,18 +46,23 @@ public class WoundAssetSelector {
     }
 
     // Load texture identifiers from a specific folder
-    // We assume textures are named: sword2.png, axe1.png, etc.
+    // Dynamically discovers all textures in the folder (sword1.png, sword2.png, etc.)
     private static List<Identifier> loadTexturesFromFolder(DamageType damageType) {
-        List<Identifier> textures = new ArrayList<>();
 
-        // Load texture #1 (we only have one texture per type for now)
-        for (int i = 1; i == 1; i++) {
-            Identifier textureId = Identifier.fromNamespaceAndPath(MODID,
-                    TEXTURE_FOLDER + "/" + damageType.getFolderName() + "/" + damageType.getTexturePrefix() + i + ".png");
+        ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
+        String folderPath = TEXTURE_FOLDER + "/" + damageType.getFolderName();
 
-            // Note: We don't check if the texture exists here
-            // The rendering system will handle missing textures gracefully
-            textures.add(textureId);
+        Predicate<Identifier> predicate = id ->
+                id.getNamespace().equals("visualhealth") &&
+                        id.getPath().startsWith(folderPath + "/") &&
+                        id.getPath().endsWith(".png");
+
+        Map<Identifier, Resource> foundResources = resourceManager.listResources(folderPath, predicate);
+        List<Identifier> textures = new ArrayList<>(foundResources.keySet());
+
+        if (VisualHealth.debugMode) {
+            VisualHealth.LOGGER.debug("Found {} textures in folder {} for damage type {}",
+                    textures.size(), folderPath, damageType);
         }
 
         return textures;
