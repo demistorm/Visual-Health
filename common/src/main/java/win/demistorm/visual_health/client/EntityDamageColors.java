@@ -1,6 +1,7 @@
 package win.demistorm.visual_health.client;
 
 import net.minecraft.world.entity.EntityType;
+import static net.minecraft.world.entity.EntityType.*;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.HashMap;
@@ -24,43 +25,33 @@ public class EntityDamageColors {
     private static final Map<EntityType<?>, DamageOverride> OVERRIDE_MAP = new HashMap<>();
 
     static {
-        // Creeper: Dark green damage to match its explosive nature
-        OVERRIDE_MAP.put(EntityType.CREEPER, new DamageOverride(0xFF204020, false));
-
-        // Enderman: Light purple damage with emissive glow
-        // Uses entityTranslucentEmissive for true glow effect in dark areas
-        OVERRIDE_MAP.put(EntityType.ENDERMAN, new DamageOverride(0xFFD080FF, true));
-
-        // Zombie: Sickly yellow-green damage for infected appearance
-        OVERRIDE_MAP.put(EntityType.ZOMBIE, new DamageOverride(0xFF863B22, false));
-
-        OVERRIDE_MAP.put(EntityType.SKELETON, new DamageOverride(0xFF776E65, false));
-
-        OVERRIDE_MAP.put(EntityType.STRAY, new DamageOverride(0xFF776E65, false));
-
-        OVERRIDE_MAP.put(EntityType.WITHER_SKELETON, new DamageOverride(0xFF776E65, false));
-
-        OVERRIDE_MAP.put(EntityType.WITHER, new DamageOverride(0xFF776E65, false));
-
-        OVERRIDE_MAP.put(EntityType.SKELETON_HORSE, new DamageOverride(0xFF776E65, false));
-
-        OVERRIDE_MAP.put(EntityType.SPIDER, new DamageOverride(0xFFC4D3FF, false));
-
-        OVERRIDE_MAP.put(EntityType.CAVE_SPIDER, new DamageOverride(0xFFC4D3FF, false));
-
-        OVERRIDE_MAP.put(EntityType.HUSK, new DamageOverride(0xFF863B22, false));
-
-        OVERRIDE_MAP.put(EntityType.ZOMBIE_HORSE, new DamageOverride(0xFF863B22, false));
-
-        OVERRIDE_MAP.put(EntityType.ZOMBIE_NAUTILUS, new DamageOverride(0xFF863B22, false));
-
-        OVERRIDE_MAP.put(EntityType.ZOMBIE_VILLAGER, new DamageOverride(0xFF863B22, false));
-
+        OC(CREEPER, "204020", false);
+        OC(ENDERMAN, "D080FF", true);
+        OC(ZOMBIE, "863B22", false);
+        OC(SKELETON, "776E65", false);
+        OC(STRAY, "776E65", false);
+        OC(WITHER_SKELETON, "776E65", false);
+        OC(WITHER, "776E65", false);
+        OC(SKELETON_HORSE, "776E65", false);
+        OC(SPIDER, "C4D3FF", false);
+        OC(CAVE_SPIDER, "C4D3FF", false);
+        OC(HUSK, "863B22", false);
+        OC(ZOMBIE_HORSE, "863B22", false);
+        OC(ZOMBIE_NAUTILUS, "863B22", false);
+        OC(ZOMBIE_VILLAGER, "863B22", false);
+        OC(SQUID, "2323c1", false);
+        OC(GLOW_SQUID, "00cdcd", false);
+        OC(STRIDER, "e6e600", false);
+        OC(CAMEL_HUSK, "863B22", false);
 
         VisualHealth.LOGGER.info("Loaded {} entity damage overrides", OVERRIDE_MAP.size());
     }
 
-    // Get damage override for an entity type, or null if none exists
+    private static void OC(EntityType<?> entityType, String colorHex, boolean isEmissive) {
+        int color = 0xFF000000 | Integer.parseInt(colorHex, 16);
+        OVERRIDE_MAP.put(entityType, new DamageOverride(color, isEmissive));
+    }
+
     public static DamageOverride getOverride(EntityType<?> entityType) {
         return OVERRIDE_MAP.get(entityType);
     }
