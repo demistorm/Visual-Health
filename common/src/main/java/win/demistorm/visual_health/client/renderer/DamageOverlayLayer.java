@@ -108,15 +108,19 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
         // Check for EMF model with texture overrides - apply damage directly to variant textures
         // If EMF damage is applied, skip the separate overlay render
-        if (win.demistorm.visual_health.client.EMFDamageHelper.applyEMFDamageIfPresent(
-                model, entity, damageTier)) {
+        try {
+            if (win.demistorm.visual_health.client.EMFDamageHelper.applyEMFDamageIfPresent(
+                    model, entity, damageTier)) {
 
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("EMF damage applied, skipping overlay render for {}", entityName);
+                if (VisualHealth.debugMode) {
+                    VisualHealth.LOGGER.debug("EMF damage applied, skipping overlay render for {}", entityName);
+                }
+
+                // EMF damage is baked into the variant texture, no need for separate overlay
+                return;
             }
-
-            // EMF damage is baked into the variant texture, no need for separate overlay
-            return;
+        } catch (NoClassDefFoundError e) {
+            // EMF/ETF not installed, continue with normal overlay render
         }
 
         // Get entity's actual texture size with fallback chain

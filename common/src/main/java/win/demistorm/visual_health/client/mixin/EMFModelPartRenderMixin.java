@@ -2,6 +2,7 @@ package win.demistorm.visual_health.client.mixin;
 
 import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,6 +18,7 @@ import win.demistorm.visual_health.client.EMFPerEntityTextures;
  * To apply different wound textures to different entities, we temporarily swap
  * the textureOverride field during each entity's render call.
  */
+@Pseudo
 @Mixin(targets = "traben.entity_model_features.models.parts.EMFModelPart", remap = false)
 public class EMFModelPartRenderMixin {
 
