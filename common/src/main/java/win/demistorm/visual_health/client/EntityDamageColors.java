@@ -43,6 +43,20 @@ public class EntityDamageColors {
         OC(GLOW_SQUID, "00cdcd", false);
         OC(STRIDER, "e6e600", false);
         OC(CAMEL_HUSK, "863B22", false);
+        OC(NAUTILUS, "2323c1", false);
+        OC(PUFFERFISH, "ffffb7", false);
+        OC(ZOMBIE_NAUTILUS, "467f70", false);
+        OC(ZOMBIFIED_PIGLIN, "863B22", false);
+        OC(BOGGED, "776E65", false);
+        OC(BREEZE, "c2c2c2", false);
+        OC(CREAKING, "ff6b1a", false);
+        OC(GUARDIAN, "2323c1", false);
+        OC(ELDER_GUARDIAN, "2323c1", false);
+        OC(MAGMA_CUBE, "ddaf13", false);
+        OC(PARCHED, "c2c2c2", false);
+        OC(SHULKER, "ae6984", false);
+        OC(SLIME, "9fc08a", false);
+        OC(WARDEN, "008388", false);
 
         VisualHealth.LOGGER.info("Loaded {} entity damage overrides", OVERRIDE_MAP.size());
     }
