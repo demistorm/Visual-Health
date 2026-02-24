@@ -15,10 +15,8 @@ public final class EMFPerEntityTextures {
 
     public static void setWoundTextureById(String entityId, Identifier woundTexture) {
         ENTITY_WOUND_TEXTURES.put(entityId, woundTexture);
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Registered wound texture {} for entity ID {}",
-                    woundTexture, entityId);
-        }
+        VisualHealth.LOGGER.debug("Registered wound texture {} for entity ID {}",
+                woundTexture, entityId);
     }
 
     public static Identifier getWoundTextureById(String entityId) {

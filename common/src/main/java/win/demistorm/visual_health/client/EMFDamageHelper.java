@@ -45,10 +45,8 @@ public final class EMFDamageHelper {
 
         // Check if EMF root exists (might be null for some models)
         if (emfRoot == null) {
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("EMF model detected but root is null for {}",
-                        entity.getName().getString());
-            }
+            VisualHealth.LOGGER.debug("EMF model detected but root is null for {}",
+                    entity.getName().getString());
             return false;
         }
 
@@ -62,17 +60,13 @@ public final class EMFDamageHelper {
         }
 
         if (!hasOverrides) {
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("EMF model detected but no texture overrides for {}",
-                        entity.getName().getString());
-            }
+            VisualHealth.LOGGER.debug("EMF model detected but no texture overrides for {}",
+                    entity.getName().getString());
             return false;
         }
 
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Applying EMF damage for {} (tier {})",
-                    entity.getName().getString(), damageTier);
-        }
+        VisualHealth.LOGGER.debug("Applying EMF damage for {} (tier {})",
+                entity.getName().getString(), damageTier);
 
         // Determine tint color (same logic as DamageOverlayLayer)
         int tint;
@@ -83,10 +77,8 @@ public final class EMFDamageHelper {
             // Use entity-specific override
             tint = override.tintColor();
 
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Using entity override tint: 0x{}",
-                        Integer.toHexString(tint));
-            }
+            VisualHealth.LOGGER.debug("Using entity override tint: 0x{}",
+                    Integer.toHexString(tint));
         } else {
             // Use default config color
             tint = switch (win.demistorm.visual_health.ConfigHelper.INSTANCE.damageColor) {
@@ -95,10 +87,8 @@ public final class EMFDamageHelper {
                 case WHITE -> 0xFFFFFFFF; // Pure white
             };
 
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Using default config tint: 0x{}",
-                        Integer.toHexString(tint));
-            }
+            VisualHealth.LOGGER.debug("Using default config tint: 0x{}",
+                    Integer.toHexString(tint));
         }
 
         // Generate wound texture for the first part with texture override
@@ -123,10 +113,8 @@ public final class EMFDamageHelper {
             // Using entity ID instead of UUID for better EMF compatibility
             EMFPerEntityTextures.setWoundTextureById(String.valueOf(entity.getId()), woundTexture);
 
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Registered wound texture {} for entity ID {}",
-                        woundTexture, entity.getId());
-            }
+            VisualHealth.LOGGER.debug("Registered wound texture {} for entity ID {}",
+                    woundTexture, entity.getId());
 
             return true; // Damage applied, skip normal overlay render
         }

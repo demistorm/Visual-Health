@@ -54,10 +54,8 @@ public class WoundAssetSelector {
         Map<Identifier, Resource> foundResources = resourceManager.listResources(folderPath, predicate);
         List<Identifier> textures = new ArrayList<>(foundResources.keySet());
 
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Found {} textures in folder {} for damage type {}",
-                    textures.size(), folderPath, damageType);
-        }
+        VisualHealth.LOGGER.debug("Found {} textures in folder {} for damage type {}",
+                textures.size(), folderPath, damageType);
 
         return textures;
     }
@@ -76,10 +74,8 @@ public class WoundAssetSelector {
 
         Identifier texture = textures.get(random.nextInt(textures.size()));
 
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Selected texture: {} (from {} textures)",
-                    texture, textures.size());
-        }
+        VisualHealth.LOGGER.debug("Selected texture: {} (from {} textures)",
+                texture, textures.size());
 
         return texture;
     }

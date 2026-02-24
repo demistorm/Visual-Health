@@ -23,10 +23,8 @@ public class TextureLocator {
             EntityRenderer<?, ?> baseRenderer = dispatcher.getRenderer(entity);
 
             if (!(baseRenderer instanceof LivingEntityRenderer<?, ?, ?> livingRenderer)) {
-                if (VisualHealth.debugMode) {
-                    VisualHealth.LOGGER.debug("Renderer is not LivingEntityRenderer for {}",
-                            entity.getName().getString());
-                }
+                VisualHealth.LOGGER.debug("Renderer is not LivingEntityRenderer for {}",
+                        entity.getName().getString());
                 return null;
             }
 
@@ -49,24 +47,18 @@ public class TextureLocator {
 
             Identifier texture = renderer.getTextureLocation(state);
 
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Got texture {} for {} (ID: {})",
-                        texture, entity.getName().getString(), entity.getId());
-            }
+            VisualHealth.LOGGER.debug("Got texture {} for {} (ID: {})",
+                    texture, entity.getName().getString(), entity.getId());
 
             return texture;
 
         } catch (NoSuchMethodError | NoClassDefFoundError e) {
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Renderer does not support getTextureLocation(state) for {}: {}",
-                        entity.getName().getString(), e.getMessage());
-            }
+            VisualHealth.LOGGER.debug("Renderer does not support getTextureLocation(state) for {}: {}",
+                    entity.getName().getString(), e.getMessage());
             return null;
         } catch (Exception e) {
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Failed to get texture for {}: {}",
-                        entity.getName().getString(), e.getMessage());
-            }
+            VisualHealth.LOGGER.debug("Failed to get texture for {}: {}",
+                    entity.getName().getString(), e.getMessage());
             return null;
         }
     }

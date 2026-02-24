@@ -29,10 +29,8 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
             at = @At("RETURN")
     )
     private void visualhealth$trackEntityHealth(T entity, S state, float partialTick, CallbackInfo ci) {
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Mixin extractRenderState called for {} (ID: {})",
-                    entity.getName().getString(), entity.getId());
-        }
+        VisualHealth.LOGGER.debug("Mixin extractRenderState called for {} (ID: {})",
+                entity.getName().getString(), entity.getId());
 
         // Update entity damage tier in our tracker
         EntityHealthTracker.updateEntityDamageTier(entity);

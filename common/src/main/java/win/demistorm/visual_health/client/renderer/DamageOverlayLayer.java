@@ -74,10 +74,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             if (win.demistorm.visual_health.client.EMFDamageHelper.applyEMFDamageIfPresent(
                     model, entity, damageTier)) {
 
-                if (VisualHealth.debugMode) {
-                    VisualHealth.LOGGER.debug("EMF damage applied, skipping overlay render for {}", entityName);
-                }
-
+                VisualHealth.LOGGER.debug("EMF damage applied, skipping overlay render for {}", entityName);
                 return;
             }
         } catch (NoClassDefFoundError e) {
@@ -88,10 +85,8 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         int textureWidth = textureSizeInfo.width();
         int textureHeight = textureSizeInfo.height();
 
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Entity {} texture size: {}x{}",
-                    entityName, textureWidth, textureHeight);
-        }
+        VisualHealth.LOGGER.debug("Entity {} texture size: {}x{}",
+                entityName, textureWidth, textureHeight);
 
         Identifier woundTexture = win.demistorm.visual_health.client.texture.WoundTextureGenerator.generateWoundedTexture(
                 entity, damageTier, textureWidth, textureHeight);
@@ -104,7 +99,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
         boolean isEmissive = override != null && override.isEmissive();
 
-        if (VisualHealth.debugMode && isEmissive) {
+        if (isEmissive) {
             VisualHealth.LOGGER.debug("Entity {} is using emissive rendering",
                     entity.getName().getString());
         }

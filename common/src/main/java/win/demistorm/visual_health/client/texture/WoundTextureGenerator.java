@@ -75,10 +75,8 @@ public class WoundTextureGenerator {
 
             if (entityTexture != null) {
                 alphaMask = getOrGenerateAlphaMask(entityTexture);
-                if (VisualHealth.debugMode) {
-                    VisualHealth.LOGGER.debug("Got alpha mask for texture {}: {}",
-                            entityTexture, alphaMask != null ? "success" : "null");
-                }
+                VisualHealth.LOGGER.debug("Got alpha mask for texture {}: {}",
+                        entityTexture, alphaMask != null ? "success" : "null");
             }
 
             // Calculate wound count based on texture area (scaling) and density percentage
@@ -92,10 +90,8 @@ public class WoundTextureGenerator {
             // Scale by texture area so larger mobs get proportionally more wounds
             int woundsPerTier = (int) (baseWoundsPerTier * areaScale);
 
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Generating {}x{} wound texture (area scale: {}) with {} wounds per tier for {}",
-                        baseWidth, baseHeight, areaScale, woundsPerTier, entity.getName().getString());
-            }
+            VisualHealth.LOGGER.debug("Generating {}x{} wound texture (area scale: {}) with {} wounds per tier for {}",
+                    baseWidth, baseHeight, areaScale, woundsPerTier, entity.getName().getString());
 
             // Stamp wound textures onto the base texture
             // Loop through each tier up to current tier to make wounds cumulative
@@ -120,10 +116,8 @@ public class WoundTextureGenerator {
                 // Get the appropriate tint for this damage type
                 int woundTint = TintCalculator.getTintForDamageType(damageType, entity);
 
-                if (VisualHealth.debugMode) {
-                    VisualHealth.LOGGER.debug("Tier {}: damage type={}, tint=0x{}",
-                            tier, damageType, Integer.toHexString(woundTint));
-                }
+                VisualHealth.LOGGER.debug("Tier {}: damage type={}, tint=0x{}",
+                        tier, damageType, Integer.toHexString(woundTint));
 
                 // Stamp wounds for this tier
                 for (int i = 0; i < woundsPerTier; i++) {
@@ -152,10 +146,8 @@ public class WoundTextureGenerator {
                         VisualHealth.LOGGER.info("Stamping wound at ({},{}) - wound size {}x{}",
                                 position[0], position[1], tintedWound.getWidth(), tintedWound.getHeight());
 
-                        if (VisualHealth.debugMode) {
-                            VisualHealth.LOGGER.debug("Stamping wound {} (tier {}, {}) at ({}, {})",
-                                    ++woundIndex, tier, damageType, position[0], position[1]);
-                        }
+                        VisualHealth.LOGGER.debug("Stamping wound {} (tier {}, {}) at ({}, {})",
+                                ++woundIndex, tier, damageType, position[0], position[1]);
 
                         // Stamp the tinted wound onto the base texture
                         stampTexture(woundTexture, tintedWound, position[0], position[1]);
@@ -181,9 +173,7 @@ public class WoundTextureGenerator {
             Identifier dynamicTextureId = Identifier.fromNamespaceAndPath("visualhealth",
                     "dynamic/wounds/" + entity.getId() + "/tier" + damageTier);
 
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Registering dynamic wound texture: {}", dynamicTextureId);
-            }
+            VisualHealth.LOGGER.debug("Registering dynamic wound texture: {}", dynamicTextureId);
 
             // Wrap the NativeImage in a DynamicTexture for GPU upload
             // Supplier provides the texture name for debugging
@@ -288,9 +278,7 @@ public class WoundTextureGenerator {
                 image.writeToFile(outputFile);
                 savedCount++;
 
-                if (VisualHealth.debugMode) {
-                    VisualHealth.LOGGER.debug("Saved wound texture: {}", filename);
-                }
+                VisualHealth.LOGGER.debug("Saved wound texture: {}", filename);
             } catch (Exception e) {
                 VisualHealth.LOGGER.error("Failed to save wound texture {}: {}", filename, e.getMessage());
             }
@@ -332,7 +320,7 @@ public class WoundTextureGenerator {
             cleared++;
         }
 
-        if (cleared > 0 && VisualHealth.debugMode) {
+        if (cleared > 0) {
             VisualHealth.LOGGER.debug("Cleared {} wound texture cache entries for entity ID {} (tiers {}-{})",
                     cleared, entityId, minTier, maxTier);
         }

@@ -46,10 +46,8 @@ public class EMFDamageTextureGenerator {
             }
 
         try {
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.debug("Generating EMF damaged variant: {} (tier {})",
-                        variantTexture, damageTier);
-            }
+            VisualHealth.LOGGER.debug("Generating EMF damaged variant: {} (tier {})",
+                    variantTexture, damageTier);
 
             // Load the variant texture
             net.minecraft.server.packs.resources.ResourceManager resourceManager =
@@ -111,10 +109,8 @@ public class EMFDamageTextureGenerator {
                                     tintedWound.getWidth(), tintedWound.getHeight(),
                                     tierCells, i, tierRandom);
 
-                        if (VisualHealth.debugMode) {
                             VisualHealth.LOGGER.debug("Stamping wound {} (tier {}, {}) at ({}, {})",
                                     ++woundIndex, tier, damageType, position[0], position[1]);
-                        }
 
                         // Stamp the tinted wound onto the variant texture
                         stampTexture(damagedVariant, tintedWound, position[0], position[1]);
@@ -232,7 +228,7 @@ public class EMFDamageTextureGenerator {
             cleared++;
         }
 
-        if (cleared > 0 && VisualHealth.debugMode) {
+        if (cleared > 0) {
             VisualHealth.LOGGER.debug("Cleared {} EMF damage texture cache entries for entity ID {} (tiers {}-{})",
                     cleared, entityId, minTier, maxTier);
         }

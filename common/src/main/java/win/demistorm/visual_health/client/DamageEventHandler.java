@@ -40,11 +40,9 @@ public final class DamageEventHandler {
         int entityId = entity.getId();
         LAST_DAMAGE_TYPE.put(entityId, damageType);
 
-        if (VisualHealth.debugMode) {
-            int currentTier = EntityHealthTracker.getDamageTier(entityId);
-            VisualHealth.LOGGER.debug("Entity {} (ID: {}) damaged by {}, current tier: {}",
-                    entity.getName().getString(), entityId, damageType, currentTier);
-        }
+        int currentTier = EntityHealthTracker.getDamageTier(entityId);
+        VisualHealth.LOGGER.debug("Entity {} (ID: {}) damaged by {}, current tier: {}",
+                entity.getName().getString(), entityId, damageType, currentTier);
     }
 
     private static DamageType detectDamageType(DamageSource source) {

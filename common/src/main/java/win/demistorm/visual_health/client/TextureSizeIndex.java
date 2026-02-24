@@ -114,9 +114,7 @@ public class TextureSizeIndex {
     public static TextureSize getTextureSize(LivingEntity entity) {
         TextureSize cachedSize = TEXTURE_SIZES.get(entity.getType());
         if (cachedSize != null) {
-            if (VisualHealth.debugMode) {
-                VisualHealth.LOGGER.info("Loaded hardcoded texture size");
-            }
+            VisualHealth.LOGGER.debug("Loaded hardcoded texture size");
             return cachedSize;
         }
 
@@ -128,11 +126,9 @@ public class TextureSizeIndex {
                     TextureSize sizeWrapper = new TextureSize(dynamicSize.width(), dynamicSize.height());
                     TEXTURE_SIZES.put(entity.getType(), sizeWrapper);
 
-                    if (VisualHealth.debugMode) {
-                        VisualHealth.LOGGER.info("Dynamically detected texture size {}x{} for {} (ID: {})",
-                                dynamicSize.width(), dynamicSize.height(),
-                                entity.getName().getString(), entity.getId());
-                    }
+                    VisualHealth.LOGGER.debug("Dynamically detected texture size {}x{} for {} (ID: {})",
+                            dynamicSize.width(), dynamicSize.height(),
+                            entity.getName().getString(), entity.getId());
 
                     return sizeWrapper;
                 }
@@ -143,10 +139,8 @@ public class TextureSizeIndex {
         }
 
         // Final fallback (default to 64x64)
-        if (VisualHealth.debugMode) {
-            VisualHealth.LOGGER.debug("Using default texture size 64x64 for {} (not in index and dynamic detection failed)",
-                    entity.getName().getString());
-        }
+        VisualHealth.LOGGER.debug("Using default texture size 64x64 for {} (not in index and dynamic detection failed)",
+                entity.getName().getString());
 
         return DEFAULT_SIZE;
     }
