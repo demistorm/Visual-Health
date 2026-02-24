@@ -22,7 +22,6 @@ public class NeoClient {
             SaveDamageCommand.register(event.getDispatcher());
         });
 
-        // Add reload listener registration
         modEventBus.addListener((AddClientReloadListenersEvent event) -> {
             VisualHealth.LOGGER.info("Registering Visual Health reload listener");
 
@@ -42,7 +41,6 @@ public class NeoClient {
         });
     }
 
-    // Register damage overlay layers during client setup
     private static void onClientSetup(FMLClientSetupEvent event) {
         VisualHealth.LOGGER.info("NeoForge client initialization starting");
 

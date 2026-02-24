@@ -17,13 +17,10 @@ public final class FabricClient implements ClientModInitializer {
     public void onInitializeClient() {
         VisualHealth.LOGGER.info("Fabric client initialization starting");
 
-        // Initialize clientside systems
         VisualHealthClient.initializeClient();
 
-        // Try to register damage overlay layers immediately
         registrationSuccessful = VisualHealthClient.registerDamageLayers();
 
-        // Set up end-of-tick callback to retry registration if needed
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (!registrationSuccessful) {
                 VisualHealth.LOGGER.debug("Retrying damage layer registration...");

@@ -7,21 +7,13 @@ import win.demistorm.visual_health.VisualHealth;
 import java.util.HashMap;
 import java.util.Map;
 
-// Manages entity-specific damage color and emissive overrides
-// Hardcoded mappings for mobs with custom wound appearances
+// Entity-specific damage color overrides
 public class EntityDamageColors {
 
-    // Custom damage settings for a specific entity type
     public record DamageOverride(int tintColor, boolean isEmissive) {
-        // tintColor: ARGB hex color (e.g., 0xFFFF4010 for red)
-        // isEmissive: whether to use emissive rendering (glow effect)
-        //   - true: uses entityTranslucentEmissive render type with full brightness
-        //   - false: uses entityCutoutNoCull with normal lighting
-        //   Emissive rendering creates a true glow/bloom effect visible in darkness
     }
 
-    // Hardcoded map of entity type overrides
-    // Add new entries here to customize damage appearance for specific mobs
+    // Override wound colors
     private static final Map<EntityType<?>, DamageOverride> OVERRIDE_MAP = new HashMap<>();
 
     static {

@@ -5,7 +5,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import win.demistorm.visual_health.VisualHealth;
 
-// Forge mod entry point
 @Mod(VisualHealth.MOD_ID)
 public class VisualHealthForge {
     public VisualHealthForge() {
@@ -14,7 +13,7 @@ public class VisualHealthForge {
         // Run common setup
         VisualHealth.initialize();
 
-        // Set up client side
+        // Set up clientside
         if (FMLEnvironment.dist == Dist.CLIENT) {
             ForgeClient.initialize();
             win.demistorm.visual_health.forge.client.ForgeConfigScreen.register();

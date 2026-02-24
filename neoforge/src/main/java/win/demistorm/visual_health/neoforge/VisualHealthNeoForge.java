@@ -14,7 +14,7 @@ public final class VisualHealthNeoForge {
 
         VisualHealth.initialize();
 
-        // Set up client side event handlers
+        // Register clientside events
         if (FMLEnvironment.getDist().isClient()) {
             NeoClient.register(modEventBus);
             win.demistorm.visual_health.neoforge.client.NeoForgeConfigScreen.register();

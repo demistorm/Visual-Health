@@ -9,7 +9,8 @@ import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 
 public final class SaveDamageCommand {
 
-    private SaveDamageCommand() {}
+    private SaveDamageCommand() {
+    }
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         if (!VisualHealth.debugMode) {

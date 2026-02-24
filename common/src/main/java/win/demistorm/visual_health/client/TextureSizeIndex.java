@@ -10,24 +10,17 @@ import win.demistorm.visual_health.VisualHealth;
 import java.util.HashMap;
 import java.util.Map;
 
-// Hardcoded texture dimensions for Minecraft entities
-// Used to scale wound effects appropriately for each mob's actual texture size
-// Based on vanilla Minecraft texture files
 public class TextureSizeIndex {
 
-    // Texture dimensions record
     public record TextureSize(int width, int height) {
     }
 
-    // Map of entity types to their texture dimensions
     private static final Map<EntityType<?>, TextureSize> TEXTURE_SIZES = new HashMap<>();
 
-    // Default texture size for unknown entities
     private static final TextureSize DEFAULT_SIZE = new TextureSize(64, 64);
 
     static {
-        // ===== PASSIVE MOBS =====
-
+        // Passive mobs
         TEXTURE_SIZES.put(EntityType.ALLAY, new TextureSize(32, 32));
         TEXTURE_SIZES.put(EntityType.ARMADILLO, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.BAT, new TextureSize(32, 32));
@@ -55,18 +48,15 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.TROPICAL_FISH, new TextureSize(32, 32));
         TEXTURE_SIZES.put(EntityType.TURTLE, new TextureSize(128, 64));
         TEXTURE_SIZES.put(EntityType.VILLAGER, new TextureSize(64, 64));
-        
         TEXTURE_SIZES.put(EntityType.PUFFERFISH, new TextureSize(32, 32));
         TEXTURE_SIZES.put(EntityType.SALMON, new TextureSize(32, 32));
 
-        // ===== MISC ENTITIES =====
-
+        // Misc entities
         TEXTURE_SIZES.put(EntityType.CREAKING, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.SNOW_GOLEM, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.WANDERING_TRADER, new TextureSize(64, 64));
 
-        // ===== NEUTRAL MOBS =====
-
+        // Neutral mobs
         TEXTURE_SIZES.put(EntityType.BEE, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.CAVE_SPIDER, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.DOLPHIN, new TextureSize(64, 64));
@@ -81,8 +71,7 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.WOLF, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.ZOMBIFIED_PIGLIN, new TextureSize(64, 64));
 
-        // ===== HOSTILE MOBS =====
-
+        // Hostile Mobs
         TEXTURE_SIZES.put(EntityType.BLAZE, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.BOGGED, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.BREEZE, new TextureSize(32, 32));
@@ -117,17 +106,12 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.ZOMBIE, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.ZOMBIE_VILLAGER, new TextureSize(64, 64));
 
-        // NOTE: Ender Dragon uses a different rendering system and is not included here
+        // NOTE: Ender Dragon uses a different rendering system so is not included
 
         VisualHealth.LOGGER.info("Loaded {} entity texture sizes", TEXTURE_SIZES.size());
     }
 
-    // Get the texture size for a living entity with fallback chain:
-    // 1. Check hardcoded map (fast path for vanilla mobs)
-    // 2. Dynamically detect from actual texture (for modded mobs)
-    // 3. Fall back to 64x64 if detection fails
     public static TextureSize getTextureSize(LivingEntity entity) {
-        // Fast path: check hardcoded map first
         TextureSize cachedSize = TEXTURE_SIZES.get(entity.getType());
         if (cachedSize != null) {
             if (VisualHealth.debugMode) {
@@ -136,13 +120,11 @@ public class TextureSizeIndex {
             return cachedSize;
         }
 
-        // Dynamic detection: load actual texture and get dimensions
         try {
             Identifier textureId = TextureLocator.getEntityTexture(entity);
             if (textureId != null) {
                 AlphaMaskCache.TextureSize dynamicSize = AlphaMaskCache.getOrGenerateTextureSize(textureId);
                 if (dynamicSize != null) {
-                    // Cache the dynamically discovered size for future use
                     TextureSize sizeWrapper = new TextureSize(dynamicSize.width(), dynamicSize.height());
                     TEXTURE_SIZES.put(entity.getType(), sizeWrapper);
 
@@ -160,7 +142,7 @@ public class TextureSizeIndex {
                     entity.getName().getString(), e.getMessage());
         }
 
-        // Final fallback: default to 64x64
+        // Final fallback (default to 64x64)
         if (VisualHealth.debugMode) {
             VisualHealth.LOGGER.debug("Using default texture size 64x64 for {} (not in index and dynamic detection failed)",
                     entity.getName().getString());
@@ -169,7 +151,6 @@ public class TextureSizeIndex {
         return DEFAULT_SIZE;
     }
 
-    // Private constructor to prevent instantiation
     private TextureSizeIndex() {
     }
 }
