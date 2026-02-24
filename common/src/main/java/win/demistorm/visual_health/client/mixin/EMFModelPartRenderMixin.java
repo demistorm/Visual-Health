@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import traben.entity_model_features.models.animation.EMFAnimationEntityContext;
 import win.demistorm.visual_health.VisualHealth;
-import win.demistorm.visual_health.client.EMFPerEntityTextures;
+import win.demistorm.visual_health.client.emf.EMFPerEntityTextures;
 
 // Swap EMF textures per entity for wound rendering
 @Pseudo

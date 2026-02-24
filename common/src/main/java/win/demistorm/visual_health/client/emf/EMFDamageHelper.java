@@ -1,4 +1,4 @@
-package win.demistorm.visual_health.client;
+package win.demistorm.visual_health.client.emf;
 
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.resources.Identifier;
@@ -6,6 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 import traben.entity_model_features.models.IEMFModel;
 import traben.entity_texture_features.ETFApi;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 import win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator;
 
 /**

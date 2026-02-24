@@ -1,4 +1,4 @@
-package win.demistorm.visual_health.client;
+package win.demistorm.visual_health.client.renderer;
 
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.LivingEntity;

@@ -3,10 +3,9 @@ package win.demistorm.visual_health.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.emf.EMFPerEntityTextures;
 import win.demistorm.visual_health.client.renderer.DamageOverlayLayer;
 import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
@@ -56,7 +55,7 @@ public class VisualHealthClient {
         win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator.clearAllCaches();
         win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearAllCaches();
 
-        win.demistorm.visual_health.client.EMFPerEntityTextures.clearAllCaches();
+        EMFPerEntityTextures.clearAllCaches();
 
         WoundAssetSelector.cleanup();
 

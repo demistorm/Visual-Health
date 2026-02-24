@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import win.demistorm.visual_health.VisualHealth;
-import win.demistorm.visual_health.client.EntityHealthTracker;
-import win.demistorm.visual_health.client.VisualHealthRenderContext;
+import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
+import win.demistorm.visual_health.client.renderer.VisualHealthRenderContext;
 
 // Tracks entity health for the damage overlay RenderLayer
 // Extracts render state to track entities during rendering

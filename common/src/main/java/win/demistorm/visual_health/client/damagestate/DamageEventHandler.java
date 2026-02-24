@@ -1,4 +1,4 @@
-package win.demistorm.visual_health.client;
+package win.demistorm.visual_health.client.damagestate;
 
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.LivingEntity;
@@ -6,6 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.damagesource.DamageSource;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.entitymappings.DamageType;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -6,9 +6,9 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
-import win.demistorm.visual_health.client.DamageType;
-import win.demistorm.visual_health.client.EntityHealthTracker;
-import win.demistorm.visual_health.client.TintCalculator;
+import win.demistorm.visual_health.client.entitymappings.DamageType;
+import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
+import win.demistorm.visual_health.client.damagestate.TintCalculator;
 import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
 import java.util.ArrayList;

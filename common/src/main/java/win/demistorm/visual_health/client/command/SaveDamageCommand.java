@@ -1,4 +1,4 @@
-package win.demistorm.visual_health.client;
+package win.demistorm.visual_health.client.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;

@@ -5,7 +5,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.server.packs.PackType;
-import win.demistorm.visual_health.client.SaveDamageCommand;
+import win.demistorm.visual_health.client.command.SaveDamageCommand;
 import win.demistorm.visual_health.client.VisualHealthClient;
 import win.demistorm.visual_health.VisualHealth;
 

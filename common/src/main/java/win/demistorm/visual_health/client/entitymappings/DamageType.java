@@ -1,4 +1,4 @@
-package win.demistorm.visual_health.client;
+package win.demistorm.visual_health.client.entitymappings;
 
 // Damage types determine wound texture
 public enum DamageType {

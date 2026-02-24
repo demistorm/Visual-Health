@@ -1,7 +1,9 @@
-package win.demistorm.visual_health.client;
+package win.demistorm.visual_health.client.damagestate;
 
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.ConfigHelper;
+import win.demistorm.visual_health.client.entitymappings.DamageType;
+import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 
 // Calculates the appropriate tint color for wounds based on damage type and entity
 // Uses hierarchical system: generic bruise color > entity override for weapons > config weapon color

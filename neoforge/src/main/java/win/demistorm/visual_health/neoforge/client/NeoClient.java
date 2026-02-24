@@ -1,7 +1,5 @@
 package win.demistorm.visual_health.neoforge.client;
 
-import com.mojang.brigadier.CommandDispatcher;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -9,7 +7,7 @@ import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import win.demistorm.visual_health.VisualHealth;
-import win.demistorm.visual_health.client.SaveDamageCommand;
+import win.demistorm.visual_health.client.command.SaveDamageCommand;
 import win.demistorm.visual_health.client.VisualHealthClient;
 
 // NeoForge client initialization

@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import win.demistorm.visual_health.client.DamageEventHandler;
+import win.demistorm.visual_health.client.damagestate.DamageEventHandler;
 
 // Mixin to LivingEntity to detect damage on the client side
 // This is the most reliable way for a client-side-only mod to track damage events

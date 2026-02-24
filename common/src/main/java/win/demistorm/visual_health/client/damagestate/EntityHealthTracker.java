@@ -1,8 +1,9 @@
-package win.demistorm.visual_health.client;
+package win.demistorm.visual_health.client.damagestate;
 
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.entitymappings.DamageType;
 
 import java.util.Map;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package win.demistorm.visual_health.client;
+package win.demistorm.visual_health.client.emf;
 
 import net.minecraft.resources.Identifier;
 import win.demistorm.visual_health.VisualHealth;

@@ -1,4 +1,4 @@
-package win.demistorm.visual_health.client;
+package win.demistorm.visual_health.client.entitymappings;
 
 import net.minecraft.world.entity.EntityType;
 import static net.minecraft.world.entity.EntityType.*;

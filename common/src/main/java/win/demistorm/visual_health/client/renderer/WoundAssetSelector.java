@@ -5,7 +5,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.Resource;
 import win.demistorm.visual_health.VisualHealth;
-import win.demistorm.visual_health.client.DamageType;
+import win.demistorm.visual_health.client.entitymappings.DamageType;
 
 import java.util.ArrayList;
 import java.util.HashMap;

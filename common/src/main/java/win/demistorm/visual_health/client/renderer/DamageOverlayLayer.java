@@ -12,7 +12,10 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.resources.Identifier;
 import win.demistorm.visual_health.VisualHealth;
-import win.demistorm.visual_health.client.EntityDamageColors;
+import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
+import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
+import win.demistorm.visual_health.client.emf.EMFDamageHelper;
+import win.demistorm.visual_health.client.entitymappings.TextureSizeIndex;
 
 // Render wounds based on health percentage
 public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends EntityModel<? super S>>
@@ -29,7 +32,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
     public void submit(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int packedLight,
                        S entityRenderState, float limbSwing, float limbSwingAmount) {
 
-        net.minecraft.world.entity.LivingEntity entity = win.demistorm.visual_health.client.VisualHealthRenderContext.getCurrentEntity(entityRenderState);
+        net.minecraft.world.entity.LivingEntity entity = VisualHealthRenderContext.getCurrentEntity(entityRenderState);
 
         if (entityRenderState.distanceToCameraSq > RENDER_DISTANCE * RENDER_DISTANCE) {
             return;
@@ -60,7 +63,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             return;
         }
 
-        int damageTier = win.demistorm.visual_health.client.EntityHealthTracker.getDamageTier(entityId);
+        int damageTier = EntityHealthTracker.getDamageTier(entityId);
         if (damageTier == 0) {
             return;
         }
@@ -71,7 +74,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         M model = getParentModel();
 
         try {
-            if (win.demistorm.visual_health.client.EMFDamageHelper.applyEMFDamageIfPresent(
+            if (EMFDamageHelper.applyEMFDamageIfPresent(
                     model, entity, damageTier)) {
 
                 VisualHealth.LOGGER.debug("EMF damage applied, skipping overlay render for {}", entityName);
@@ -80,8 +83,8 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         } catch (NoClassDefFoundError e) {
         }
 
-        win.demistorm.visual_health.client.TextureSizeIndex.TextureSize textureSizeInfo =
-                win.demistorm.visual_health.client.TextureSizeIndex.getTextureSize(entity);
+        TextureSizeIndex.TextureSize textureSizeInfo =
+                TextureSizeIndex.getTextureSize(entity);
         int textureWidth = textureSizeInfo.width();
         int textureHeight = textureSizeInfo.height();
 
