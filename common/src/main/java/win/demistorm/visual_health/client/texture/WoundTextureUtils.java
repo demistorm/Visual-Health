@@ -64,7 +64,7 @@ public final class WoundTextureUtils {
                     continue;
                 }
 
-                int stampPixel = stamp.getPixel(x, y);
+                int stampPixel = stamp.getPixelRGBA(x, y);
                 int stampAlpha = (stampPixel >> 24) & 0xFF;
 
                 if (stampAlpha == 0) {
@@ -73,11 +73,11 @@ public final class WoundTextureUtils {
 
                 int baseX = posX + x;
                 int baseY = posY + y;
-                int basePixel = baseTexture.getPixel(baseX, baseY);
+                int basePixel = baseTexture.getPixelRGBA(baseX, baseY);
                 int baseAlpha = (basePixel >> 24) & 0xFF;
 
                 if (baseAlpha == 0) {
-                    baseTexture.setPixel(baseX, baseY, stampPixel);
+                    baseTexture.setPixelRGBA(baseX, baseY, stampPixel);
                 } else {
                     float alphaRatio = stampAlpha / 255.0f;
                     int blendedR = blendChannel((basePixel >> 16) & 0xFF, (stampPixel >> 16) & 0xFF, alphaRatio);
@@ -86,7 +86,7 @@ public final class WoundTextureUtils {
                     int blendedA = Math.min(255, baseAlpha + stampAlpha);
 
                     int blendedPixel = (blendedA << 24) | (blendedR << 16) | (blendedG << 8) | blendedB;
-                    baseTexture.setPixel(baseX, baseY, blendedPixel);
+                    baseTexture.setPixelRGBA(baseX, baseY, blendedPixel);
                 }
             }
         }

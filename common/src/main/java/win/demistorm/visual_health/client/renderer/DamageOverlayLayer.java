@@ -1,16 +1,16 @@
 package win.demistorm.visual_health.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
@@ -19,33 +19,29 @@ import win.demistorm.visual_health.client.entitymappings.TextureSizeIndex;
 import win.demistorm.visual_health.client.texture.TextureSize;
 
 // Render wounds based on health percentage
-public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends EntityModel<? super S>>
-        extends RenderLayer<S, M> {
+public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>>
+        extends RenderLayer<T, M> {
 
     private static final int RENDER_DISTANCE = 96;
 
-    public DamageOverlayLayer(RenderLayerParent<S, M> renderer) {
+    public DamageOverlayLayer(RenderLayerParent<T, M> renderer) {
         super(renderer);
         VisualHealth.LOGGER.debug("DamageOverlayLayer created for renderer: {}", renderer.getClass().getSimpleName());
     }
 
     @Override
-    public void submit(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int packedLight,
-                       S entityRenderState, float limbSwing, float limbSwingAmount) {
+    public void render(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                       T entity, float limbSwing, float limbSwingAmount, float partialTick,
+                       float ageInTicks, float netHeadYaw, float headPitch) {
 
-        net.minecraft.world.entity.LivingEntity entity = VisualHealthRenderContext.getCurrentEntity(entityRenderState);
+        double distanceToCameraSq = entity.distanceToSqr(
+                net.minecraft.client.Minecraft.getInstance().gameRenderer.getMainCamera().getPosition());
 
-        if (entityRenderState.distanceToCameraSq > RENDER_DISTANCE * RENDER_DISTANCE) {
+        if (distanceToCameraSq > RENDER_DISTANCE * RENDER_DISTANCE) {
             return;
         }
 
-        if (entityRenderState.isInvisible) {
-            return;
-        }
-
-        if (entity == null) {
-            VisualHealth.LOGGER.warn("Entity context is null during render! EntityType: {}",
-                    entityRenderState.entityType.getDescription().getString());
+        if (entity.isInvisible()) {
             return;
         }
 
@@ -59,7 +55,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             return;
         }
 
-        if (entity instanceof net.minecraft.world.entity.npc.villager.AbstractVillager &&
+        if (entity instanceof net.minecraft.world.entity.npc.AbstractVillager &&
                 !win.demistorm.visual_health.ConfigHelper.INSTANCE.damageVillagers) {
             return;
         }
@@ -81,7 +77,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
                 VisualHealth.LOGGER.debug("EMF damage applied, skipping overlay render for {}", entityName);
                 return;
             }
-        } catch (NoClassDefFoundError e) {
+        } catch (NoClassDefFoundError ignored) {
         }
 
         TextureSize textureSizeInfo =
@@ -92,11 +88,11 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         VisualHealth.LOGGER.debug("Entity {} texture size: {}x{}",
                 entityName, textureWidth, textureHeight);
 
-        Identifier woundTexture = win.demistorm.visual_health.client.texture.WoundTextureGenerator.generateWoundedTexture(
+        ResourceLocation woundTexture = win.demistorm.visual_health.client.texture.WoundTextureGenerator.generateWoundedTexture(
                 entity, damageTier, textureWidth, textureHeight);
 
         float modelScale = 1.0f;
-        int overlay = LivingEntityRenderer.getOverlayCoords(entityRenderState, 0.0f);
+        int overlay = LivingEntityRenderer.getOverlayCoords(entity, 0.0f);
 
         EntityDamageColors.DamageOverride override =
                 EntityDamageColors.getOverride(entity.getType());
@@ -115,17 +111,15 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         int finalPackedLight;
 
         if (isEmissive) {
-            renderType = RenderTypes.entityTranslucentEmissive(woundTexture);
+            renderType = RenderType.entityTranslucentEmissive(woundTexture);
             finalPackedLight = LightTexture.FULL_BRIGHT;
         } else {
-            renderType = RenderTypes.entityCutoutNoCullZOffset(woundTexture);
+            renderType = RenderType.entityCutoutNoCullZOffset(woundTexture);
             finalPackedLight = packedLight;
         }
 
-        int identityTint = 0xFFFFFFFF;
-
-        submitNodeCollector.order(0).submitModel(model, entityRenderState, poseStack, renderType,
-                finalPackedLight, overlay, identityTint, null, 0, null);
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+        model.renderToBuffer(poseStack, vertexConsumer, finalPackedLight, overlay, 0xFFFFFF);
 
         poseStack.popPose();
     }

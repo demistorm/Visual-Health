@@ -16,7 +16,7 @@ public final class TintUtils {
 
         for (int y = 0; y < wound.getHeight(); y++) {
             for (int x = 0; x < wound.getWidth(); x++) {
-                int pixel = wound.getPixel(x, y);
+                int pixel = wound.getPixelRGBA(x, y);
                 int alpha = (pixel >> 24) & 0xFF;
 
                 if (alpha == 0) {
@@ -32,7 +32,7 @@ public final class TintUtils {
                 int tintedB = (b * tintB) / 255;
 
                 int tintedPixel = (alpha << 24) | (tintedR << 16) | (tintedG << 8) | tintedB;
-                tinted.setPixel(x, y, tintedPixel);
+                tinted.setPixelRGBA(x, y, tintedPixel);
             }
         }
 

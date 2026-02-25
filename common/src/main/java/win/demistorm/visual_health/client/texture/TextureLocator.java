@@ -4,31 +4,30 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
 
 public class TextureLocator {
 
     private TextureLocator() {
-        // Utility class - no instances
     }
 
-    public static Identifier getEntityTexture(LivingEntity entity) {
+    public static ResourceLocation getEntityTexture(LivingEntity entity) {
         try {
             Minecraft client = Minecraft.getInstance();
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
 
-            EntityRenderer<?, ?> baseRenderer = dispatcher.getRenderer(entity);
+            EntityRenderer<? super LivingEntity> baseRenderer = dispatcher.getRenderer(entity);
 
-            if (!(baseRenderer instanceof LivingEntityRenderer<?, ?, ?> livingRenderer)) {
+            if (!(baseRenderer instanceof LivingEntityRenderer)) {
                 VisualHealth.LOGGER.debug("Renderer is not LivingEntityRenderer for {}",
                         entity.getName().getString());
                 return null;
             }
 
-            return resolveTexture(livingRenderer, entity);
+            return resolveTexture((LivingEntityRenderer<LivingEntity, ?>) baseRenderer, entity);
 
         } catch (Exception e) {
             VisualHealth.LOGGER.error("Failed to get entity texture for {}: {}",
@@ -38,24 +37,17 @@ public class TextureLocator {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends LivingEntity, S extends LivingEntityRenderState>
-    Identifier resolveTexture(LivingEntityRenderer<T, S, ?> renderer, LivingEntity entity) {
+    private static <T extends LivingEntity, M extends EntityModel<T>>
+    ResourceLocation resolveTexture(LivingEntityRenderer<T, M> renderer, LivingEntity entity) {
         try {
             T castEntity = (T) entity;
-            S state = renderer.createRenderState();
-            renderer.extractRenderState(castEntity, state, 0.0F);
-
-            Identifier texture = renderer.getTextureLocation(state);
+            ResourceLocation texture = renderer.getTextureLocation(castEntity);
 
             VisualHealth.LOGGER.debug("Got texture {} for {} (ID: {})",
                     texture, entity.getName().getString(), entity.getId());
 
             return texture;
 
-        } catch (NoSuchMethodError | NoClassDefFoundError e) {
-            VisualHealth.LOGGER.debug("Renderer does not support getTextureLocation(state) for {}: {}",
-                    entity.getName().getString(), e.getMessage());
-            return null;
         } catch (Exception e) {
             VisualHealth.LOGGER.debug("Failed to get texture for {}: {}",
                     entity.getName().getString(), e.getMessage());

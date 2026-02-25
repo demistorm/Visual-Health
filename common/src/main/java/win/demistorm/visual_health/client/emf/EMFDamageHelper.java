@@ -1,7 +1,7 @@
 package win.demistorm.visual_health.client.emf;
 
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import traben.entity_model_features.models.IEMFModel;
 import traben.entity_texture_features.ETFApi;
@@ -94,11 +94,11 @@ public final class EMFDamageHelper {
 
         // Generate wound texture for the first part with texture override
         // All parts with textureOverride will use the same variant texture
-        Identifier woundTexture = null;
+        ResourceLocation woundTexture = null;
         for (var part : emfRoot.getAllVanillaPartsEMF()) {
             if (part.textureOverride != null) {
                 // Get ETF's variant of EMF's texture (handles variants, emissives, etc.)
-                Identifier etfProcessedTexture = ETFApi.getCurrentETFVariantTextureOfEntity(
+                ResourceLocation etfProcessedTexture = ETFApi.getCurrentETFVariantTextureOfEntity(
                         entity, part.textureOverride);
 
                 // Generate wound texture from the ETF-processed texture

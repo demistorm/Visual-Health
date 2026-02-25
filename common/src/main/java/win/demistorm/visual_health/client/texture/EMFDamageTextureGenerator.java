@@ -3,7 +3,7 @@ package win.demistorm.visual_health.client.texture;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
@@ -23,11 +23,11 @@ public class EMFDamageTextureGenerator {
     private EMFDamageTextureGenerator() {
     }
 
-    private static final Map<String, Identifier> DAMAGE_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, ResourceLocation> DAMAGE_CACHE = new ConcurrentHashMap<>();
 
     private static final int BASE_TEXTURE_SIZE = 64;
-    public static Identifier generateDamagedVariant(
-            Identifier variantTexture,
+    public static ResourceLocation generateDamagedVariant(
+            ResourceLocation variantTexture,
             LivingEntity entity,
             int damageTier
     ) {
@@ -66,7 +66,7 @@ public class EMFDamageTextureGenerator {
                 NativeImage damagedVariant = new NativeImage(variantImage.getWidth(), variantImage.getHeight(), true);
                 for (int y = 0; y < variantImage.getHeight(); y++) {
                     for (int x = 0; x < variantImage.getWidth(); x++) {
-                        damagedVariant.setPixel(x, y, variantImage.getPixel(x, y));
+                        damagedVariant.setPixelRGBA(x, y, variantImage.getPixelRGBA(x, y));
                     }
                 }
 
@@ -96,7 +96,7 @@ public class EMFDamageTextureGenerator {
 
                     for (int i = 0; i < woundsPerTier; i++) {
                         try {
-                            Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
+                            ResourceLocation woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
 
                             NativeImage woundAsset;
                             try (var resource = resourceManager.open(woundAssetId)) {
@@ -125,13 +125,10 @@ public class EMFDamageTextureGenerator {
                 }
 
                 TextureManager textureManager = net.minecraft.client.Minecraft.getInstance().getTextureManager();
-                Identifier dynamicTextureId = Identifier.fromNamespaceAndPath("visualhealth",
+                ResourceLocation dynamicTextureId = ResourceLocation.fromNamespaceAndPath("visualhealth",
                         "dynamic/emf_damage/" + entity.getId() + "/" + variantTexture.getPath().replace('/', '_') + "_tier" + damageTier);
 
-                DynamicTexture texture = new DynamicTexture(
-                        dynamicTextureId::toString,
-                        damagedVariant
-                );
+                DynamicTexture texture = new DynamicTexture(damagedVariant);
 
                 textureManager.register(dynamicTextureId, texture);
 

@@ -1,7 +1,7 @@
 package win.demistorm.visual_health.client.texture;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import win.demistorm.visual_health.VisualHealth;
 
@@ -13,11 +13,11 @@ public class AlphaMaskCache {
     private AlphaMaskCache() {
     }
 
-    private static final Map<Identifier, boolean[][]> ALPHA_CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, boolean[][]> ALPHA_CACHE = new ConcurrentHashMap<>();
 
-    private static final Map<Identifier, TextureSize> DIMENSION_CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, TextureSize> DIMENSION_CACHE = new ConcurrentHashMap<>();
 
-    public static TextureSize getOrGenerateTextureSize(Identifier textureId) {
+    public static TextureSize getOrGenerateTextureSize(ResourceLocation textureId) {
         if (DIMENSION_CACHE.containsKey(textureId)) {
             return DIMENSION_CACHE.get(textureId);
         }
@@ -29,7 +29,7 @@ public class AlphaMaskCache {
         return textureSize;
     }
 
-    private static TextureSize generateTextureSize(Identifier textureId) {
+    private static TextureSize generateTextureSize(ResourceLocation textureId) {
         try {
             ResourceManager resourceManager = net.minecraft.client.Minecraft.getInstance().getResourceManager();
 
@@ -49,7 +49,7 @@ public class AlphaMaskCache {
         }
     }
 
-    public static boolean[][] getOrGenerateAlphaMask(Identifier textureId) {
+    public static boolean[][] getOrGenerateAlphaMask(ResourceLocation textureId) {
         if (ALPHA_CACHE.containsKey(textureId)) {
             return ALPHA_CACHE.get(textureId);
         }
@@ -61,7 +61,7 @@ public class AlphaMaskCache {
         return alphaMask;
     }
 
-    private static boolean[][] generateAlphaMask(Identifier textureId) {
+    private static boolean[][] generateAlphaMask(ResourceLocation textureId) {
         try {
             ResourceManager resourceManager = net.minecraft.client.Minecraft.getInstance().getResourceManager();
 
@@ -77,7 +77,7 @@ public class AlphaMaskCache {
 
                 for (int x = 0; x < width; x++) {
                     for (int y = 0; y < height; y++) {
-                        int pixel = image.getPixel(x, y);
+                        int pixel = image.getPixelRGBA(x, y);
                         int alpha = (pixel >> 24) & 0xFF;
                         boolean isVisible = alpha == 255;
                         alphaMask[x][y] = isVisible;
@@ -108,12 +108,12 @@ public class AlphaMaskCache {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 if (x >= alphaMask.length || y >= alphaMask[0].length) {
-                    woundTexture.setPixel(x, y, 0x00000000);
+                    woundTexture.setPixelRGBA(x, y, 0x00000000);
                     continue;
                 }
 
                 if (!alphaMask[x][y]) {
-                    woundTexture.setPixel(x, y, 0x00000000);
+                    woundTexture.setPixelRGBA(x, y, 0x00000000);
                 }
             }
         }
@@ -130,12 +130,12 @@ public class AlphaMaskCache {
 
                 if (entityX < 0 || entityX >= alphaMask.length ||
                         entityY < 0 || entityY >= alphaMask[0].length) {
-                    woundTexture.setPixel(x + posX, y + posY, 0x00000000);
+                    woundTexture.setPixelRGBA(x + posX, y + posY, 0x00000000);
                     continue;
                 }
 
                 if (!alphaMask[entityX][entityY]) {
-                    woundTexture.setPixel(x + posX, y + posY, 0x00000000);
+                    woundTexture.setPixelRGBA(x + posX, y + posY, 0x00000000);
                 }
             }
         }

@@ -1,6 +1,6 @@
 package win.demistorm.visual_health.client.entitymappings;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.client.texture.AlphaMaskCache;
@@ -50,7 +50,6 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.SALMON, new TextureSize(32, 32));
 
         // Misc entities
-        TEXTURE_SIZES.put(EntityType.CREAKING, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.SNOW_GOLEM, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.WANDERING_TRADER, new TextureSize(64, 64));
 
@@ -79,7 +78,6 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.ENDERMITE, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.EVOKER, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.GHAST, new TextureSize(128, 64));
-        TEXTURE_SIZES.put(EntityType.HAPPY_GHAST, new TextureSize(128, 128));
         TEXTURE_SIZES.put(EntityType.HOGLIN, new TextureSize(128, 64));
         TEXTURE_SIZES.put(EntityType.HUSK, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.ILLUSIONER, new TextureSize(64, 64));
@@ -117,7 +115,7 @@ public class TextureSizeIndex {
         }
 
         try {
-            Identifier textureId = TextureLocator.getEntityTexture(entity);
+            ResourceLocation textureId = TextureLocator.getEntityTexture(entity);
             if (textureId != null) {
                 TextureSize dynamicSize = AlphaMaskCache.getOrGenerateTextureSize(textureId);
                 if (dynamicSize != null) {

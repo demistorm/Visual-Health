@@ -42,8 +42,8 @@ public class VisualHealthConfigSlider extends AbstractSliderButton {
     }
 
     @Override
-    protected void onDrag(net.minecraft.client.input.MouseButtonEvent mouseButtonEvent, double dragAmountX, double dragAmountY) {
-        super.onDrag(mouseButtonEvent, dragAmountX, dragAmountY);
+    protected void onDrag(double mouseX, double mouseY, double dragAmountX, double dragAmountY) {
+        super.onDrag(mouseX, mouseY, dragAmountX, dragAmountY);
 
         int snappedValue = getCurrentIntValue();
         this.value = (double)(snappedValue - minValue) / (maxValue - minValue);

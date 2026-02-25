@@ -1,6 +1,6 @@
 package win.demistorm.visual_health.client.mixin;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Unique;
@@ -17,7 +17,7 @@ import win.demistorm.visual_health.client.emf.EMFPerEntityTextures;
 public class EMFModelPartRenderMixin {
 
     @Unique
-    private static final ThreadLocal<Identifier> ORIGINAL_TEXTURE = new ThreadLocal<>();
+    private static final ThreadLocal<ResourceLocation> ORIGINAL_TEXTURE = new ThreadLocal<>();
     @Inject(
             method = "renderWithTextureOverride",
             at = @At("HEAD"),
@@ -44,13 +44,13 @@ public class EMFModelPartRenderMixin {
             int entityId = entity.getId();
             String entityKey = String.valueOf(entityId);
 
-            Identifier woundTexture = EMFPerEntityTextures.getWoundTextureById(entityKey);
+            ResourceLocation woundTexture = EMFPerEntityTextures.getWoundTextureById(entityKey);
 
             if (woundTexture == null) {
                 return;
             }
 
-            Identifier originalOverride = ((EMFModelPartAccessor) this).getTextureOverride();
+            ResourceLocation originalOverride = ((EMFModelPartAccessor) this).getTextureOverride();
 
             if (originalOverride != null && !originalOverride.equals(woundTexture)) {
                 ORIGINAL_TEXTURE.set(originalOverride);
@@ -70,7 +70,7 @@ public class EMFModelPartRenderMixin {
     )
     private void afterRenderWithTexture(CallbackInfo ci) {
         try {
-            Identifier originalTexture = ORIGINAL_TEXTURE.get();
+            ResourceLocation originalTexture = ORIGINAL_TEXTURE.get();
 
             if (originalTexture != null) {
                 ((EMFModelPartAccessor) this).setTextureOverride(originalTexture);

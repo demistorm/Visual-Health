@@ -1,6 +1,6 @@
 package win.demistorm.visual_health.client.mixin;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.gen.Accessor;
@@ -11,8 +11,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface EMFModelPartAccessor {
 
     @Accessor("textureOverride")
-    Identifier getTextureOverride();
+    ResourceLocation getTextureOverride();
 
     @Accessor("textureOverride")
-    void setTextureOverride(Identifier texture);
+    void setTextureOverride(ResourceLocation texture);
 }

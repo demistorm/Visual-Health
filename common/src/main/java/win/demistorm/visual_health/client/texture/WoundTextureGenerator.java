@@ -3,7 +3,7 @@ package win.demistorm.visual_health.client.texture;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
@@ -28,7 +28,7 @@ public class WoundTextureGenerator {
     // Cache generated wounded textures
     // Key: entityId + damageTier
     // Value: Dynamic texture identifier
-    private static final Map<String, Identifier> WOUND_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, ResourceLocation> WOUND_CACHE = new ConcurrentHashMap<>();
 
     // Cache texture data for debugging/saving
     // Key: entityId + damageTier
@@ -40,7 +40,7 @@ public class WoundTextureGenerator {
 
     // Generate a texture with wounds stamped onto it
     // Returns a texture identifier that can be used with entity models
-    public static Identifier generateWoundedTexture(LivingEntity entity, int damageTier, int baseWidth, int baseHeight) {
+    public static ResourceLocation generateWoundedTexture(LivingEntity entity, int damageTier, int baseWidth, int baseHeight) {
         // Build cache key that includes damage type history
         // This ensures different weapon combinations get different cached textures
         // Format: entityId_tier#_weapon1_weapon2_...
@@ -66,12 +66,12 @@ public class WoundTextureGenerator {
             int transparent = 0x00000000; // A=0, R=0, G=0, B=0
             for (int y = 0; y < baseHeight; y++) {
                 for (int x = 0; x < baseWidth; x++) {
-                    woundTexture.setPixel(x, y, transparent);
+                    woundTexture.setPixelRGBA(x, y, transparent);
                 }
             }
 
             // Get the entity's actual texture (including variants) for alpha masking
-            Identifier entityTexture = getEntityTexture(entity);
+            ResourceLocation entityTexture = getEntityTexture(entity);
             boolean[][] alphaMask = null;
 
             if (entityTexture != null) {
@@ -124,7 +124,7 @@ public class WoundTextureGenerator {
                 for (int i = 0; i < woundsPerTier; i++) {
                     try {
                         // Get a random wound texture for this damage type
-                        Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
+                        ResourceLocation woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
 
                         // Load the wound texture from resource manager
                         net.minecraft.server.packs.resources.ResourceManager resourceManager =
@@ -171,17 +171,13 @@ public class WoundTextureGenerator {
 
             // Register the composite texture as a dynamic texture
             TextureManager textureManager = net.minecraft.client.Minecraft.getInstance().getTextureManager();
-            Identifier dynamicTextureId = Identifier.fromNamespaceAndPath("visualhealth",
+            ResourceLocation dynamicTextureId = ResourceLocation.fromNamespaceAndPath("visualhealth",
                     "dynamic/wounds/" + entity.getId() + "/tier" + damageTier);
 
             VisualHealth.LOGGER.debug("Registering dynamic wound texture: {}", dynamicTextureId);
 
             // Wrap the NativeImage in a DynamicTexture for GPU upload
-            // Supplier provides the texture name for debugging
-            DynamicTexture texture = new DynamicTexture(
-                    dynamicTextureId::toString,
-                    woundTexture
-            );
+            DynamicTexture texture = new DynamicTexture(woundTexture);
 
             // Register the texture
             textureManager.register(dynamicTextureId, texture);
@@ -304,7 +300,7 @@ public class WoundTextureGenerator {
     }
 
     // Fallback texture if generation fails
-    private static Identifier getFallbackTexture() {
-        return Identifier.fromNamespaceAndPath("visualhealth", "damage/scratches/scratch1.png");
+    private static ResourceLocation getFallbackTexture() {
+        return ResourceLocation.fromNamespaceAndPath("visualhealth", "damage/scratches/scratch1.png");
     }
 }

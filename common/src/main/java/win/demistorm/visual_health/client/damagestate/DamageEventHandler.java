@@ -60,8 +60,6 @@ public final class DamageEventHandler {
                 return DamageType.AXE;
             } else if (weapon.is(ItemTags.TRIDENT_ENCHANTABLE)) {
                 return DamageType.TRIDENT;
-            } else if (weapon.is(ItemTags.SPEARS)) {
-                return DamageType.SPEAR; // Added in 1.21.11!
             }
 
             return DamageType.GENERIC;
