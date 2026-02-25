@@ -13,7 +13,7 @@
 		"sources": "https://github.com/demistorm/VisualHealth"
 	},
 	"license": "GPL-3.0",
-	"icon": "visualhealth-logo.png",
+	"icon": "vh-logo.png",
 	"environment": "client",
 	"entrypoints": {
 		"main": [
