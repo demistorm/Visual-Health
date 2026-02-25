@@ -12,10 +12,10 @@ import win.demistorm.visual_health.client.damagestate.TintCalculator;
 import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 // Generate damaged EMF variant textures
 public class EMFDamageTextureGenerator {
@@ -23,7 +23,7 @@ public class EMFDamageTextureGenerator {
     private EMFDamageTextureGenerator() {
     }
 
-    private static final Map<String, Identifier> DAMAGE_CACHE = new HashMap<>();
+    private static final Map<String, Identifier> DAMAGE_CACHE = new ConcurrentHashMap<>();
 
     private static final int BASE_TEXTURE_SIZE = 64;
     public static Identifier generateDamagedVariant(
@@ -90,7 +90,7 @@ public class EMFDamageTextureGenerator {
                     }
                     Random tierRandom = new Random(tierSeed);
 
-                    int[] tierCells = shuffleGrid(variantImage.getWidth(), variantImage.getHeight(), tierRandom);
+                    int[] tierCells = WoundTextureUtils.shuffleGrid(variantImage.getWidth(), variantImage.getHeight(), tierRandom);
 
                     int woundTint = TintCalculator.getTintForDamageType(damageType, entity);
 
@@ -105,7 +105,7 @@ public class EMFDamageTextureGenerator {
 
                             NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
 
-                            int[] position = getFuzzyGridPosition(variantImage.getWidth(), variantImage.getHeight(),
+                            int[] position = WoundTextureUtils.getFuzzyGridPosition(variantImage.getWidth(), variantImage.getHeight(),
                                     tintedWound.getWidth(), tintedWound.getHeight(),
                                     tierCells, i, tierRandom);
 
@@ -113,7 +113,7 @@ public class EMFDamageTextureGenerator {
                                     ++woundIndex, tier, damageType, position[0], position[1]);
 
                         // Stamp the tinted wound onto the variant texture
-                        stampTexture(damagedVariant, tintedWound, position[0], position[1]);
+                        WoundTextureUtils.stampTexture(damagedVariant, tintedWound, position[0], position[1]);
 
                             tintedWound.close();
                             woundAsset.close();
@@ -145,55 +145,6 @@ public class EMFDamageTextureGenerator {
                 VisualHealth.LOGGER.error("Failed to generate EMF damaged variant: {}", e.getMessage(), e);
                 return variantTexture;
             }
-    }
-
-    private static int[] shuffleGrid(int textureWidth, int textureHeight, Random random) {
-        int gridCols = textureWidth / 8;
-        int gridRows = textureHeight / 8;
-        int totalCells = gridRows * gridCols;
-
-        int[] cells = new int[totalCells];
-        for (int i = 0; i < totalCells; i++) {
-            cells[i] = i;
-        }
-
-        for (int i = totalCells - 1; i > 0; i--) {
-            int j = random.nextInt(i + 1);
-            int temp = cells[i];
-            cells[i] = cells[j];
-            cells[j] = temp;
-        }
-
-        return cells;
-    }
-
-    private static int[] getFuzzyGridPosition(int textureWidth, int textureHeight,
-                                               int woundWidth, int woundHeight,
-                                               int[] shuffledCells, int woundIndex,
-                                               Random random) {
-        int gridCols = textureWidth / 8;
-        int gridRows = textureHeight / 8;
-        int cellWidth = 8;
-        int cellHeight = 8;
-
-        int totalCells = gridRows * gridCols;
-        int cellIndex = shuffledCells[woundIndex % totalCells];
-        int cellRow = cellIndex / gridCols;
-        int cellCol = cellIndex % gridCols;
-
-        int centerX = cellCol * cellWidth + cellWidth / 2;
-        int centerY = cellRow * cellHeight + cellHeight / 2;
-
-        int offsetX = random.nextInt(17) - 8;
-        int offsetY = random.nextInt(17) - 8;
-
-        int x = centerX + offsetX - woundWidth / 2;
-        int y = centerY + offsetY - woundHeight / 2;
-
-        x = Math.max(0, Math.min(textureWidth - woundWidth, x));
-        y = Math.max(0, Math.min(textureHeight - woundHeight, y));
-
-        return new int[]{x, y};
     }
 
     public static void clearEntityTiers(int entityId, int minTier, int maxTier) {
@@ -251,49 +202,4 @@ public class EMFDamageTextureGenerator {
             VisualHealth.LOGGER.info("Cleared {} EMF damage texture cache entries on config change", cacheSize);
         }
     }
-    private static void stampTexture(NativeImage baseTexture, NativeImage stamp, int posX, int posY) {
-        for (int y = 0; y < stamp.getHeight(); y++) {
-            for (int x = 0; x < stamp.getWidth(); x++) {
-                // Check bounds
-                if (posX + x >= baseTexture.getWidth() || posY + y >= baseTexture.getHeight()) {
-                    continue;
-                }
-
-                // Get pixel from stamp texture (returns ARGB format)
-                int stampPixel = stamp.getPixel(x, y);
-                int stampAlpha = (stampPixel >> 24) & 0xFF;
-
-                // Skip fully transparent pixels
-                if (stampAlpha == 0) {
-                    continue;
-                }
-
-                // Get existing pixel from base texture
-                int baseX = posX + x;
-                int baseY = posY + y;
-                int basePixel = baseTexture.getPixel(baseX, baseY);
-                int blendedPixel = getBlendedPixel(basePixel, stampAlpha, stampPixel);
-                baseTexture.setPixel(baseX, baseY, blendedPixel);
-            }
-        }
-    }
-
-    private static int getBlendedPixel(int basePixel, int stampAlpha, int stampPixel) {
-        int baseAlpha = (basePixel >> 24) & 0xFF;
-
-        // Simple alpha blending (stamp overlays base)
-        float alphaRatio = stampAlpha / 255.0f;
-        int blendedR = blendChannel((basePixel >> 16) & 0xFF, (stampPixel >> 16) & 0xFF, alphaRatio);
-        int blendedG = blendChannel((basePixel >> 8) & 0xFF, (stampPixel >> 8) & 0xFF, alphaRatio);
-        int blendedB = blendChannel(basePixel & 0xFF, stampPixel & 0xFF, alphaRatio);
-        int blendedA = Math.min(255, baseAlpha + stampAlpha);
-
-        return (blendedA << 24) | (blendedR << 16) | (blendedG << 8) | blendedB;
-    }
-
-    // Blend two colors based on alpha
-    private static int blendChannel(int base, int stamp, float alphaRatio) {
-        return (int)(base * (1.0f - alphaRatio) + stamp * alphaRatio);
-    }
-
 }

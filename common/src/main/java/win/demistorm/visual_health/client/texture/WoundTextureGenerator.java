@@ -12,6 +12,7 @@ import win.demistorm.visual_health.client.damagestate.TintCalculator;
 import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static win.demistorm.visual_health.client.texture.AlphaMaskCache.getOrGenerateAlphaMask;
 import static win.demistorm.visual_health.client.texture.TextureLocator.getEntityTexture;
@@ -27,12 +28,12 @@ public class WoundTextureGenerator {
     // Cache generated wounded textures
     // Key: entityId + damageTier
     // Value: Dynamic texture identifier
-    private static final Map<String, Identifier> WOUND_CACHE = new HashMap<>();
+    private static final Map<String, Identifier> WOUND_CACHE = new ConcurrentHashMap<>();
 
     // Cache texture data for debugging/saving
     // Key: entityId + damageTier
     // Value: NativeImage
-    private static final Map<String, NativeImage> WOUND_IMAGE_CACHE = new HashMap<>();
+    private static final Map<String, NativeImage> WOUND_IMAGE_CACHE = new ConcurrentHashMap<>();
 
     // Base reference texture size for wound count scaling
     private static final int BASE_TEXTURE_SIZE = 64;
@@ -111,7 +112,7 @@ public class WoundTextureGenerator {
                 Random tierRandom = new Random(tierSeed);
 
                 // Pre-shuffle grid ONCE for this tier (ensures consistency)
-                int[] tierCells = shuffleGrid(baseWidth, baseHeight, tierRandom);
+                int[] tierCells = WoundTextureUtils.shuffleGrid(baseWidth, baseHeight, tierRandom);
 
                 // Get the appropriate tint for this damage type
                 int woundTint = TintCalculator.getTintForDamageType(damageType, entity);
@@ -139,7 +140,7 @@ public class WoundTextureGenerator {
                         NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
 
                         // Find position using fuzzy grid distribution for even coverage
-                        int[] position = getFuzzyGridPosition(baseWidth, baseHeight,
+                        int[] position = WoundTextureUtils.getFuzzyGridPosition(baseWidth, baseHeight,
                                 tintedWound.getWidth(), tintedWound.getHeight(),
                                 tierCells, i, tierRandom);
 
@@ -150,7 +151,7 @@ public class WoundTextureGenerator {
                                 ++woundIndex, tier, damageType, position[0], position[1]);
 
                         // Stamp the tinted wound onto the base texture
-                        stampTexture(woundTexture, tintedWound, position[0], position[1]);
+                        WoundTextureUtils.stampTexture(woundTexture, tintedWound, position[0], position[1]);
 
                         // Clean up tinted wound (important!)
                         tintedWound.close();
@@ -195,67 +196,6 @@ public class WoundTextureGenerator {
             VisualHealth.LOGGER.error("Failed to generate wound texture: {}", e.getMessage(), e);
             return getFallbackTexture();
         }
-    }
-
-    // Shuffle grid cells into random order for consistent per-tier wound placement
-    // Uses 8x8 pixel cells to ensure even coverage across entire texture including edges
-    private static int[] shuffleGrid(int textureWidth, int textureHeight, Random random) {
-        // Grid cells are always 8x8 pixels
-        int gridCols = textureWidth / 8;
-        int gridRows = textureHeight / 8;
-        int totalCells = gridRows * gridCols;
-
-        int[] cells = new int[totalCells];
-        for (int i = 0; i < totalCells; i++) {
-            cells[i] = i;
-        }
-
-        // Fisher-Yates shuffle
-        for (int i = totalCells - 1; i > 0; i--) {
-            int j = random.nextInt(i + 1);
-            int temp = cells[i];
-            cells[i] = cells[j];
-            cells[j] = temp;
-        }
-
-        return cells;
-    }
-
-    // Get fuzzy grid position for wound placement
-    // Picks from pre-shuffled grid and adds random offset (-10 to +10 pixels) for natural look
-    private static int[] getFuzzyGridPosition(int textureWidth, int textureHeight,
-                                               int woundWidth, int woundHeight,
-                                               int[] shuffledCells, int woundIndex,
-                                               Random random) {
-        // Grid cells are 8x8 pixels
-        int gridCols = textureWidth / 8;
-        int gridRows = textureHeight / 8;
-        int cellWidth = 8;
-        int cellHeight = 8;
-
-        // Pick cell from shuffled array (wrap if more wounds than cells)
-        int totalCells = gridRows * gridCols;
-        int cellIndex = shuffledCells[woundIndex % totalCells];
-        int cellRow = cellIndex / gridCols;
-        int cellCol = cellIndex % gridCols;
-
-        // Calculate cell center (always 8x8 grid, shifted +1 Y)
-        int centerX = cellCol * cellWidth + cellWidth / 2;
-        int centerY = cellRow * cellHeight + cellHeight / 2;
-
-        // Add fuzziness (-8 to +8 pixels) for natural distribution
-        int offsetX = random.nextInt(17) - 8;
-        int offsetY = random.nextInt(17) - 8;
-
-        // Calculate final position (wound centered at cell center)
-        int x = centerX + offsetX - woundWidth / 2;
-        int y = centerY + offsetY - woundHeight / 2;
-
-        // Clamp to texture bounds (prevent negative or out-of-bounds placement)
-        x = Math.max(0, Math.min(textureWidth - woundWidth, x));
-        y = Math.max(0, Math.min(textureHeight - woundHeight, y));
-
-        return new int[]{x, y};
     }
 
     // Save all currently cached wound textures to VHDamage directory
@@ -361,55 +301,6 @@ public class WoundTextureGenerator {
         if (cacheSize > 0) {
             VisualHealth.LOGGER.info("Cleared {} wound texture cache entries on config change", cacheSize);
         }
-    }
-
-    // Stamp a small texture onto a base texture at the specified position
-    // Handles alpha blending for smooth wound edges
-    private static void stampTexture(NativeImage baseTexture, NativeImage stamp, int posX, int posY) {
-        for (int y = 0; y < stamp.getHeight(); y++) {
-            for (int x = 0; x < stamp.getWidth(); x++) {
-                // Check bounds
-                if (posX + x >= baseTexture.getWidth() || posY + y >= baseTexture.getHeight()) {
-                    continue;
-                }
-
-                // Get pixel from stamp texture (returns ARGB format)
-                int stampPixel = stamp.getPixel(x, y);
-                int stampAlpha = (stampPixel >> 24) & 0xFF;
-
-                // Skip fully transparent pixels
-                if (stampAlpha == 0) {
-                    continue;
-                }
-
-                // Get existing pixel from base texture
-                int baseX = posX + x;
-                int baseY = posY + y;
-                int basePixel = baseTexture.getPixel(baseX, baseY);
-                int baseAlpha = (basePixel >> 24) & 0xFF;
-
-                // Simple alpha blending (stamp overlays base)
-                // If base is transparent, use stamp pixel directly
-                if (baseAlpha == 0) {
-                    baseTexture.setPixel(baseX, baseY, stampPixel);
-                } else {
-                    // Blend based on alpha
-                    float alphaRatio = stampAlpha / 255.0f;
-                    int blendedR = blendChannel((basePixel >> 16) & 0xFF, (stampPixel >> 16) & 0xFF, alphaRatio);
-                    int blendedG = blendChannel((basePixel >> 8) & 0xFF, (stampPixel >> 8) & 0xFF, alphaRatio);
-                    int blendedB = blendChannel(basePixel & 0xFF, stampPixel & 0xFF, alphaRatio);
-                    int blendedA = Math.min(255, baseAlpha + stampAlpha);
-
-                    int blendedPixel = (blendedA << 24) | (blendedR << 16) | (blendedG << 8) | blendedB;
-                    baseTexture.setPixel(baseX, baseY, blendedPixel);
-                }
-            }
-        }
-    }
-
-    // Blend two color channels based on alpha ratio
-    private static int blendChannel(int base, int stamp, float alphaRatio) {
-        return (int)(base * (1.0f - alphaRatio) + stamp * alphaRatio);
     }
 
     // Fallback texture if generation fails

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 // Select random wound textures by damage type
@@ -20,10 +21,14 @@ public class WoundAssetSelector {
     private static final String MODID = "visualhealth";
     private static final String TEXTURE_FOLDER = "damage";
 
-    private static final Map<DamageType, List<Identifier>> woundTextures = new HashMap<>();
+    private static final Map<DamageType, List<Identifier>> woundTextures = new ConcurrentHashMap<>();
     private static boolean texturesLoaded = false;
 
-    public static void loadTextures() {
+    public static synchronized void loadTextures() {
+        if (texturesLoaded) {
+            return;
+        }
+
         VisualHealth.LOGGER.info("Loading wound texture identifiers for Visual Health");
 
         for (DamageType damageType : DamageType.values()) {
