@@ -17,9 +17,6 @@ public class AlphaMaskCache {
 
     private static final Map<Identifier, TextureSize> DIMENSION_CACHE = new ConcurrentHashMap<>();
 
-    public record TextureSize(int width, int height) {
-    }
-
     public static TextureSize getOrGenerateTextureSize(Identifier textureId) {
         if (DIMENSION_CACHE.containsKey(textureId)) {
             return DIMENSION_CACHE.get(textureId);

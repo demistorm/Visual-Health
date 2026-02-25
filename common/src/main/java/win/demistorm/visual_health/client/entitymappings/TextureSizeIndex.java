@@ -5,15 +5,13 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.client.texture.AlphaMaskCache;
 import win.demistorm.visual_health.client.texture.TextureLocator;
+import win.demistorm.visual_health.client.texture.TextureSize;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class TextureSizeIndex {
-
-    public record TextureSize(int width, int height) {
-    }
 
     private static final Map<EntityType<?>, TextureSize> TEXTURE_SIZES = new HashMap<>();
 
@@ -121,16 +119,15 @@ public class TextureSizeIndex {
         try {
             Identifier textureId = TextureLocator.getEntityTexture(entity);
             if (textureId != null) {
-                AlphaMaskCache.TextureSize dynamicSize = AlphaMaskCache.getOrGenerateTextureSize(textureId);
+                TextureSize dynamicSize = AlphaMaskCache.getOrGenerateTextureSize(textureId);
                 if (dynamicSize != null) {
-                    TextureSize sizeWrapper = new TextureSize(dynamicSize.width(), dynamicSize.height());
-                    TEXTURE_SIZES.put(entity.getType(), sizeWrapper);
+                    TEXTURE_SIZES.put(entity.getType(), dynamicSize);
 
                     VisualHealth.LOGGER.debug("Dynamically detected texture size {}x{} for {} (ID: {})",
                             dynamicSize.width(), dynamicSize.height(),
                             entity.getName().getString(), entity.getId());
 
-                    return sizeWrapper;
+                    return dynamicSize;
                 }
             }
         } catch (Exception e) {

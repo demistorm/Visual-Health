@@ -330,6 +330,16 @@ public class WoundTextureGenerator {
     // Called on resource reload to invalidate all texture identifiers
     public static void clearAllCaches() {
         int cacheSize = WOUND_CACHE.size();
+
+        // Close all NativeImage objects before clearing maps
+        for (NativeImage image : WOUND_IMAGE_CACHE.values()) {
+            try {
+                image.close();
+            } catch (Exception e) {
+                VisualHealth.LOGGER.error("Failed to close NativeImage", e);
+            }
+        }
+
         WOUND_CACHE.clear();
         WOUND_IMAGE_CACHE.clear();
 

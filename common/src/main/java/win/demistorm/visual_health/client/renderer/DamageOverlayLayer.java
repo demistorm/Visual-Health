@@ -16,6 +16,7 @@ import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.emf.EMFDamageHelper;
 import win.demistorm.visual_health.client.entitymappings.TextureSizeIndex;
+import win.demistorm.visual_health.client.texture.TextureSize;
 
 // Render wounds based on health percentage
 public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends EntityModel<? super S>>
@@ -83,7 +84,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         } catch (NoClassDefFoundError e) {
         }
 
-        TextureSizeIndex.TextureSize textureSizeInfo =
+        TextureSize textureSizeInfo =
                 TextureSizeIndex.getTextureSize(entity);
         int textureWidth = textureSizeInfo.width();
         int textureHeight = textureSizeInfo.height();
