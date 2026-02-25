@@ -144,7 +144,7 @@ public class WoundTextureGenerator {
                                 tintedWound.getWidth(), tintedWound.getHeight(),
                                 tierCells, i, tierRandom);
 
-                        VisualHealth.LOGGER.info("Stamping wound at ({},{}) - wound size {}x{}",
+                        VisualHealth.LOGGER.debug("Stamping wound at ({},{}) - wound size {}x{}",
                                 position[0], position[1], tintedWound.getWidth(), tintedWound.getHeight());
 
                         VisualHealth.LOGGER.debug("Stamping wound {} (tier {}, {}) at ({}, {})",

@@ -65,7 +65,7 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
             return;
         }
 
-        VisualHealth.LOGGER.info("Rendering damage overlay for {} (ID: {}) at tier {}",
+        VisualHealth.LOGGER.debug("Rendering damage overlay for {} (ID: {}) at tier {}",
                 entityName, entityId, damageTier);
 
         M model = getParentModel();

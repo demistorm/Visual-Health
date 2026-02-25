@@ -46,10 +46,8 @@ public final class EntityHealthTracker {
 
         if (tier > 0 || oldTier != tier) {
             float healthPercent = (entity.getHealth() / entity.getMaxHealth()) * 100;
-            VisualHealth.LOGGER.info("Tracked damaged entity {} (ID: {}) -> Tier {} ({}% health)",
+            VisualHealth.LOGGER.debug("Tracked damaged entity {} (ID: {}) -> Tier {} ({}% health)",
                     entity.getName().getString(), entity.getId(), tier, String.format("%.1f", healthPercent));
-
-
         }
     }
 

@@ -14,10 +14,11 @@ public final class TintCalculator {
     }
 
     // Brown bruise color for generic damage (punches, falls, etc.)
-    private static final int GENERIC_BRUISE_COLOR = 0xFF8B4513; // Saddle brown
+    // ABGR format: A=FF, B=13, G=45, R=8B
+    private static final int GENERIC_BRUISE_COLOR = 0xFF13458B; // Saddle brown
 
     // Get the appropriate tint color for a wound based on damage type and entity
-    // Returns ARGB format color
+    // Returns ABGR format color
     public static int getTintForDamageType(DamageType damageType, LivingEntity entity) {
         // Generic damage (punches, falls, etc.) ALWAYS uses brown bruise color
         // Entity overrides do NOT apply to generic damage
@@ -31,9 +32,9 @@ public final class TintCalculator {
             return override.tintColor();
         }
 
-        // No override for weapon damage, use config damage color
+        // No override for weapon damage, use config damage color (ABGR format)
         return switch (ConfigHelper.INSTANCE.damageColor) {
-            case RED -> 0xFF9F0000;   // Blood red
+            case RED -> 0xFF00009F;   // Blood red (A=FF, B=00, G=00, R=9F)
             case BLACK -> 0xFF000000; // Black
             case WHITE -> 0xFFFFFFFF; // Pure white
         };

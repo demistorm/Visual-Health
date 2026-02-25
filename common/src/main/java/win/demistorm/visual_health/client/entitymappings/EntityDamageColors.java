@@ -58,8 +58,12 @@ public class EntityDamageColors {
     }
 
     private static void OC(EntityType<?> entityType, String colorHex, boolean isEmissive) {
-        int color = 0xFF000000 | Integer.parseInt(colorHex, 16);
-        OVERRIDE_MAP.put(entityType, new DamageOverride(color, isEmissive));
+        int rgb = Integer.parseInt(colorHex, 16);
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+        int abgr = 0xFF000000 | (b << 16) | (g << 8) | r;
+        OVERRIDE_MAP.put(entityType, new DamageOverride(abgr, isEmissive));
     }
 
     public static DamageOverride getOverride(EntityType<?> entityType) {

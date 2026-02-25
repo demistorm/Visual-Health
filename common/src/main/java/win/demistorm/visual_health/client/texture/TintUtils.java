@@ -8,9 +8,9 @@ public final class TintUtils {
     }
 
     public static NativeImage applyTint(NativeImage wound, int tint) {
-        int tintR = (tint >> 16) & 0xFF;
+        int tintR = tint & 0xFF;
         int tintG = (tint >> 8) & 0xFF;
-        int tintB = tint & 0xFF;
+        int tintB = (tint >> 16) & 0xFF;
 
         NativeImage tinted = new NativeImage(wound.getWidth(), wound.getHeight(), true);
 
@@ -23,15 +23,15 @@ public final class TintUtils {
                     continue;
                 }
 
-                int r = (pixel >> 16) & 0xFF;
+                int r = pixel & 0xFF;
                 int g = (pixel >> 8) & 0xFF;
-                int b = pixel & 0xFF;
+                int b = (pixel >> 16) & 0xFF;
 
                 int tintedR = (r * tintR) / 255;
                 int tintedG = (g * tintG) / 255;
                 int tintedB = (b * tintB) / 255;
 
-                int tintedPixel = (alpha << 24) | (tintedR << 16) | (tintedG << 8) | tintedB;
+                int tintedPixel = (alpha << 24) | (tintedB << 16) | (tintedG << 8) | tintedR;
                 tinted.setPixelRGBA(x, y, tintedPixel);
             }
         }
