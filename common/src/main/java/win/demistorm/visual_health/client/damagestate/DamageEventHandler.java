@@ -5,6 +5,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.item.Items;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 
@@ -58,7 +59,7 @@ public final class DamageEventHandler {
                 return DamageType.SWORD;
             } else if (weapon.is(ItemTags.AXES)) {
                 return DamageType.AXE;
-            } else if (weapon.is(ItemTags.TRIDENT_ENCHANTABLE)) {
+            } else if (weapon.is(Items.TRIDENT)) {
                 return DamageType.TRIDENT;
             }
 
