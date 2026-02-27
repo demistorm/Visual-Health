@@ -125,7 +125,7 @@ public class EMFDamageTextureGenerator {
                 }
 
                 TextureManager textureManager = net.minecraft.client.Minecraft.getInstance().getTextureManager();
-                ResourceLocation dynamicTextureId = ResourceLocation.fromNamespaceAndPath("visualhealth",
+                ResourceLocation dynamicTextureId = new ResourceLocation("visualhealth",
                         "dynamic/emf_damage/" + entity.getId() + "/" + variantTexture.getPath().replace('/', '_') + "_tier" + damageTier);
 
                 DynamicTexture texture = new DynamicTexture(damagedVariant);

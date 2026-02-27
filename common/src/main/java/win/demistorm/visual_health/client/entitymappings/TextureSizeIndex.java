@@ -20,7 +20,6 @@ public class TextureSizeIndex {
     static {
         // Passive mobs
         TEXTURE_SIZES.put(EntityType.ALLAY, new TextureSize(32, 32));
-        TEXTURE_SIZES.put(EntityType.ARMADILLO, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.BAT, new TextureSize(32, 32));
         TEXTURE_SIZES.put(EntityType.CAT, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.CHICKEN, new TextureSize(64, 32));
@@ -70,8 +69,6 @@ public class TextureSizeIndex {
 
         // Hostile Mobs
         TEXTURE_SIZES.put(EntityType.BLAZE, new TextureSize(64, 32));
-        TEXTURE_SIZES.put(EntityType.BOGGED, new TextureSize(64, 32));
-        TEXTURE_SIZES.put(EntityType.BREEZE, new TextureSize(32, 32));
         TEXTURE_SIZES.put(EntityType.CREEPER, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.DROWNED, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.ELDER_GUARDIAN, new TextureSize(64, 64));

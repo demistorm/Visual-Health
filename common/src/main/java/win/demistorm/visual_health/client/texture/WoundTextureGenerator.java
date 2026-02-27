@@ -171,7 +171,7 @@ public class WoundTextureGenerator {
 
             // Register the composite texture as a dynamic texture
             TextureManager textureManager = net.minecraft.client.Minecraft.getInstance().getTextureManager();
-            ResourceLocation dynamicTextureId = ResourceLocation.fromNamespaceAndPath("visualhealth",
+            ResourceLocation dynamicTextureId = new ResourceLocation("visualhealth",
                     "dynamic/wounds/" + entity.getId() + "/tier" + damageTier);
 
             VisualHealth.LOGGER.debug("Registering dynamic wound texture: {}", dynamicTextureId);
@@ -301,6 +301,6 @@ public class WoundTextureGenerator {
 
     // Fallback texture if generation fails
     private static ResourceLocation getFallbackTexture() {
-        return ResourceLocation.fromNamespaceAndPath("visualhealth", "damage/scratches/scratch1.png");
+        return new ResourceLocation("visualhealth", "damage/scratches/scratch1.png");
     }
 }

@@ -119,7 +119,7 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
         }
 
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
-        model.renderToBuffer(poseStack, vertexConsumer, finalPackedLight, overlay, 0xFFFFFF);
+        model.renderToBuffer(poseStack, vertexConsumer, finalPackedLight, overlay, 1.0f, 1.0f, 1.0f, 1.0f);
 
         poseStack.popPose();
     }

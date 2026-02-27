@@ -8,7 +8,6 @@ import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -87,7 +86,7 @@ public class WoundAssetSelector {
 
     // Fallback texture if none found
     private static ResourceLocation getFallbackTexture() {
-        return ResourceLocation.fromNamespaceAndPath(MODID, "damage/generic/generic1.png");
+        return new ResourceLocation(MODID, "damage/generic/generic1.png");
     }
 
     // Clean up on resource reload

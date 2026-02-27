@@ -10,7 +10,7 @@ public class VisualHealthFabricReloadListener
 
     @Override
     public ResourceLocation getFabricId() {
-        return ResourceLocation.fromNamespaceAndPath("visualhealth", "client_reload");
+        return new ResourceLocation("visualhealth", "client_reload");
     }
 
     @Override
