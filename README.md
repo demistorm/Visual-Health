@@ -1,42 +1,49 @@
-# Visual Health
+# Visual Health 🩸
+Clientside mod adding visible damage to hurt mobs and players!
 
-Visual Health is a Minecraft mod that [ADD DESCRIPTION HERE].
+Damage works in **tiers**, not based on hits. The tiers are based on how much health the mob has. The idea is that at a glance a player can have a rough idea of how much health is left. A heavily damaged creeper will only need 1 more hit whereas a lightly hurt baby zombie is going to take a much greater beating.
+
+
+<details>
+<summary>Tier Summary</summary>
+
+| Tier | Health % | Condition |
+|------|-------------------|-----------|
+| 0 | 100% | Full health (no wounds) |
+| 1 | 99% - 80% | Minor damage |
+| 2 | 79% - 60% | Light damage |
+| 3 | 59% - 40% | Moderate damage |
+| 4 | 39% - 20% | Heavy damage |
+| 5 | 19% - 0% | Critical damage |
+
+
+</details>
+
+
+---
 
 ## Features
+### Per-Weapon Damage
+Different weapons apply different damage textures depending on what was used to knock the entity's health down a tier. There are individual textures for sword, axe, trident, and spear damage. There is also a generic damage texture used for punches, fire, falls, etc.
+### Entity-Specific Damage
+Many mobs have specific colored damage to aid immersion. For instance, spider damage is a light blue to match real life, creeper damage is a dark green to match the grassiness, etc.
+### Emissives
+On Endermen, damage will glow like their eyes in the dark! (shaders supported)
+### Resource Pack Support
+This mod should be compatible with **most** resource packs. Tested extensively with Fresh Animations and its extensions. Also compatible with EMF model variants (like the creepers found in FA: Creepers).
+### Mod Support
+Should work with modded entities, as long as they register a LivingEntityRenderer. Tested with Animal Garden mobs.
 
-- [Feature 1]
-- [Feature 2]
-- [Feature 3]
+## Configuration
+- How *much* damage will be shown ranging from a multiplier of 10 to 100%. At 100% a low-health mob will be almost entirely covered in wounds.
+- Configurable damage colors (red, black, white, only affects mobs without specific damage colors)
+- Passive mob damage (defaults to true, whether to show damage on passive mobs or not, things like cows, pigs, polar bears, etc)
+- Villager damage (defaults to false, only can be enabled if passive mob damage is true)
 
-## Installation
-
-### Fabric
-1. Download the Fabric installer from [fabricmc.net](https://fabricmc.net/)
-2. Install Fabric for your Minecraft version
-3. Download the Visual Health Fabric JAR
-4. Place the JAR in your `mods` folder
-
-### Forge
-1. Download the Forge installer from [files.minecraftforge.net](https://files.minecraftforge.net/)
-2. Install Forge for your Minecraft version
-3. Download the Visual Health Forge JAR
-4. Place the JAR in your `mods` folder
-
-### NeoForge
-1. Download the NeoForge installer from [neoforged.net](https://neoforged.net/)
-2. Install NeoForge for your Minecraft version
-3. Download the Visual Health NeoForge JAR
-4. Place the JAR in your `mods` folder
+*Mod Menu is required on Fabric to change settings in-game.*
 
 ## Supported Versions
-**1.21.11**
+**1.20.1, 1.21.1, 1.21.11**
 
-## License
-
-This project is licensed under GPL-3.0.
-
-## Support
-
-- [Discord](https://discord.gg/7uttzPbTGq)
-- [Ko-fi](https://ko-fi.com/hstorm)
-- [Issue Tracker](https://github.com/demistorm/VisualHealth/issues)
+## Contact
+For any questions/issues/ideas, feel free to contact me on [Discord](https://discord.gg/7uttzPbTGq) :)
