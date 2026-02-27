@@ -1,13 +1,13 @@
 modLoader = "javafml"
 loaderVersion = "[1,)"
-issueTrackerURL = "https://github.com/demistorm/VisualHealth/issues"
+issueTrackerURL = "https://github.com/demistorm/Visual-Health/issues"
 license = "GPL-3.0"
 
 [[mods]]
 modId = "visual_health"
 version = "${version}"
 displayName = "Visual Health"
-displayURL = "https://github.com/demistorm/VisualHealth"
+displayURL = "https://github.com/demistorm/Visual-Health"
 logoFile = "visualhealth-logo.png"
 authors = "Halfstorm"
 description = '''
