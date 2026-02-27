@@ -11,7 +11,7 @@ displayURL = "https://github.com/demistorm/VisualHealth"
 logoFile = "vh-logo.png"
 authors = "Halfstorm"
 description = '''
-Client-side mod that applies dynamic wound textures to living entities based on their health.
+Add visible damage to hurt mobs!
 
 Support me on Ko-Fi: https://ko-fi.com/hstorm
 
