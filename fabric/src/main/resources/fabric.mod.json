@@ -3,7 +3,7 @@
 	"id": "visual_health",
 	"version": "${version}",
 	"name": "Visual Health",
-	"description": "Visual Health mod for Minecraft",
+	"description": "Add visible damage to hurt mobs!",
 	"authors": [
 		"Halfstorm"
 	],
