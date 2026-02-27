@@ -14,6 +14,7 @@ public class TextureLocator {
     private TextureLocator() {
     }
 
+    @SuppressWarnings("unchecked")
     public static ResourceLocation getEntityTexture(LivingEntity entity) {
         try {
             Minecraft client = Minecraft.getInstance();

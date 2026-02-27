@@ -6,6 +6,7 @@ import win.demistorm.visual_health.client.config.ConfigScreen;
 
 // Forge config screen registration
 public class ForgeConfigScreen {
+    @SuppressWarnings("removal")
     public static void register() {
         ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
             () -> new ConfigScreenHandler.ConfigScreenFactory((mc, screen) -> ConfigScreen.VisualHealthConfigScreen.create(screen)));

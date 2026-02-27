@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "win.demistorm.visual_health.client.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_17",
   "plugin": "win.demistorm.visual_health.client.mixin.VisualHealthMixinConfigPlugin",
   "mixins": [
   ],
