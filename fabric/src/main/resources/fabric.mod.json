@@ -8,9 +8,9 @@
 		"Halfstorm"
 	],
 	"contact": {
-		"homepage": "https://github.com/demistorm/VisualHealth",
-		"issues": "https://github.com/demistorm/VisualHealth/issues",
-		"sources": "https://github.com/demistorm/VisualHealth"
+		"homepage": "https://github.com/demistorm/Visual-Health",
+		"issues": "https://github.com/demistorm/Visual-Health/issues",
+		"sources": "https://github.com/demistorm/Visual-Health"
 	},
 	"license": "GPL-3.0",
 	"icon": "vh-logo.png",
