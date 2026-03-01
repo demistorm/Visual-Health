@@ -46,4 +46,4 @@ Should work with modded entities, as long as they register a LivingEntityRendere
 **1.20.1, 1.21.1, 1.21.11**
 
 ## Contact
-For any questions/issues/ideas, feel free to contact me on [Discord](https://discord.gg/7uttzPbTGq) :)
+For any questions/issues/ideas, feel free to contact me on [Discord](https://discord.gg/7uttzPbTGq) or [Matrix](https://matrix.to/#/#stormcommunity:matrix.org) :)
