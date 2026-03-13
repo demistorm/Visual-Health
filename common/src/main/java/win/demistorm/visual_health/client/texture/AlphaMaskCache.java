@@ -17,14 +17,19 @@ public class AlphaMaskCache {
 
     private static final Map<Identifier, TextureSize> DIMENSION_CACHE = new ConcurrentHashMap<>();
 
+    private static final TextureSize EMPTY = new TextureSize(0, 0);
+
     public static TextureSize getOrGenerateTextureSize(Identifier textureId) {
-        if (DIMENSION_CACHE.containsKey(textureId)) {
-            return DIMENSION_CACHE.get(textureId);
+        TextureSize cached = DIMENSION_CACHE.get(textureId);
+        if (cached != null) {
+            return cached == EMPTY ? null : cached;
         }
 
         TextureSize textureSize = generateTextureSize(textureId);
         if (textureSize != null) {
             DIMENSION_CACHE.put(textureId, textureSize);
+        } else {
+            DIMENSION_CACHE.put(textureId, EMPTY);
         }
         return textureSize;
     }
