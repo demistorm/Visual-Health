@@ -44,8 +44,6 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         }
 
         if (entity == null) {
-            VisualHealth.LOGGER.warn("Entity context is null during render! EntityType: {}",
-                    entityRenderState.entityType.getDescription().getString());
             return;
         }
 
