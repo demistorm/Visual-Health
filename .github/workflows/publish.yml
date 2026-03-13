@@ -39,7 +39,7 @@ jobs:
           curseforge-id: 1473785
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
           version: ${{ steps.version.outputs.mod_version }}-fabric
-          name: VR Swing Sprint (Fabric ${{ steps.version.outputs.minecraft_version }}-${{ steps.version.outputs.mod_version }})
+          name: Visual Health (Fabric ${{ steps.version.outputs.minecraft_version }}-${{ steps.version.outputs.mod_version }})
           files: fabric/build/libs/!(*-@(sources|javadoc|dev|shadow)).jar
           loaders: fabric
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -53,7 +53,7 @@ jobs:
           curseforge-id: 1473785
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
           version: ${{ steps.version.outputs.mod_version }}-neoforge
-          name: VR Swing Sprint (NeoForge ${{ steps.version.outputs.minecraft_version }}-${{ steps.version.outputs.mod_version }})
+          name: Visual Health (NeoForge ${{ steps.version.outputs.minecraft_version }}-${{ steps.version.outputs.mod_version }})
           files: neoforge/build/libs/!(*-@(sources|javadoc|dev|shadow)).jar
           loaders: neoforge
           github-token: ${{ secrets.GITHUB_TOKEN }}
