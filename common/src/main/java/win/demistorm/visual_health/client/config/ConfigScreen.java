@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 
 // Config screen for Visual Health
 public final class ConfigScreen {
@@ -114,6 +115,14 @@ public final class ConfigScreen {
 
             addRenderableWidget(
                     Button.builder(
+                                    Component.literal("Color Overrides..."),
+                                    btn -> client.setScreen(new ColorOverridesScreen(this)))
+                            .bounds(width / 2 - 80, height / 6 + 74, 160, 20)
+                            .tooltip(Tooltip.create(Component.literal("Set custom damage colors for specific entities")))
+                            .build());
+
+            addRenderableWidget(
+                    Button.builder(
                                     Component.literal("Done"),
                                     btn -> {
                                         ConfigHelper.INSTANCE.woundDensityPercentage = woundDensityValue;
@@ -123,6 +132,7 @@ public final class ConfigScreen {
 
                                         ConfigHelper.save();
 
+                                        EntityDamageColors.applyUserOverrides(ConfigHelper.INSTANCE.colorOverrides);
                                         ConfigHelper.clearTextureCaches();
 
                                         VisualHealth.LOGGER.info("Visual Health config saved: {}% wound density, passive mobs: {}, villagers: {}, color: {}",
