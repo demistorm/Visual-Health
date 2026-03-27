@@ -1,11 +1,14 @@
 package win.demistorm.visual_health.client.entitymappings;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import static net.minecraft.world.entity.EntityType.*;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.HashMap;
 import java.util.Map;
+
 
 // Entity-specific damage color overrides
 public class EntityDamageColors {
@@ -16,19 +19,18 @@ public class EntityDamageColors {
     // Override wound colors
     private static final Map<EntityType<?>, DamageOverride> OVERRIDE_MAP = new HashMap<>();
 
+    // User overrides (always take priority)
+    private static final Map<EntityType<?>, DamageOverride> USER_OVERRIDE_MAP = new HashMap<>();
+
+    private static final Map<String, Integer> PRESET_COLORS = Map.of(
+            "RED", 0xFF9F0000,
+            "BLACK", 0xFF000000,
+            "WHITE", 0xFFFFFFFF
+    );
+
     static {
         OC(CREEPER, "204020", false);
         OC(ENDERMAN, "D080FF", true);
-        OC(ZOMBIE, "863B22", false);
-        OC(SKELETON, "776E65", false);
-        OC(STRAY, "776E65", false);
-        OC(WITHER_SKELETON, "776E65", false);
-        OC(WITHER, "776E65", false);
-        OC(SKELETON_HORSE, "776E65", false);
-        OC(SPIDER, "C4D3FF", false);
-        OC(CAVE_SPIDER, "C4D3FF", false);
-        OC(HUSK, "863B22", false);
-        OC(ZOMBIE_HORSE, "863B22", false);
         OC(ZOMBIE, "863B22", false);
         OC(SKELETON, "776E65", false);
         OC(STRAY, "776E65", false);
@@ -67,6 +69,75 @@ public class EntityDamageColors {
     }
 
     public static DamageOverride getOverride(EntityType<?> entityType) {
+        DamageOverride user = USER_OVERRIDE_MAP.get(entityType);
+        if (user != null) return user;
         return OVERRIDE_MAP.get(entityType);
+    }
+
+    public static boolean isValidEntityId(String id) {
+        try {
+            ResourceLocation rl = new ResourceLocation(id);
+            return BuiltInRegistries.ENTITY_TYPE.containsKey(rl);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static String normalizeEntityId(String id) {
+        return new ResourceLocation(id).toString();
+    }
+
+    public static void applyUserOverrides(Map<String, String> overrides) {
+        USER_OVERRIDE_MAP.clear();
+        for (Map.Entry<String, String> entry : overrides.entrySet()) {
+            EntityType<?> entityType;
+            try {
+                entityType = BuiltInRegistries.ENTITY_TYPE.get(new ResourceLocation(entry.getKey()));
+            } catch (Exception e) {
+                VisualHealth.LOGGER.warn("Invalid entity type '{}' in color overrides, skipping", entry.getKey());
+                continue;
+            }
+            if (entityType == null) {
+                VisualHealth.LOGGER.warn("Unknown entity type '{}' in color overrides, skipping", entry.getKey());
+                continue;
+            }
+            String value = entry.getValue();
+            DamageOverride override = parseOverride(value);
+            if (override != null) {
+                USER_OVERRIDE_MAP.put(entityType, override);
+            } else {
+                VisualHealth.LOGGER.warn("Invalid color override '{}' for entity '{}', skipping", value, entry.getKey());
+            }
+        }
+        VisualHealth.LOGGER.info("Applied {} color overrides", USER_OVERRIDE_MAP.size());
+    }
+
+    // Presets: "RED", "BLACK", "WHITE", "CUSTOM:FF0000", "EMISSIVE:FFFFFF"
+    public static DamageOverride parseOverride(String value) {
+        Integer preset = PRESET_COLORS.get(value);
+        if (preset != null) {
+            return new DamageOverride(preset, false);
+        }
+        if (value.startsWith("CUSTOM:")) {
+            return parseHex(value.substring(7), false);
+        }
+        if (value.startsWith("EMISSIVE:")) {
+            return parseHex(value.substring(9), true);
+        }
+        return null;
+    }
+
+    private static DamageOverride parseHex(String hex, boolean emissive) {
+        if (hex.length() != 6) return null;
+        try {
+            int rgb = Integer.parseInt(hex, 16);
+            int r = (rgb >> 16) & 0xFF;
+            int g = (rgb >> 8) & 0xFF;
+            int b = rgb & 0xFF;
+            int abgr = 0xFF000000 | (b << 16) | (g << 8) | r;
+            return new DamageOverride(abgr, emissive);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

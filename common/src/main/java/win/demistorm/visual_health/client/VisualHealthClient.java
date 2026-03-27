@@ -52,6 +52,9 @@ public class VisualHealthClient {
 
         forceReRegisterLayers();
 
+        win.demistorm.visual_health.client.entitymappings.EntityDamageColors.applyUserOverrides(
+                win.demistorm.visual_health.ConfigHelper.INSTANCE.colorOverrides);
+
         win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator.clearAllCaches();
         win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearAllCaches();
 
