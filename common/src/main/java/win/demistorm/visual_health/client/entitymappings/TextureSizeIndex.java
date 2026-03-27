@@ -24,7 +24,7 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.CAT, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.CHICKEN, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.COD, new TextureSize(32, 32));
-        TEXTURE_SIZES.put(EntityType.COW, new TextureSize(64, 64));
+        TEXTURE_SIZES.put(EntityType.COW, new TextureSize(64, 32));
         TEXTURE_SIZES.put(EntityType.DONKEY, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.FOX, new TextureSize(48, 32));
         TEXTURE_SIZES.put(EntityType.FROG, new TextureSize(48, 48));
