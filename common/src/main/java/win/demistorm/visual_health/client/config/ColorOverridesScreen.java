@@ -7,6 +7,9 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
@@ -109,7 +112,7 @@ public class ColorOverridesScreen extends Screen {
 
         String current = overrides.getOrDefault(entityId, "RED");
         String baseMode = parseMode(current);
-        int idx = indexOf(MODES, baseMode);
+        int idx = indexOf(baseMode);
         int nextIdx = (idx + 1) % MODES.length;
         String nextMode = MODES[nextIdx];
 
@@ -148,74 +151,71 @@ public class ColorOverridesScreen extends Screen {
         return null;
     }
 
-    private static int indexOf(String[] arr, String target) {
-        for (int i = 0; i < arr.length; i++) {
-            if (arr[i].equals(target)) return i;
+    private static int indexOf(String target) {
+        for (int i = 0; i < ColorOverridesScreen.MODES.length; i++) {
+            if (ColorOverridesScreen.MODES[i].equals(target)) return i;
         }
         return 0;
     }
 
     @Override
     public void tick() {
-        entityIdInput.tick();
         if (focusedHexInput != null) {
             if (entityIdInput.isFocused()) {
                 flushFocusedHex();
                 focusedHexInput.setFocused(false);
                 focusedHexInput = null;
                 focusedHexEntityId = null;
-            } else {
-                focusedHexInput.tick();
             }
         }
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (entityIdInput.isFocused() && (keyCode == 257 || keyCode == 335)) {
+    public boolean keyPressed(KeyEvent keyEvent) {
+        if (entityIdInput.isFocused() && (keyEvent.key() == 257 || keyEvent.key() == 335)) {
             addEntity();
             return true;
         }
         if (focusedHexInput != null) {
-            if (focusedHexInput.keyPressed(keyCode, scanCode, modifiers)) return true;
+            if (focusedHexInput.keyPressed(keyEvent)) return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(keyEvent);
     }
 
     @Override
-    public boolean charTyped(char codePoint, int modifiers) {
+    public boolean charTyped(CharacterEvent characterEvent) {
         if (focusedHexInput != null) {
-            if (focusedHexInput.charTyped(codePoint, modifiers)) return true;
+            if (focusedHexInput.charTyped(characterEvent)) return true;
         }
-        return super.charTyped(codePoint, modifiers);
+        return super.charTyped(characterEvent);
     }
 
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        renderBackground(context);
+        //renderBackground(context, mouseX, mouseY, delta);
         if (overrideList != null) {
             overrideList.render(context, mouseX, mouseY, delta);
         }
         super.render(context, mouseX, mouseY, delta);
 
-        context.drawCenteredString(font, title, width / 2, 10, 0xFFFFFF);
-        context.drawString(font, "Add Entity ID:", 20, 28, 0xFFFFFF);
+        context.drawCenteredString(font, title, width / 2, 10, 0xFFFFFFFF);
+        context.drawString(font, "Add Entity ID:", 20, 28, 0xFFFFFFFF);
         if (showInvalidText) {
             int topY = 40;
-            context.drawString(font, "Invalid entity!", 250, topY + 6, 0xFF5555);
+            context.drawString(font, "Invalid entity!", 250, topY + 6, 0xFFFF5555);
         }
-        context.drawString(font, "Entity Overrides:", 20, overrideList.getTopY() - 15, 0xFFFFFF);
-        context.drawString(font, "(" + overrides.size() + " entries)", 140, overrideList.getTopY() - 15, 0xAAAAAA);
+        context.drawString(font, "Entity Overrides:", 20, overrideList.getTopY() - 15, 0xFFFFFFFF);
+        context.drawString(font, "(" + overrides.size() + " entries)", 140, overrideList.getTopY() - 15, 0xFFAAAAAA);
     }
 
     private class OverrideListWidget extends ObjectSelectionList<OverrideListWidget.OverrideEntry> {
 
         public OverrideListWidget(Minecraft client, int width, int y, int bottom) {
-            super(client, width, bottom - y, y, bottom, WIDGET_HEIGHT + 4);
+            super(client, width, bottom - y, y, WIDGET_HEIGHT + 4);
         }
 
         public int getTopY() {
-            return y0;
+            return getY();
         }
 
         public void updateEntries() {
@@ -231,10 +231,10 @@ public class ColorOverridesScreen extends Screen {
         }
 
         @Override
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            if (!this.isMouseOver(mouseX, mouseY)) return false;
+        public boolean mouseClicked(MouseButtonEvent mouseButtonEvent, boolean bl) {
+            if (!this.isMouseOver(mouseButtonEvent.x(), mouseButtonEvent.y())) return false;
             for (OverrideEntry entry : this.children()) {
-                if (entry.mouseClicked(mouseX, mouseY, button)) return true;
+                if (entry.mouseClicked(mouseButtonEvent, bl)) return true;
             }
             // Clicked empty space in list, unfocus input
             if (focusedHexInput != null) {
@@ -242,7 +242,7 @@ public class ColorOverridesScreen extends Screen {
                 focusedHexInput = null;
                 focusedHexEntityId = null;
             }
-            return super.mouseClicked(mouseX, mouseY, button);
+            return super.mouseClicked(mouseButtonEvent, bl);
         }
 
         public class OverrideEntry extends ObjectSelectionList.Entry<OverrideEntry> {
@@ -251,19 +251,19 @@ public class ColorOverridesScreen extends Screen {
             private final Button removeButton;
             private final EditBox hexInput;
             private final String mode;
-            private final String hexValue;
 
             OverrideEntry(String entityId) {
                 this.entityId = entityId;
 
                 String raw = overrides.getOrDefault(entityId, "RED");
                 this.mode = parseMode(raw);
-                this.hexValue = parseHex(raw);
+                String hexValue = parseHex(raw);
 
                 Component tooltip = Component.literal(
-                                "RED/BLACK/WHITE: Preset colors\n" +
-                                "CUSTOM: Enter a hex color code\n" +
-                                "EMISSIVE: Custom color that glows");
+                        """
+                                RED/BLACK/WHITE: Preset colors
+                                CUSTOM: Enter a hex color code
+                                EMISSIVE: Custom color that glows""");
 
                 this.cycleButton = Button.builder(
                                 Component.literal(mode),
@@ -295,8 +295,12 @@ public class ColorOverridesScreen extends Screen {
             }
 
             @Override
-            public void render(GuiGraphics context, int index, int y, int x, int entryWidth, int entryHeight,
-                               int mouseX, int mouseY, boolean hovered, float tickDelta) {
+            public void renderContent(GuiGraphics context, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+                int x = getX();
+                int y = getY();
+                int entryWidth = getWidth();
+                int entryHeight = getHeight();
+
                 boolean showHex = mode.equals("CUSTOM") || mode.equals("EMISSIVE");
 
                 String display = entityId;
@@ -306,13 +310,13 @@ public class ColorOverridesScreen extends Screen {
                 if (font.width(display) > maxLabelWidth) {
                     display = font.plainSubstrByWidth(display, maxLabelWidth - 15) + "...";
                 }
-                context.drawString(font, display, x + 5, y + 6, 0xFFFFFF);
+                context.drawString(font, display, x + 5, y + 6, 0xFFFFFFFF);
 
                 int removeX = x + entryWidth - 18;
                 int removeY = y + (entryHeight - 13) / 2;
                 removeButton.setPosition(removeX, removeY);
                 removeButton.render(context, mouseX, mouseY, tickDelta);
-                context.drawCenteredString(font, "\u00d7", removeX + 7, removeY + 3, 0xFFFFFF);
+                context.drawCenteredString(font, "×", removeX + 7, removeY + 3, 0xFFFFFFFF);
 
                 int cycleX = removeX - 70 - 5;
                 int cycleY = y + (entryHeight - WIDGET_HEIGHT) / 2;
@@ -329,11 +333,11 @@ public class ColorOverridesScreen extends Screen {
             }
 
             @Override
-            public boolean mouseClicked(double mouseX, double mouseY, int button) {
-                if (cycleButton.mouseClicked(mouseX, mouseY, button)) return true;
-                if (removeButton.mouseClicked(mouseX, mouseY, button)) return true;
+            public boolean mouseClicked(MouseButtonEvent mouseButtonEvent, boolean bl) {
+                if (cycleButton.mouseClicked(mouseButtonEvent, bl)) return true;
+                if (removeButton.mouseClicked(mouseButtonEvent, bl)) return true;
                 if (mode.equals("CUSTOM") || mode.equals("EMISSIVE")) {
-                    if (hexInput.mouseClicked(mouseX, mouseY, button)) {
+                    if (hexInput.mouseClicked(mouseButtonEvent, bl)) {
                         if (focusedHexInput != null) {
                             focusedHexInput.setFocused(false);
                         }
