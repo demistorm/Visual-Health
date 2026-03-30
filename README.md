@@ -39,6 +39,7 @@ Should work with modded entities, as long as they register a LivingEntityRendere
 - Configurable damage colors (red, black, white, only affects mobs without specific damage colors)
 - Passive mob damage (defaults to true, whether to show damage on passive mobs or not, things like cows, pigs, polar bears, etc)
 - Villager damage (defaults to false, only can be enabled if passive mob damage is true)
+- Custom entity-specific damage color overrides! Input any hex color with the CUSTOM setting in the config screen
 
 *Mod Menu is required on Fabric to change settings in-game.*
 
