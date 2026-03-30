@@ -75,16 +75,12 @@ public class EntityDamageColors {
     }
 
     public static boolean isValidEntityId(String id) {
-        try {
-            ResourceLocation rl = new ResourceLocation(id);
-            return BuiltInRegistries.ENTITY_TYPE.containsKey(rl);
-        } catch (Exception e) {
-            return false;
-        }
+        ResourceLocation rl = ResourceLocation.tryParse(id);
+        return rl != null && BuiltInRegistries.ENTITY_TYPE.containsKey(rl);
     }
 
     public static String normalizeEntityId(String id) {
-        return new ResourceLocation(id).toString();
+        return ResourceLocation.tryParse(id).toString();
     }
 
     public static void applyUserOverrides(Map<String, String> overrides) {
@@ -92,7 +88,7 @@ public class EntityDamageColors {
         for (Map.Entry<String, String> entry : overrides.entrySet()) {
             EntityType<?> entityType;
             try {
-                entityType = BuiltInRegistries.ENTITY_TYPE.get(new ResourceLocation(entry.getKey()));
+                entityType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.tryParse(entry.getKey()));
             } catch (Exception e) {
                 VisualHealth.LOGGER.warn("Invalid entity type '{}' in color overrides, skipping", entry.getKey());
                 continue;

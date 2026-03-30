@@ -157,16 +157,11 @@ public class ColorOverridesScreen extends Screen {
 
     @Override
     public void tick() {
-        entityIdInput.tick();
-        if (focusedHexInput != null) {
-            if (entityIdInput.isFocused()) {
-                flushFocusedHex();
-                focusedHexInput.setFocused(false);
-                focusedHexInput = null;
-                focusedHexEntityId = null;
-            } else {
-                focusedHexInput.tick();
-            }
+        if (focusedHexInput != null && entityIdInput.isFocused()) {
+            flushFocusedHex();
+            focusedHexInput.setFocused(false);
+            focusedHexInput = null;
+            focusedHexEntityId = null;
         }
     }
 
@@ -192,11 +187,11 @@ public class ColorOverridesScreen extends Screen {
 
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        renderBackground(context);
+        renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
         if (overrideList != null) {
             overrideList.render(context, mouseX, mouseY, delta);
         }
-        super.render(context, mouseX, mouseY, delta);
 
         context.drawCenteredString(font, title, width / 2, 10, 0xFFFFFF);
         context.drawString(font, "Add Entity ID:", 20, 28, 0xFFFFFF);
@@ -211,11 +206,11 @@ public class ColorOverridesScreen extends Screen {
     private class OverrideListWidget extends ObjectSelectionList<OverrideListWidget.OverrideEntry> {
 
         public OverrideListWidget(Minecraft client, int width, int y, int bottom) {
-            super(client, width, bottom - y, y, bottom, WIDGET_HEIGHT + 4);
+            super(client, width, bottom - y, y, WIDGET_HEIGHT + 4);
         }
 
         public int getTopY() {
-            return y0;
+            return getY();
         }
 
         public void updateEntries() {
