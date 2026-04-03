@@ -1,10 +1,10 @@
-// NeoForge module build configuration for VR Swing Sprint
+// NeoForge module build configuration for Visual Health
 // This module contains NeoForge-specific implementations and runtime dependencies
-// All common VR logic is in the common module - this just handles NeoForge integration
+// All common logic is in the common module - this just handles NeoForge integration
 
 plugins {
     // Shadow plugin for bundling common module
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id("com.gradleup.shadow") version "9.4.1"
 }
 
 // Configure Architectury for this NeoForge module
@@ -14,20 +14,13 @@ architectury {
 }
 
 // Set loader-specific archive name for better organization
-archivesBaseName = rootProject.archives_base_name + "-neoforge"
+base {
+    archivesName = rootProject.archives_base_name + "-neoforge"
+}
 
 repositories {
     maven {
         url "https://maven.neoforged.net/releases/"
-    }
-}
-
-// Loom configuration for the NeoForge module
-loom {
-    // Access widener for NativeImage pixel manipulation methods
-    def aw = project(":common").file("src/main/resources/visualhealth.accesswidener")
-    if (aw.exists()) {
-        accessWidenerPath.set(aw)
     }
 }
 
@@ -46,15 +39,15 @@ dependencies {
     // Core NeoForge dependency
     neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 
-    // Include the common module with all our shared VR logic
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    // Include the common module with all our shared logic
+    common(project(path: ":common")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }
 
     // EMF compat
-    modCompileOnly "maven.modrinth:4I1XuqiY:3.0.11-neoforge-1.21.11"
+    compileOnly "maven.modrinth:4I1XuqiY:3.0.17-neoforge-26.1"
 
     // ETF compat
-    modCompileOnly "maven.modrinth:BVzZfTc1:7.0.8-neoforge-1.21.11"
+    compileOnly "maven.modrinth:BVzZfTc1:7.0.13-neoforge-26.1"
 
 }
 
@@ -75,24 +68,20 @@ processResources {
     }
 }
 
-// Configure shadow JAR for including common module
-shadowJar {
-    exclude "architectury.common.json"
-    configurations = [project.configurations.shadowCommon]
-    archiveClassifier = "dev-shadow"
-}
-
-// Remap shadow JAR to proper NeoForge format
-remapJar {
-    input.set shadowJar.archiveFile
-    atAccessWideners.add loom.accessWidenerPath.get().asFile.name
-    dependsOn shadowJar
-    archiveClassifier = null
-}
-
-// Configure regular JAR for development
+// Mark the default jar as raw (Loom-processed but not the final artifact)
 jar {
-    archiveClassifier = "dev"
+    archiveClassifier = "raw"
+}
+
+// Configure shadow JAR to build on top of the jar task
+// This preserves Loom modifications
+shadowJar {
+    dependsOn(jar)
+    exclude "architectury.common.json"
+    mainSpec.sourcePaths.clear()
+    from(zipTree(jar.archiveFile))
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier = null
 }
 
 // Configure sources JAR to include common module sources
@@ -100,6 +89,18 @@ sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
     from commonSources.archiveFile.map { zipTree(it) }
+}
+
+// Redirect published variants to use shadowJar
+configurations {
+    apiElements {
+        outgoing.artifacts.clear()
+        outgoing.artifact(shadowJar)
+    }
+    runtimeElements {
+        outgoing.artifacts.clear()
+        outgoing.artifact(shadowJar)
+    }
 }
 
 // Configure Java components for publishing

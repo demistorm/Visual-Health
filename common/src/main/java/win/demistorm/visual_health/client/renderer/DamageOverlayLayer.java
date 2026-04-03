@@ -1,7 +1,6 @@
 package win.demistorm.visual_health.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -114,9 +113,9 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
         if (isEmissive) {
             renderType = RenderTypes.entityTranslucentEmissive(woundTexture);
-            finalPackedLight = LightTexture.FULL_BRIGHT;
+            finalPackedLight = 15728880;
         } else {
-            renderType = RenderTypes.entityCutoutNoCullZOffset(woundTexture);
+            renderType = RenderTypes.entityCutoutZOffset(woundTexture);
             finalPackedLight = packedLight;
         }
 

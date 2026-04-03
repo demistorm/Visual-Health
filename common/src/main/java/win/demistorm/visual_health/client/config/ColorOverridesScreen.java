@@ -1,7 +1,7 @@
 package win.demistorm.visual_health.client.config;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
@@ -191,21 +191,21 @@ public class ColorOverridesScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         //renderBackground(context, mouseX, mouseY, delta);
         if (overrideList != null) {
-            overrideList.render(context, mouseX, mouseY, delta);
+            overrideList.extractRenderState(context, mouseX, mouseY, delta);
         }
-        super.render(context, mouseX, mouseY, delta);
+        super.extractRenderState(context, mouseX, mouseY, delta);
 
-        context.drawCenteredString(font, title, width / 2, 10, 0xFFFFFFFF);
-        context.drawString(font, "Add Entity ID:", 20, 28, 0xFFFFFFFF);
+        context.centeredText(font, title, width / 2, 10, 0xFFFFFFFF);
+        context.text(font, "Add Entity ID:", 20, 28, 0xFFFFFFFF);
         if (showInvalidText) {
             int topY = 40;
-            context.drawString(font, "Invalid entity!", 250, topY + 6, 0xFFFF5555);
+            context.text(font, "Invalid entity!", 250, topY + 6, 0xFFFF5555);
         }
-        context.drawString(font, "Entity Overrides:", 20, overrideList.getTopY() - 15, 0xFFFFFFFF);
-        context.drawString(font, "(" + overrides.size() + " entries)", 140, overrideList.getTopY() - 15, 0xFFAAAAAA);
+        context.text(font, "Entity Overrides:", 20, overrideList.getTopY() - 15, 0xFFFFFFFF);
+        context.text(font, "(" + overrides.size() + " entries)", 140, overrideList.getTopY() - 15, 0xFFAAAAAA);
     }
 
     private class OverrideListWidget extends ObjectSelectionList<OverrideListWidget.OverrideEntry> {
@@ -295,7 +295,7 @@ public class ColorOverridesScreen extends Screen {
             }
 
             @Override
-            public void renderContent(GuiGraphics context, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+            public void extractContent(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta) {
                 int x = getX();
                 int y = getY();
                 int entryWidth = getWidth();
@@ -310,25 +310,25 @@ public class ColorOverridesScreen extends Screen {
                 if (font.width(display) > maxLabelWidth) {
                     display = font.plainSubstrByWidth(display, maxLabelWidth - 15) + "...";
                 }
-                context.drawString(font, display, x + 5, y + 6, 0xFFFFFFFF);
+                context.text(font, display, x + 5, y + 6, 0xFFFFFFFF);
 
                 int removeX = x + entryWidth - 18;
                 int removeY = y + (entryHeight - 13) / 2;
                 removeButton.setPosition(removeX, removeY);
-                removeButton.render(context, mouseX, mouseY, tickDelta);
-                context.drawCenteredString(font, "×", removeX + 7, removeY + 3, 0xFFFFFFFF);
+                removeButton.extractRenderState(context, mouseX, mouseY, tickDelta);
+                context.centeredText(font, "×", removeX + 7, removeY + 3, 0xFFFFFFFF);
 
                 int cycleX = removeX - 70 - 5;
                 int cycleY = y + (entryHeight - WIDGET_HEIGHT) / 2;
                 cycleButton.setPosition(cycleX, cycleY);
-                cycleButton.render(context, mouseX, mouseY, tickDelta);
+                cycleButton.extractRenderState(context, mouseX, mouseY, tickDelta);
 
                 if (showHex) {
                     int hexX = cycleX - 80 - 5;
                     int hexY = cycleY + 2;
                     hexInput.setPosition(hexX, hexY);
                     hexInput.setWidth(80);
-                    hexInput.render(context, mouseX, mouseY, tickDelta);
+                    hexInput.extractRenderState(context, mouseX, mouseY, tickDelta);
                 }
             }
 
