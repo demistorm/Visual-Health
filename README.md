@@ -30,7 +30,12 @@ Many mobs have specific colored damage to aid immersion. For instance, spider da
 ### Emissives
 On Endermen, damage will glow like their eyes in the dark! (shaders supported)
 ### Resource Pack Support
-This mod should be compatible with **most** resource packs. Tested extensively with Fresh Animations and its extensions. Also compatible with EMF model variants (like the creepers found in FA: Creepers).
+This mod should be compatible with **most** resource packs. Tested extensively with 
+Fresh Animations and its extensions. Also compatible with EMF model variants 
+(like the creepers found in FA: Creepers).
+
+*Some packs have abnormal layouts that I currently have no way of supporting, I will update this
+if I figure out a better way of accessing an entity's texture.*
 ### Mod Support
 Should work with modded entities, as long as they register a LivingEntityRenderer. Tested with Animal Garden mobs.
 
@@ -42,6 +47,9 @@ Should work with modded entities, as long as they register a LivingEntityRendere
 - Custom entity-specific damage color overrides! Input any hex color with the CUSTOM setting in the config screen
 
 *Mod Menu is required on Fabric to change settings in-game.*
+
+***26.1+:** Baby mob damage may not be pixel-perfect as there isn't currently a good way (that I know
+of) to detect if a mob should generate an adult or baby damage texture.*
 
 ## Supported Versions
 **1.20.1, 1.21.1, 1.21.11, 26.1**
