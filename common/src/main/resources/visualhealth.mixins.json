@@ -9,8 +9,9 @@
   "client": [
     "LivingEntityMixin",
     "LivingEntityRendererMixin",
-    "EMFModelPartRenderMixin",
-    "EMFModelPartAccessor"
+    "EntityRenderDispatcherMixin",
+    "BufferSourceMixin",
+    "CompatBufferSourceMixin"
   ],
   "server": [],
   "injectors": {

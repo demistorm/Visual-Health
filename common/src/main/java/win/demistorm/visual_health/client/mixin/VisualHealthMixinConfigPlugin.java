@@ -39,14 +39,6 @@ public class VisualHealthMixinConfigPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.startsWith("win.demistorm.visual_health.client.mixin.EMF")) {
-            try {
-                MixinService.getService().getBytecodeProvider().getClassNode(targetClassName);
-            } catch (ClassNotFoundException | IOException e) {
-                LOGGER.info("Skipping EMF mixin '{}' (EMF not installed)", mixinClassName);
-                return false;
-            }
-        }
         return true;
     }
 }

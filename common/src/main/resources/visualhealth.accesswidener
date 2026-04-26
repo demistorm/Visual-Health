@@ -17,3 +17,26 @@ accessible field net/minecraft/client/renderer/entity/LivingEntityRenderer layer
 # Make sprite field accessible in SpriteCoordinateExpander
 # Required to extract texture being rendered (for applying damage textures)
 accessible field net/minecraft/client/renderer/SpriteCoordinateExpander sprite Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;
+
+# CompositeRenderType.state() - protected -> public
+# Required to extract texture from render types in BufferSourceMixin
+accessible method net/minecraft/client/renderer/RenderType$CompositeRenderType state ()Lnet/minecraft/client/renderer/RenderType$CompositeState;
+
+# CompositeState.textureState - package -> public
+# Required to read the texture state shard from a composite render type
+accessible field net/minecraft/client/renderer/RenderType$CompositeState textureState Lnet/minecraft/client/renderer/RenderStateShard$EmptyTextureStateShard;
+
+# TextureStateShard.texture - private -> public
+# Required to read the ResourceLocation from a texture state shard
+accessible field net/minecraft/client/renderer/RenderStateShard$TextureStateShard texture Ljava/util/Optional;
+
+# RenderStateShard.name - protected -> public
+# Required to identify render type by name for correct factory method matching
+accessible field net/minecraft/client/renderer/RenderStateShard name Ljava/lang/String;
+
+# RenderStateShard inner classes - protected -> public
+# Required to access texture state from composite render types
+accessible class net/minecraft/client/renderer/RenderStateShard$EmptyTextureStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$TextureStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$MultiTextureStateShard
+accessible method net/minecraft/client/renderer/RenderStateShard$MultiTextureStateShard cutoutTexture ()Ljava/util/Optional;

@@ -87,7 +87,6 @@ public final class ConfigHelper {
 
     public static void clearTextureCaches() {
         win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearTextureCaches();
-        win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator.clearTextureCaches();
         win.demistorm.visual_health.client.renderer.WoundAssetSelector.cleanup();
         VisualHealth.LOGGER.info("Visual Health texture caches cleared on config change (damage history preserved)");
     }
