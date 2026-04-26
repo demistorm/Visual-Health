@@ -14,6 +14,8 @@ public final class EntityHealthTracker {
     private EntityHealthTracker() {
     }
 
+    private static final ThreadLocal<LivingEntity> CURRENT_RENDER_ENTITY = new ThreadLocal<>();
+
     private static final Map<Integer, Integer> ENTITY_DAMAGE_TIERS = new ConcurrentHashMap<>();
     private static final Map<Integer, Map<Integer, DamageType>> ENTITY_TIER_DAMAGE_TYPES = new ConcurrentHashMap<>();
 
@@ -85,7 +87,18 @@ public final class EntityHealthTracker {
         }
 
         win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearEntityTiers(entityId, maxTier + 1, 5);
-        win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator.clearEntityTiers(entityId, maxTier + 1, 5);
+    }
+
+    public static void setCurrentRenderEntity(LivingEntity entity) {
+        CURRENT_RENDER_ENTITY.set(entity);
+    }
+
+    public static LivingEntity getCurrentRenderEntity() {
+        return CURRENT_RENDER_ENTITY.get();
+    }
+
+    public static void clearCurrentRenderEntity() {
+        CURRENT_RENDER_ENTITY.remove();
     }
 
     public static void clearAllCaches() {
