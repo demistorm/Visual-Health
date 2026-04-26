@@ -52,6 +52,10 @@ public final class BufferSourceSwapHelper {
             return renderType;
         }
 
+        if (!ConfigHelper.INSTANCE.drawOnOptifineEmissives && texture.getPath().endsWith("_e.png")) {
+            return renderType;
+        }
+
         if (entity.distanceToSqr(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition())
                 > RENDER_DISTANCE_SQ) {
             VisualHealth.LOGGER.debug("VH swap: {} too far away", entity.getName().getString());

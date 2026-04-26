@@ -23,6 +23,7 @@ public final class ConfigHelper {
 
         public boolean damagePassiveMobs = true;
         public boolean damageVillagers = false;
+        public boolean drawOnOptifineEmissives = false;
         public DamageColor damageColor = DamageColor.RED;
 
         // Entity-specific overrides
@@ -77,6 +78,7 @@ public final class ConfigHelper {
         ConfigHelper.INSTANCE.woundDensityPercentage = from.woundDensityPercentage;
         ConfigHelper.INSTANCE.damagePassiveMobs = from.damagePassiveMobs;
         ConfigHelper.INSTANCE.damageVillagers = from.damageVillagers;
+        ConfigHelper.INSTANCE.drawOnOptifineEmissives = from.drawOnOptifineEmissives;
         ConfigHelper.INSTANCE.damageColor = from.damageColor;
         ConfigHelper.INSTANCE.colorOverrides = new LinkedHashMap<>(from.colorOverrides);
     }
