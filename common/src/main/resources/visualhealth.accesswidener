@@ -19,24 +19,40 @@ accessible field net/minecraft/client/renderer/entity/LivingEntityRenderer layer
 accessible field net/minecraft/client/renderer/SpriteCoordinateExpander sprite Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;
 
 # CompositeRenderType.state() - protected -> public
-# Required to extract texture from render types in BufferSourceMixin
+# Required to extract texture from render types
 accessible method net/minecraft/client/renderer/RenderType$CompositeRenderType state ()Lnet/minecraft/client/renderer/RenderType$CompositeState;
 
-# CompositeState.textureState - package -> public
-# Required to read the texture state shard from a composite render type
-accessible field net/minecraft/client/renderer/RenderType$CompositeState textureState Lnet/minecraft/client/renderer/RenderStateShard$EmptyTextureStateShard;
+# CompositeRenderType constructor - package -> public
+# Required to create new CompositeRenderType with cloned state
+accessible method net/minecraft/client/renderer/RenderType$CompositeRenderType <init> (Ljava/lang/String;Lcom/mojang/blaze3d/vertex/VertexFormat;Lcom/mojang/blaze3d/vertex/VertexFormat$Mode;IZZLnet/minecraft/client/renderer/RenderType$CompositeState;)V
 
-# TextureStateShard.texture - private -> public
-# Required to read the ResourceLocation from a texture state shard
+# CompositeState fields - required to clone render type state with only texture changed
+accessible field net/minecraft/client/renderer/RenderType$CompositeState textureState Lnet/minecraft/client/renderer/RenderStateShard$EmptyTextureStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState shaderState Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState transparencyState Lnet/minecraft/client/renderer/RenderStateShard$TransparencyStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState depthTestState Lnet/minecraft/client/renderer/RenderStateShard$DepthTestStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState cullState Lnet/minecraft/client/renderer/RenderStateShard$CullStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState lightmapState Lnet/minecraft/client/renderer/RenderStateShard$LightmapStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState overlayState Lnet/minecraft/client/renderer/RenderStateShard$OverlayStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState layeringState Lnet/minecraft/client/renderer/RenderStateShard$LayeringStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState outputState Lnet/minecraft/client/renderer/RenderStateShard$OutputStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState texturingState Lnet/minecraft/client/renderer/RenderStateShard$TexturingStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState writeMaskState Lnet/minecraft/client/renderer/RenderStateShard$WriteMaskStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState lineState Lnet/minecraft/client/renderer/RenderStateShard$LineStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState colorLogicState Lnet/minecraft/client/renderer/RenderStateShard$ColorLogicStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState outlineProperty Lnet/minecraft/client/renderer/RenderType$OutlineProperty;
+
+# TextureStateShard fields - required to preserve blur/mipmap when cloning
 accessible field net/minecraft/client/renderer/RenderStateShard$TextureStateShard texture Ljava/util/Optional;
+accessible field net/minecraft/client/renderer/RenderStateShard$TextureStateShard blur Z
+accessible field net/minecraft/client/renderer/RenderStateShard$TextureStateShard mipmap Z
 
 # RenderStateShard.name - protected -> public
-# Required to identify render type by name for correct factory method matching
 accessible field net/minecraft/client/renderer/RenderStateShard name Ljava/lang/String;
 
-# RenderStateShard inner classes - protected -> public
-# Required to access texture state from composite render types
+# RenderStateShard inner classes
 accessible class net/minecraft/client/renderer/RenderStateShard$EmptyTextureStateShard
 accessible class net/minecraft/client/renderer/RenderStateShard$TextureStateShard
+accessible method net/minecraft/client/renderer/RenderStateShard$TextureStateShard cutoutTexture ()Ljava/util/Optional;
 accessible class net/minecraft/client/renderer/RenderStateShard$MultiTextureStateShard
 accessible method net/minecraft/client/renderer/RenderStateShard$MultiTextureStateShard cutoutTexture ()Ljava/util/Optional;

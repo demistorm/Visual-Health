@@ -80,7 +80,7 @@ public final class BufferSourceSwapHelper {
                     entity, damageTier, texture);
 
             if (replacement != null) {
-                RenderType swapped = RenderTypeHelper.createWithTexture(renderType, replacement);
+                RenderType swapped = RenderTypeHelper.createWithTexture(renderType, texture, replacement);
                 VisualHealth.LOGGER.debug("Swapped texture {} -> {} for {} (ID: {})",
                         texture, replacement, entity.getName().getString(), entity.getId());
                 return swapped;

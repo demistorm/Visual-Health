@@ -1,5 +1,6 @@
 package win.demistorm.visual_health.client.renderer;
 
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
@@ -11,6 +12,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public final class RenderTypeHelper {
 
@@ -124,34 +126,66 @@ public final class RenderTypeHelper {
         return null;
     }
 
-    public static RenderType createWithTexture(RenderType original, ResourceLocation newTexture) {
+    public static RenderType createWithTexture(RenderType original, ResourceLocation originalTexture, ResourceLocation newTexture) {
         List<WrapperLayer> layers = collectWrapperLayers(original);
         RenderType inner = unwrapFully(original);
 
-        String name = ((RenderStateShard) inner).name;
+        if (!(inner instanceof RenderType.CompositeRenderType composite)) {
+            VisualHealth.LOGGER.debug("VH createWithTexture: unwrapped type is not CompositeRenderType, falling back");
+            return inner;
+        }
 
-        RenderType replacement = switch (name) {
-            case "entity_solid" -> RenderType.entitySolid(newTexture);
-            case "entity_cutout" -> RenderType.entityCutout(newTexture);
-            case "entity_cutout_no_cull" -> RenderType.entityCutoutNoCull(newTexture);
-            case "entity_cutout_no_cull_z_offset" -> RenderType.entityCutoutNoCullZOffset(newTexture);
-            case "entity_translucent" -> RenderType.entityTranslucent(newTexture);
-            case "entity_translucent_cull" -> RenderType.entityTranslucentCull(newTexture);
-            case "entity_translucent_emissive" -> RenderType.entityTranslucentEmissive(newTexture);
-            case "entity_smooth_cutout" -> RenderType.entitySmoothCutout(newTexture);
-            case "armor_cutout_no_cull" -> RenderType.armorCutoutNoCull(newTexture);
-            case "item_entity_translucent_cull" -> RenderType.itemEntityTranslucentCull(newTexture);
-            case "entity_decal" -> RenderType.entityDecal(newTexture);
-            case "entity_no_outline" -> RenderType.entityNoOutline(newTexture);
-            case "eyes" -> RenderType.eyes(newTexture);
-            case "entity_alpha" -> RenderType.entityCutoutNoCull(newTexture);
-            default -> {
-                VisualHealth.LOGGER.debug("Unknown render type name '{}', falling back to entityCutoutNoCull for {}", name, newTexture);
-                yield RenderType.entityCutoutNoCull(newTexture);
-            }
-        };
+        RenderType.CompositeState origState = composite.state();
+
+        RenderStateShard.EmptyTextureStateShard newTexState;
+        if (origState.textureState instanceof RenderStateShard.TextureStateShard tss) {
+            newTexState = new EtfAwareTextureStateShard(originalTexture, newTexture, tss.blur, tss.mipmap);
+        } else {
+            newTexState = new EtfAwareTextureStateShard(originalTexture, newTexture, false, false);
+        }
+
+        RenderType.CompositeState newState = RenderType.CompositeState.builder()
+                .setTextureState(newTexState)
+                .setShaderState(origState.shaderState)
+                .setTransparencyState(origState.transparencyState)
+                .setDepthTestState(origState.depthTestState)
+                .setCullState(origState.cullState)
+                .setLightmapState(origState.lightmapState)
+                .setOverlayState(origState.overlayState)
+                .setLayeringState(origState.layeringState)
+                .setOutputState(origState.outputState)
+                .setTexturingState(origState.texturingState)
+                .setWriteMaskState(origState.writeMaskState)
+                .setLineState(origState.lineState)
+                .setColorLogicState(origState.colorLogicState)
+                .createCompositeState(origState.outlineProperty);
+
+        String name = ((RenderStateShard) composite).name;
+        VertexFormat format = composite.format();
+        VertexFormat.Mode mode = composite.mode();
+        int bufferSize = composite.bufferSize();
+        boolean affectsCrumbling = composite.affectsCrumbling();
+        boolean sortOnUpload = shouldSortOnUpload(composite);
+
+        RenderType.CompositeRenderType replacement =
+                new RenderType.CompositeRenderType(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, newState);
 
         return rewrap(replacement, layers);
+    }
+
+    private static boolean shouldSortOnUpload(RenderType type) {
+        try {
+            for (Field f : RenderType.class.getDeclaredFields()) {
+                if (f.getType() == boolean.class) {
+                    f.setAccessible(true);
+                    String fname = f.getName();
+                    if (fname.contains("sort") || fname.contains("upload")) {
+                        return f.getBoolean(type);
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return false;
     }
 
     public static boolean shouldSkipRenderType(RenderType renderType) {
@@ -173,4 +207,18 @@ public final class RenderTypeHelper {
     }
 
     private record WrapperLayer(Class<? extends RenderType> wrapperClass, String name, RenderStateShard extra) {}
+
+    private static class EtfAwareTextureStateShard extends RenderStateShard.TextureStateShard {
+        private final Optional<ResourceLocation> originalTexture;
+
+        EtfAwareTextureStateShard(ResourceLocation original, ResourceLocation composited, boolean blur, boolean mipmap) {
+            super(composited, blur, mipmap);
+            this.originalTexture = Optional.of(original);
+        }
+
+        @Override
+        public Optional<ResourceLocation> cutoutTexture() {
+            return originalTexture;
+        }
+    }
 }
