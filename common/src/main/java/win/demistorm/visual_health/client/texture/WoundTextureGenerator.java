@@ -382,6 +382,34 @@ public class WoundTextureGenerator {
         }
     }
 
+    public static Integer getCompositedTextureGLId(LivingEntity entity) {
+        int tier = EntityHealthTracker.getDamageTier(entity.getId());
+        if (tier <= 0) return null;
+
+        ResourceLocation baseTexture = TextureLocator.getEntityTexture(entity);
+        if (baseTexture == null) return null;
+
+        StringBuilder keyBuilder = new StringBuilder();
+        keyBuilder.append("composite_").append(baseTexture.toString());
+        keyBuilder.append("_e").append(entity.getId()).append("_tier").append(tier);
+        for (int t = 1; t <= tier; t++) {
+            DamageType dt = EntityHealthTracker.getDamageTypeForTier(entity.getId(), t);
+            keyBuilder.append("_").append(dt.name());
+        }
+
+        ResourceLocation composited = COMPOSITED_CACHE.get(keyBuilder.toString());
+        if (composited == null) return null;
+
+        try {
+            net.minecraft.client.renderer.texture.AbstractTexture tex =
+                    net.minecraft.client.Minecraft.getInstance().getTextureManager().getTexture(composited);
+            if (tex != null) return tex.getId();
+        } catch (Exception e) {
+            VisualHealth.LOGGER.debug("Failed to get GL ID for composited texture: {}", e.getMessage());
+        }
+        return null;
+    }
+
     private static ResourceLocation getFallbackTexture() {
         return ResourceLocation.fromNamespaceAndPath("visualhealth", "damage/scratches/scratch1.png");
     }

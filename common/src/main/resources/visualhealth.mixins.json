@@ -11,7 +11,9 @@
     "LivingEntityRendererMixin",
     "EntityRenderDispatcherMixin",
     "BufferSourceMixin",
-    "CompatBufferSourceMixin"
+    "CompatBufferSourceMixin",
+    "PhysicsModCompatMixin",
+    "PhysicsTextureHelperMixin"
   ],
   "server": [],
   "injectors": {
