@@ -21,6 +21,9 @@ Discord: https://discord.gg/7uttzPbTGq
 [[mixins]]
 config = "visualhealth.mixins.json"
 
+[[mixins]]
+config = "visualhealth-compat.mixins.json"
+
 [[dependencies.visual_health]]
 modId = "neoforge"
 mandatory = true

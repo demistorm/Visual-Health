@@ -55,10 +55,10 @@ dependencies {
     modCompileOnly "com.terraformersmc:modmenu:${rootProject.modmenu_version}"
 
     // EMF compat
-    modCompileOnly "maven.modrinth:4I1XuqiY:3.0.11-fabric-1.20.1"
+    // modCompileOnly "maven.modrinth:4I1XuqiY:3.0.11-fabric-1.20.1"
 
     // ETF compat
-    modCompileOnly "maven.modrinth:BVzZfTc1:7.0.8-fabric-1.20.1"
+    // modCompileOnly "maven.modrinth:BVzZfTc1:7.0.8-fabric-1.20.1"
 
     // MixinExtras for advanced mixin features
 }

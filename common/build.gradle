@@ -8,6 +8,9 @@ architectury {
     common(rootProject.enabled_platforms.split(","))
 }
 
+// stub classes for optional mod targets (Mixin AP needs them at compile time)
+sourceSets.main.java.srcDirs += 'src/stubs/java'
+
 // Loom configuration for the common module
 loom {
     // Access widener for NativeImage pixel manipulation methods
@@ -37,11 +40,18 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
 
     // EMF compat
-    modCompileOnly "maven.modrinth:4I1XuqiY:3.0.11-fabric-1.20.1"
+    // modCompileOnly "maven.modrinth:4I1XuqiY:3.0.11-fabric-1.20.1"
 
     // ETF compat
-    modCompileOnly "maven.modrinth:BVzZfTc1:7.0.8-fabric-1.20.1"
+    // modCompileOnly "maven.modrinth:BVzZfTc1:7.0.8-fabric-1.20.1"
 
+}
+
+// Exclude stub classes from the output JAR - they're compile-only
+jar {
+    exclude 'net/irisshaders/**'
+    exclude 'net/raphimc/**'
+    exclude 'net/diebuddies/**'
 }
 
 // Publishing configuration for the common module

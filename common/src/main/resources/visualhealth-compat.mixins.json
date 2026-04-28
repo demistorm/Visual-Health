@@ -1,16 +1,13 @@
 {
-  "required": true,
+  "required": false,
   "minVersion": "0.8",
   "package": "win.demistorm.visual_health.client.mixin",
   "compatibilityLevel": "JAVA_17",
   "plugin": "win.demistorm.visual_health.client.mixin.VisualHealthMixinConfigPlugin",
-  "mixins": [
-  ],
   "client": [
-    "LivingEntityMixin",
-    "LivingEntityRendererMixin",
-    "EntityRenderDispatcherMixin",
-    "BufferSourceMixin"
+    "CompatBufferSourceMixin",
+    "PhysicsModCompatMixin",
+    "PhysicsTextureHelperMixin"
   ],
   "server": [],
   "injectors": {

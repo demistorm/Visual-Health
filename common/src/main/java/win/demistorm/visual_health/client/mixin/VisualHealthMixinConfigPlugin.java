@@ -5,15 +5,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
-import org.spongepowered.asm.service.MixinService;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class VisualHealthMixinConfigPlugin implements IMixinConfigPlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("VisualHealthMixin");
+
+    private static final Map<String, String> COMPAT_NAMES = Map.of(
+            "CompatBufferSourceMixin", "Iris/ImmediatelyFast",
+            "PhysicsModCompatMixin", "Physics Mod",
+            "PhysicsTextureHelperMixin", "Physics Mod"
+    );
 
     @Override
     public String getRefMapperConfig() {
@@ -32,7 +37,13 @@ public class VisualHealthMixinConfigPlugin implements IMixinConfigPlugin {
     public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {}
 
     @Override
-    public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {}
+    public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
+        String simpleName = mixinClassName.substring(mixinClassName.lastIndexOf('.') + 1);
+        String compatName = COMPAT_NAMES.get(simpleName);
+        if (compatName != null) {
+            LOGGER.info("Compat mixin applied: {} -> {} (for {})", simpleName, targetClassName, compatName);
+        }
+    }
 
     @Override
     public void onLoad(String mixinPackage) {}
