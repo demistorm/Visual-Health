@@ -25,6 +25,7 @@ loom {
 
     forge {
         mixinConfig "visualhealth.mixins.json"
+        mixinConfig "visualhealth-compat.mixins.json"
     }
 }
 
@@ -53,7 +54,10 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive false }
 
     // EMF compat
-    modCompileOnly "maven.modrinth:4I1XuqiY:3.0.11-forge-1.21.11"
+    // modCompileOnly "maven.modrinth:4I1XuqiY:3.0.11-forge-1.20.1"
+
+    // ETF compat
+    // modCompileOnly "maven.modrinth:BVzZfTc1:7.0.8-forge-1.20.1"
 
 }
 

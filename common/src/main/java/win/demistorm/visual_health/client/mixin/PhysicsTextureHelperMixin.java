@@ -11,7 +11,7 @@ import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 @Mixin(targets = "net.diebuddies.opengl.TextureHelper")
 public class PhysicsTextureHelperMixin {
 
-    @Overwrite
+    @Overwrite(remap = false)
     public static int getLoadedTextures() {
         LivingEntity entity = PhysicsModBridge.getCapturingEntity();
         if (entity != null) {

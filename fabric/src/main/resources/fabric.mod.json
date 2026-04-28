@@ -33,7 +33,8 @@
 		"fabric-api": "*"
 	},
 	"mixins": [
-		"visualhealth.mixins.json"
+		"visualhealth.mixins.json",
+		"visualhealth-compat.mixins.json"
 	],
 	"accessWidener": "visualhealth.accesswidener",
 	"suggests": {
