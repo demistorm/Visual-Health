@@ -54,16 +54,22 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
 
         M model = getParentModel();
 
-        net.minecraft.world.entity.MobCategory spawnCategory = entity.getType().getCategory();
-        boolean isMonster = spawnCategory == net.minecraft.world.entity.MobCategory.MONSTER;
+        if (entity instanceof net.minecraft.world.entity.player.Player) {
+            if (!win.demistorm.visual_health.ConfigHelper.INSTANCE.damagePlayers) {
+                return;
+            }
+        } else {
+            net.minecraft.world.entity.MobCategory spawnCategory = entity.getType().getCategory();
+            boolean isMonster = spawnCategory == net.minecraft.world.entity.MobCategory.MONSTER;
 
-        if (!isMonster && !win.demistorm.visual_health.ConfigHelper.INSTANCE.damagePassiveMobs) {
-            return;
-        }
+            if (!isMonster && !win.demistorm.visual_health.ConfigHelper.INSTANCE.damagePassiveMobs) {
+                return;
+            }
 
-        if (entity instanceof net.minecraft.world.entity.npc.AbstractVillager
-                && !win.demistorm.visual_health.ConfigHelper.INSTANCE.damageVillagers) {
-            return;
+            if (entity instanceof net.minecraft.world.entity.npc.AbstractVillager
+                    && !win.demistorm.visual_health.ConfigHelper.INSTANCE.damageVillagers) {
+                return;
+            }
         }
 
         try {

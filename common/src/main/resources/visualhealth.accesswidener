@@ -56,3 +56,6 @@ accessible class net/minecraft/client/renderer/RenderStateShard$TextureStateShar
 accessible method net/minecraft/client/renderer/RenderStateShard$TextureStateShard cutoutTexture ()Ljava/util/Optional;
 accessible class net/minecraft/client/renderer/RenderStateShard$MultiTextureStateShard
 accessible method net/minecraft/client/renderer/RenderStateShard$MultiTextureStateShard cutoutTexture ()Ljava/util/Optional;
+
+# HttpTexture.file - required to read player skin PNG from disk cache
+accessible field net/minecraft/client/renderer/texture/HttpTexture file Ljava/io/File;
