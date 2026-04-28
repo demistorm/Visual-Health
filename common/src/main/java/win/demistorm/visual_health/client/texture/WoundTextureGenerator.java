@@ -47,12 +47,10 @@ public class WoundTextureGenerator {
         }
 
         try {
-            net.minecraft.server.packs.resources.ResourceManager resourceManager =
-                    net.minecraft.client.Minecraft.getInstance().getResourceManager();
-
-            NativeImage baseImage;
-            try (var resource = resourceManager.open(baseTexture)) {
-                baseImage = NativeImage.read(resource);
+            NativeImage baseImage = SkinTextureReader.readTexture(baseTexture);
+            if (baseImage == null) {
+                VisualHealth.LOGGER.error("Failed to load base texture {} for compositing", baseTexture);
+                return null;
             }
 
             int textureWidth = baseImage.getWidth();
@@ -76,6 +74,8 @@ public class WoundTextureGenerator {
                     textureWidth, textureHeight, entity.getName().getString(), areaScale, woundsPerTier);
 
             int woundIndex = 0;
+            net.minecraft.server.packs.resources.ResourceManager resourceManager =
+                    net.minecraft.client.Minecraft.getInstance().getResourceManager();
             for (int tier = 1; tier <= damageTier; tier++) {
                 DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
 

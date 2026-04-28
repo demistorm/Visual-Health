@@ -23,6 +23,7 @@ public final class ConfigHelper {
 
         public boolean damagePassiveMobs = true;
         public boolean damageVillagers = false;
+        public boolean damagePlayers = true;
         public boolean drawOnOptifineEmissives = false;
         public DamageColor damageColor = DamageColor.RED;
 
@@ -49,8 +50,8 @@ public final class ConfigHelper {
         write(loaded);
         copyInto(loaded);
         win.demistorm.visual_health.client.entitymappings.EntityDamageColors.applyUserOverrides(INSTANCE.colorOverrides);
-        VisualHealth.LOGGER.info("Visual Health config loaded: {}% wound density, passive mobs: {}, villagers: {}, color: {}",
-                INSTANCE.woundDensityPercentage, INSTANCE.damagePassiveMobs, INSTANCE.damageVillagers, INSTANCE.damageColor);
+        VisualHealth.LOGGER.info("Visual Health config loaded: {}% wound density, passive mobs: {}, villagers: {}, players: {}, color: {}",
+                INSTANCE.woundDensityPercentage, INSTANCE.damagePassiveMobs, INSTANCE.damageVillagers, INSTANCE.damagePlayers, INSTANCE.damageColor);
     }
 
     private static Data read() {
@@ -78,6 +79,7 @@ public final class ConfigHelper {
         ConfigHelper.INSTANCE.woundDensityPercentage = from.woundDensityPercentage;
         ConfigHelper.INSTANCE.damagePassiveMobs = from.damagePassiveMobs;
         ConfigHelper.INSTANCE.damageVillagers = from.damageVillagers;
+        ConfigHelper.INSTANCE.damagePlayers = from.damagePlayers;
         ConfigHelper.INSTANCE.drawOnOptifineEmissives = from.drawOnOptifineEmissives;
         ConfigHelper.INSTANCE.damageColor = from.damageColor;
         ConfigHelper.INSTANCE.colorOverrides = new LinkedHashMap<>(from.colorOverrides);

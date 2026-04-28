@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
@@ -62,18 +63,26 @@ public final class BufferSourceSwapHelper {
             return renderType;
         }
 
-        MobCategory category = entity.getType().getCategory();
-        boolean isMonster = category == MobCategory.MONSTER;
-        if (!isMonster && !ConfigHelper.INSTANCE.damagePassiveMobs) {
-            VisualHealth.LOGGER.debug("VH swap: {} is passive mob and passive mobs disabled",
-                    entity.getName().getString());
-            return renderType;
-        }
+        if (entity instanceof Player) {
+            if (!ConfigHelper.INSTANCE.damagePlayers) {
+                VisualHealth.LOGGER.debug("VH swap: {} is a player and player damage disabled",
+                        entity.getName().getString());
+                return renderType;
+            }
+        } else {
+            MobCategory category = entity.getType().getCategory();
+            boolean isMonster = category == MobCategory.MONSTER;
+            if (!isMonster && !ConfigHelper.INSTANCE.damagePassiveMobs) {
+                VisualHealth.LOGGER.debug("VH swap: {} is passive mob and passive mobs disabled",
+                        entity.getName().getString());
+                return renderType;
+            }
 
-        if (entity instanceof AbstractVillager && !ConfigHelper.INSTANCE.damageVillagers) {
-            VisualHealth.LOGGER.debug("VH swap: {} is villager and villager damage disabled",
-                    entity.getName().getString());
-            return renderType;
+            if (entity instanceof AbstractVillager && !ConfigHelper.INSTANCE.damageVillagers) {
+                VisualHealth.LOGGER.debug("VH swap: {} is villager and villager damage disabled",
+                        entity.getName().getString());
+                return renderType;
+            }
         }
 
         VisualHealth.LOGGER.debug("VH swap: attempting composite for {} tier={} texture={}",
