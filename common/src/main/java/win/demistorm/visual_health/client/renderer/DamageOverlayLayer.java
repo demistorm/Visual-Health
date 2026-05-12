@@ -52,6 +52,10 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
             return;
         }
 
+        if (!win.demistorm.visual_health.client.texture.WoundTextureGenerator.hasWeaponTiers(entity.getId(), damageTier)) {
+            return;
+        }
+
         M model = getParentModel();
 
         if (entity instanceof net.minecraft.world.entity.player.Player) {
@@ -82,7 +86,7 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
             int textureWidth = texSize != null ? texSize.width() : 64;
             int textureHeight = texSize != null ? texSize.height() : 64;
 
-            ResourceLocation woundTexture = win.demistorm.visual_health.client.texture.WoundTextureGenerator.generateWoundedTexture(
+            ResourceLocation woundTexture = win.demistorm.visual_health.client.texture.WoundTextureGenerator.generateWeaponOnlyTexture(
                     entity, damageTier, textureWidth, textureHeight);
 
             int overlay = net.minecraft.client.renderer.entity.LivingEntityRenderer.getOverlayCoords(entity, 0.0f);
@@ -97,7 +101,7 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
 
             poseStack.popPose();
 
-            VisualHealth.LOGGER.debug("Rendered emissive damage overlay for {} (ID: {}) at tier {}",
+            VisualHealth.LOGGER.debug("Rendered emissive weapon-only damage overlay for {} (ID: {}) at tier {}",
                     entity.getName().getString(), entity.getId(), damageTier);
 
         } catch (Exception e) {
