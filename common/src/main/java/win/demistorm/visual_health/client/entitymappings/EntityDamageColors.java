@@ -7,7 +7,9 @@ import static net.minecraft.world.entity.EntityType.*;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 
 // Entity-specific damage color overrides
@@ -21,6 +23,9 @@ public class EntityDamageColors {
 
     // User overrides (always take priority)
     private static final Map<EntityType<?>, DamageOverride> USER_OVERRIDE_MAP = new HashMap<>();
+
+    // User-disabled entities (no damage rendering at all)
+    private static final Set<EntityType<?>> DISABLED_OVERRIDE_SET = new HashSet<>();
 
     private static final Map<String, Integer> PRESET_COLORS = Map.of(
             "RED", 0xFF00009F,
@@ -66,6 +71,10 @@ public class EntityDamageColors {
         OVERRIDE_MAP.put(entityType, new DamageOverride(abgr, isEmissive));
     }
 
+    public static boolean isDisabled(EntityType<?> entityType) {
+        return DISABLED_OVERRIDE_SET.contains(entityType);
+    }
+
     public static DamageOverride getOverride(EntityType<?> entityType) {
         DamageOverride user = USER_OVERRIDE_MAP.get(entityType);
         if (user != null) return user;
@@ -87,6 +96,7 @@ public class EntityDamageColors {
 
     public static void applyUserOverrides(Map<String, String> overrides) {
         USER_OVERRIDE_MAP.clear();
+        DISABLED_OVERRIDE_SET.clear();
         for (Map.Entry<String, String> entry : overrides.entrySet()) {
             EntityType<?> entityType;
             try {
@@ -100,6 +110,10 @@ public class EntityDamageColors {
                 continue;
             }
             String value = entry.getValue();
+            if ("DISABLED".equals(value)) {
+                DISABLED_OVERRIDE_SET.add(entityType);
+                continue;
+            }
             DamageOverride override = parseOverride(value);
             if (override != null) {
                 USER_OVERRIDE_MAP.put(entityType, override);
@@ -107,7 +121,7 @@ public class EntityDamageColors {
                 VisualHealth.LOGGER.warn("Invalid color override '{}' for entity '{}', skipping", value, entry.getKey());
             }
         }
-        VisualHealth.LOGGER.info("Applied {} color overrides", USER_OVERRIDE_MAP.size());
+        VisualHealth.LOGGER.info("Applied {} color overrides, {} disabled entities", USER_OVERRIDE_MAP.size(), DISABLED_OVERRIDE_SET.size());
     }
 
     // Presets: "RED", "BLACK", "WHITE", "CUSTOM:FF0000", "EMISSIVE:FFFFFF"

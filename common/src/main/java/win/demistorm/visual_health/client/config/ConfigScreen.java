@@ -115,11 +115,11 @@ public final class ConfigScreen {
 
             addRenderableWidget(
                     Button.builder(
-                                    Component.literal("Color Overrides..."),
+                                    Component.literal("Entity Overrides..."),
                                     btn -> client.setScreen(new ColorOverridesScreen(this)))
                             .bounds(width / 2 - 80, height / 6 + 74, 160, 20)
-                            .tooltip(Tooltip.create(Component.literal("Set custom damage colors for specific entities " +
-                                    "including the player")))
+                            .tooltip(Tooltip.create(Component.literal("Set or disable custom damage " +
+                                    "colors for the player and specific entities!")))
                             .build());
 
             addRenderableWidget(
