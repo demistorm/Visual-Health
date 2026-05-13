@@ -23,7 +23,7 @@ public class EntityDamageColors {
     private static final Map<EntityType<?>, DamageOverride> USER_OVERRIDE_MAP = new HashMap<>();
 
     private static final Map<String, Integer> PRESET_COLORS = Map.of(
-            "RED", 0xFF9F0000,
+            "RED", 0xFF00009F,
             "BLACK", 0xFF000000,
             "WHITE", 0xFFFFFFFF
     );
