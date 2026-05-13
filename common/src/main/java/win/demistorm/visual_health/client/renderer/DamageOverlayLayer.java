@@ -40,6 +40,10 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
             return;
         }
 
+        if (EntityDamageColors.isDisabled(entity.getType())) {
+            return;
+        }
+
         if (win.demistorm.visual_health.client.compat.PhysicsModBridge.getCapturingEntity() != null) {
             return;
         }

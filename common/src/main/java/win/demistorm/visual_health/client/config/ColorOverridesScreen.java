@@ -28,7 +28,7 @@ public class ColorOverridesScreen extends Screen {
 
     private final Map<String, String> overrides;
 
-    private static final String[] MODES = {"RED", "BLACK", "WHITE", "CUSTOM", "EMISSIVE"};
+    private static final String[] MODES = {"RED", "BLACK", "WHITE", "CUSTOM", "EMISSIVE", "DISABLED"};
     private static final int WIDGET_HEIGHT = 20;
 
     protected ColorOverridesScreen(Screen parent) {
@@ -116,7 +116,7 @@ public class ColorOverridesScreen extends Screen {
         String currentHex = nextIdx == 0 ? "FF0000" : parseHex(current);
         if (currentHex == null) currentHex = nextMode.equals("EMISSIVE") ? "FFFFFF" : "FF0000";
 
-        overrides.put(entityId, nextMode.equals("RED") || nextMode.equals("BLACK") || nextMode.equals("WHITE")
+        overrides.put(entityId, nextMode.equals("RED") || nextMode.equals("BLACK") || nextMode.equals("WHITE") || nextMode.equals("DISABLED")
                 ? nextMode
                 : nextMode + ":" + currentHex);
         overrideList.updateEntries();
@@ -258,7 +258,8 @@ public class ColorOverridesScreen extends Screen {
                 Component tooltip = Component.literal(
                                 "RED/BLACK/WHITE: Preset colors\n" +
                                 "CUSTOM: Enter a hex color code\n" +
-                                "EMISSIVE: Custom color that glows");
+                                "EMISSIVE: Custom color that glows\n" +
+                                "DISABLED: No damage rendering");
 
                 this.cycleButton = Button.builder(
                                 Component.literal(mode),

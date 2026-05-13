@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 
@@ -28,6 +29,10 @@ public final class BufferSourceSwapHelper {
 
         if (entity.isInvisible()) {
             VisualHealth.LOGGER.debug("VH swap: {} is invisible, skipping", entity.getName().getString());
+            return renderType;
+        }
+
+        if (EntityDamageColors.isDisabled(entity.getType())) {
             return renderType;
         }
 
