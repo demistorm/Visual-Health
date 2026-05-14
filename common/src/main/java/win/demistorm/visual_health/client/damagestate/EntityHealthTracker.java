@@ -2,6 +2,7 @@ package win.demistorm.visual_health.client.damagestate;
 
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 
@@ -77,11 +78,10 @@ public final class EntityHealthTracker {
         float healthPercent = entity.getHealth() / entity.getMaxHealth();
 
         if (healthPercent >= 1.0f) return 0;
-        if (healthPercent > 0.8f) return 1;
-        if (healthPercent > 0.6f) return 2;
-        if (healthPercent > 0.4f) return 3;
-        if (healthPercent > 0.2f) return 4;
-        return 5;
+
+        int numTiers = ConfigHelper.INSTANCE.damageTierCount;
+        float damagePercent = 1.0f - healthPercent;
+        return Math.min(numTiers, (int)(damagePercent * numTiers) + 1);
     }
 
     public static void setDamageTypeForTier(int entityId, int tier, DamageType damageType) {
@@ -102,7 +102,8 @@ public final class EntityHealthTracker {
             tierMap.keySet().removeIf(tier -> tier > maxTier);
         }
 
-        win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearEntityTiers(entityId, maxTier + 1, 5);
+        win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearEntityTiers(entityId, maxTier + 1,
+                ConfigHelper.INSTANCE.damageTierCount);
     }
 
     public static void setCurrentRenderEntity(LivingEntity entity) {

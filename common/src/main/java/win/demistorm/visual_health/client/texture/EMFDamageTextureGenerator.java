@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
+import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
@@ -74,9 +75,10 @@ public class EMFDamageTextureGenerator {
                         (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
 
                 int densityPercent = win.demistorm.visual_health.ConfigHelper.INSTANCE.woundDensityPercentage;
-                int baseWoundsPerTier = (densityPercent * 96) / 100;
+                int numTiers = ConfigHelper.INSTANCE.damageTierCount;
+                int baseWoundsPerTier = (densityPercent * 115) / 100;
 
-                int woundsPerTier = (int) (baseWoundsPerTier * areaScale);
+                int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / numTiers);
 
                 int woundIndex = 0;
                 for (int tier = 1; tier <= damageTier; tier++) {
