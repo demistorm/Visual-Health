@@ -52,6 +52,7 @@ public final class ConfigScreen {
                                         damagePassiveMobsValue = true;
                                         damageVillagersValue = false;
                                         damageColorValue = ConfigHelper.DamageColor.RED;
+                                        ConfigHelper.INSTANCE.drawOnOptifineEmissives = false;
 
                                         densitySlider.setValue(50);
                                         tierSlider.setValue(5);
@@ -140,6 +141,14 @@ public final class ConfigScreen {
                             .bounds(width / 2 - 80, height / 6 + 95, 160, 20)
                             .tooltip(Tooltip.create(Component.literal("Set or disable custom damage " +
                                     "colors for the player and specific entities!")))
+                            .build());
+
+            addRenderableWidget(
+                    Button.builder(
+                                    Component.literal("Extras..."),
+                                    btn -> client.setScreen(new ExtrasScreen(this)))
+                            .bounds(width / 2 - 80, height / 6 + 116, 160, 20)
+                            .tooltip(Tooltip.create(Component.literal("Additional options")))
                             .build());
 
             addRenderableWidget(
