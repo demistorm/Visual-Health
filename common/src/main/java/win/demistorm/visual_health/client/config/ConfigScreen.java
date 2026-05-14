@@ -21,11 +21,13 @@ public final class ConfigScreen {
         private final Minecraft client = Minecraft.getInstance();
 
         private int woundDensityValue = ConfigHelper.INSTANCE.woundDensityPercentage;
+        private int damageTierCountValue = ConfigHelper.INSTANCE.damageTierCount;
         private boolean damagePassiveMobsValue = ConfigHelper.INSTANCE.damagePassiveMobs;
         private boolean damageVillagersValue = ConfigHelper.INSTANCE.damageVillagers;
         private ConfigHelper.DamageColor damageColorValue = ConfigHelper.INSTANCE.damageColor;
 
         private VisualHealthConfigSlider densitySlider;
+        private VisualHealthConfigSlider tierSlider;
         private Button passiveMobsButton;
         private Button villagersButton;
         private Button colorButton;
@@ -46,11 +48,13 @@ public final class ConfigScreen {
                                     Component.literal("Reset"),
                                     btn -> {
                                         woundDensityValue = 50;
+                                        damageTierCountValue = 5;
                                         damagePassiveMobsValue = true;
                                         damageVillagersValue = false;
                                         damageColorValue = ConfigHelper.DamageColor.RED;
 
                                         densitySlider.setValue(50);
+                                        tierSlider.setValue(5);
                                         updatePassiveMobsButton();
                                         updateVillagersButton();
                                         updateColorButton();
@@ -59,9 +63,25 @@ public final class ConfigScreen {
                             .tooltip(Tooltip.create(Component.literal("Reset all settings to default")))
                             .build());
 
-            densitySlider = new VisualHealthConfigSlider(
+            tierSlider = new VisualHealthConfigSlider(
                     width / 2 - 80,
                     height / 6 - 10,
+                    160,
+                    20,
+                    2,
+                    10,
+                    damageTierCountValue,
+                    1,
+                    value -> Component.literal("Damage Tiers: " + value),
+                    value -> {
+                        damageTierCountValue = value;
+                    }
+            );
+            addRenderableWidget(tierSlider);
+
+            densitySlider = new VisualHealthConfigSlider(
+                    width / 2 - 80,
+                    height / 6 + 11,
                     160,
                     20,
                     10,
@@ -82,7 +102,7 @@ public final class ConfigScreen {
                                 updatePassiveMobsButton();
                                 updateVillagersButton();
                             })
-                    .bounds(width / 2 - 80, height / 6 + 11, 160, 20)
+                    .bounds(width / 2 - 80, height / 6 + 32, 160, 20)
                     .tooltip(Tooltip.create(Component.literal("Show wounds on passive mobs (animals, etc.)")))
                     .build();
             addRenderableWidget(passiveMobsButton);
@@ -93,7 +113,7 @@ public final class ConfigScreen {
                                 damageVillagersValue = !damageVillagersValue;
                                 updateVillagersButton();
                             })
-                    .bounds(width / 2 - 80, height / 6 + 32, 160, 20)
+                    .bounds(width / 2 - 80, height / 6 + 53, 160, 20)
                     .tooltip(Tooltip.create(Component.literal("Show wounds on Villagers and Wandering Traders")))
                     .build();
             addRenderableWidget(villagersButton);
@@ -108,7 +128,7 @@ public final class ConfigScreen {
                                 };
                                 updateColorButton();
                             })
-                    .bounds(width / 2 - 80, height / 6 + 53, 160, 20)
+                    .bounds(width / 2 - 80, height / 6 + 74, 160, 20)
                     .tooltip(Tooltip.create(Component.literal("Color of wound effects (Red/Black/White)")))
                     .build();
             addRenderableWidget(colorButton);
@@ -117,7 +137,7 @@ public final class ConfigScreen {
                     Button.builder(
                                     Component.literal("Entity Overrides..."),
                                     btn -> client.setScreen(new ColorOverridesScreen(this)))
-                            .bounds(width / 2 - 80, height / 6 + 74, 160, 20)
+                            .bounds(width / 2 - 80, height / 6 + 95, 160, 20)
                             .tooltip(Tooltip.create(Component.literal("Set or disable custom damage " +
                                     "colors for the player and specific entities!")))
                             .build());
@@ -127,6 +147,7 @@ public final class ConfigScreen {
                                     Component.literal("Done"),
                                     btn -> {
                                         ConfigHelper.INSTANCE.woundDensityPercentage = woundDensityValue;
+                                        ConfigHelper.INSTANCE.damageTierCount = damageTierCountValue;
                                         ConfigHelper.INSTANCE.damagePassiveMobs = damagePassiveMobsValue;
                                         ConfigHelper.INSTANCE.damageVillagers = damageVillagersValue;
                                         ConfigHelper.INSTANCE.damageColor = damageColorValue;
@@ -136,8 +157,8 @@ public final class ConfigScreen {
                                         EntityDamageColors.applyUserOverrides(ConfigHelper.INSTANCE.colorOverrides);
                                         ConfigHelper.clearTextureCaches();
 
-                                        VisualHealth.LOGGER.info("Visual Health config saved: {}% wound density, passive mobs: {}, villagers: {}, color: {}",
-                                                woundDensityValue, damagePassiveMobsValue, damageVillagersValue, damageColorValue);
+                                        VisualHealth.LOGGER.info("Visual Health config saved: {}% wound density, {} tiers, passive mobs: {}, villagers: {}, color: {}",
+                                                woundDensityValue, damageTierCountValue, damagePassiveMobsValue, damageVillagersValue, damageColorValue);
 
                                         client.setScreen(parent);
                                     })

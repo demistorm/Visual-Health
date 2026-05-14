@@ -20,6 +20,7 @@ public final class ConfigHelper {
 
     public static final class Data {
         public int woundDensityPercentage = 50;
+        public int damageTierCount = 5;
 
         public boolean damagePassiveMobs = true;
         public boolean damageVillagers = false;
@@ -50,8 +51,8 @@ public final class ConfigHelper {
         write(loaded);
         copyInto(loaded);
         win.demistorm.visual_health.client.entitymappings.EntityDamageColors.applyUserOverrides(INSTANCE.colorOverrides);
-        VisualHealth.LOGGER.info("Visual Health config loaded: {}% wound density, passive mobs: {}, villagers: {}, players: {}, color: {}",
-                INSTANCE.woundDensityPercentage, INSTANCE.damagePassiveMobs, INSTANCE.damageVillagers, INSTANCE.damagePlayers, INSTANCE.damageColor);
+        VisualHealth.LOGGER.info("Visual Health config loaded: {}% wound density, {} tiers, passive mobs: {}, villagers: {}, players: {}, color: {}",
+                INSTANCE.woundDensityPercentage, INSTANCE.damageTierCount, INSTANCE.damagePassiveMobs, INSTANCE.damageVillagers, INSTANCE.damagePlayers, INSTANCE.damageColor);
     }
 
     private static Data read() {
@@ -77,6 +78,7 @@ public final class ConfigHelper {
 
     private static void copyInto(Data from) {
         ConfigHelper.INSTANCE.woundDensityPercentage = from.woundDensityPercentage;
+        ConfigHelper.INSTANCE.damageTierCount = Math.max(2, Math.min(10, from.damageTierCount));
         ConfigHelper.INSTANCE.damagePassiveMobs = from.damagePassiveMobs;
         ConfigHelper.INSTANCE.damageVillagers = from.damageVillagers;
         ConfigHelper.INSTANCE.damagePlayers = from.damagePlayers;

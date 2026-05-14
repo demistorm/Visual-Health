@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
+import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
@@ -70,10 +71,11 @@ public class WoundTextureGenerator {
 
             double areaScale = (textureWidth * textureHeight) / (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
             int densityPercent = win.demistorm.visual_health.ConfigHelper.INSTANCE.woundDensityPercentage;
-            int baseWoundsPerTier = (densityPercent * 96) / 100;
-            int woundsPerTier = (int) (baseWoundsPerTier * areaScale);
+            int numTiers = ConfigHelper.INSTANCE.damageTierCount;
+            int baseWoundsPerTier = (densityPercent * 115) / 100;
+            int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / numTiers);
 
-            VisualHealth.LOGGER.debug("Compositing {}x{} texture for {} (area scale: {}) with {} wounds per tier",
+            VisualHealth.LOGGER.debug("Compositing {}x{} texture for {} (area scale: {}) with {} wounds per tier ({} total tiers)",
                     textureWidth, textureHeight, entity.getName().getString(), areaScale, woundsPerTier);
 
             int woundIndex = 0;
@@ -179,8 +181,9 @@ public class WoundTextureGenerator {
 
             double areaScale = (baseWidth * baseHeight) / (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
             int densityPercent = win.demistorm.visual_health.ConfigHelper.INSTANCE.woundDensityPercentage;
-            int baseWoundsPerTier = (densityPercent * 96) / 100;
-            int woundsPerTier = (int) (baseWoundsPerTier * areaScale);
+            int numTiers = ConfigHelper.INSTANCE.damageTierCount;
+            int baseWoundsPerTier = (densityPercent * 115) / 100;
+            int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / numTiers);
 
             int woundIndex = 0;
             for (int tier = 1; tier <= damageTier; tier++) {
@@ -290,8 +293,9 @@ public class WoundTextureGenerator {
 
             double areaScale = (baseWidth * baseHeight) / (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
             int densityPercent = win.demistorm.visual_health.ConfigHelper.INSTANCE.woundDensityPercentage;
-            int baseWoundsPerTier = (densityPercent * 96) / 100;
-            int woundsPerTier = (int) (baseWoundsPerTier * areaScale);
+            int numTiers = ConfigHelper.INSTANCE.damageTierCount;
+            int baseWoundsPerTier = (densityPercent * 115) / 100;
+            int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / numTiers);
 
             for (int tier = 1; tier <= damageTier; tier++) {
                 DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
