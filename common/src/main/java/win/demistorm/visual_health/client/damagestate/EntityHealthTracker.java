@@ -18,6 +18,7 @@ public final class EntityHealthTracker {
 
     private static final Map<Integer, Integer> ENTITY_DAMAGE_TIERS = new ConcurrentHashMap<>();
     private static final Map<Integer, Map<Integer, DamageType>> ENTITY_TIER_DAMAGE_TYPES = new ConcurrentHashMap<>();
+    private static final Map<Integer, Float> PREVIOUS_HEALTH = new ConcurrentHashMap<>();
 
     private static final Set<EntityType<?>> DISABLED_ENTITIES = Set.of(
             EntityType.IRON_GOLEM,
@@ -35,15 +36,30 @@ public final class EntityHealthTracker {
 
         int tier = calculateDamageTier(entity);
         int oldTier = ENTITY_DAMAGE_TIERS.getOrDefault(entity.getId(), 0);
+        float currentHealth = entity.getHealth();
+        float previousHealth = PREVIOUS_HEALTH.getOrDefault(entity.getId(), currentHealth);
+        PREVIOUS_HEALTH.put(entity.getId(), currentHealth);
+
+        if (tier > oldTier) {
+            DamageType damageType = DamageEventHandler.getLastDamageType(entity.getId());
+            if (damageType == DamageType.GENERIC) {
+                float damage = previousHealth - currentHealth;
+                if (damage > 3.0f) {
+                    DamageEventHandler.setLastDamageType(entity.getId(), DamageType.SWORD);
+                    damageType = DamageType.SWORD;
+                    VisualHealth.LOGGER.debug("Damage fallback for entity {} (ID: {}): {} damage detected, switching GENERIC to SWORD",
+                            entity.getName().getString(), entity.getId(), String.format("%.1f", damage));
+                }
+            }
+            for (int t = oldTier + 1; t <= tier; t++) {
+                setDamageTypeForTier(entity.getId(), t, damageType);
+            }
+        }
+
         ENTITY_DAMAGE_TIERS.put(entity.getId(), tier);
 
         if (tier < oldTier) {
             clearTiersAbove(entity.getId(), tier);
-        }
-
-        if (tier > oldTier) {
-            DamageType damageType = DamageEventHandler.getLastDamageType(entity.getId());
-            setDamageTypeForTier(entity.getId(), tier, damageType);
         }
 
         if (tier > 0 || oldTier != tier) {
@@ -107,6 +123,7 @@ public final class EntityHealthTracker {
 
         ENTITY_DAMAGE_TIERS.clear();
         ENTITY_TIER_DAMAGE_TYPES.clear();
+        PREVIOUS_HEALTH.clear();
 
         if (tierCount > 0 || damageTypeCount > 0) {
             VisualHealth.LOGGER.info("Cleared {} entity tier mappings and {} damage type mappings on resource reload",
