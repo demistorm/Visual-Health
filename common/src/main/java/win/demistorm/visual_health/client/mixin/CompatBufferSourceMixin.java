@@ -5,8 +5,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import win.demistorm.visual_health.client.renderer.BufferSourceSwapHelper;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.renderer.BufferSourceSwapHelper;
 
 @Mixin(targets = {
         "net.irisshaders.batchedentityrendering.impl.FullyBufferedMultiBufferSource",

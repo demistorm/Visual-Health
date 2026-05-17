@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Unique;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.compat.PhysicsModBridge;
 import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
@@ -11,8 +12,15 @@ import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 @Mixin(targets = "net.diebuddies.opengl.TextureHelper")
 public class PhysicsTextureHelperMixin {
 
+    @Unique
+    private static boolean vh$fired = false;
+
     @Overwrite(remap = false)
     public static int getLoadedTextures() {
+        if (!vh$fired) {
+            vh$fired = true;
+            VisualHealth.LOGGER.debug("VH COMPAT FIRED on PhysicsTextureHelper");
+        }
         LivingEntity entity = PhysicsModBridge.getCapturingEntity();
         if (entity != null) {
             Integer glId = WoundTextureGenerator.getCompositedTextureGLId(entity);

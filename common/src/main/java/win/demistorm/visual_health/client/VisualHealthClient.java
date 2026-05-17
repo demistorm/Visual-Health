@@ -63,7 +63,7 @@ public class VisualHealthClient {
             log.error("Failed to reload wound textures", e);
         }
 
-        System.out.println("[Visual Health] Resource reload detected, full reset complete");
+        log.debug("Resource reload detected, full reset complete");
     }
 
     @SuppressWarnings({"rawtypes"})

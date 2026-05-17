@@ -16,8 +16,6 @@ import java.util.Optional;
 
 public final class RenderTypeHelper {
 
-    private static boolean vh$loggedUnwrap = false;
-
     private RenderTypeHelper() {
     }
 
@@ -28,9 +26,6 @@ public final class RenderTypeHelper {
                 Method unwrap = renderType.getClass().getMethod("unwrap");
                 RenderType unwrapped = (RenderType) unwrap.invoke(renderType);
                 if (unwrapped == renderType || unwrapped == null) break;
-                if (!vh$loggedUnwrap) {
-                    vh$loggedUnwrap = true;
-                }
                 renderType = unwrapped;
                 depth++;
             }
