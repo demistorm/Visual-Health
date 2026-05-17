@@ -1,11 +1,12 @@
 package win.demistorm.visual_health.client.mixin;
 
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.RenderType;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import win.demistorm.visual_health.client.renderer.BufferSourceSwapHelper;
+import win.demistorm.visual_health.VisualHealth;
 
 @Mixin(targets = {
         "net.irisshaders.batchedentityrendering.impl.FullyBufferedMultiBufferSource",
@@ -13,6 +14,7 @@ import win.demistorm.visual_health.client.renderer.BufferSourceSwapHelper;
 }, priority = 700)
 public class CompatBufferSourceMixin {
 
+    @Unique
     private static boolean vh$fired = false;
 
     @ModifyVariable(
@@ -24,7 +26,7 @@ public class CompatBufferSourceMixin {
     private RenderType visualhealth$swapTexture(RenderType renderType) {
         if (!vh$fired) {
             vh$fired = true;
-            System.err.println("VH COMPAT FIRED on " + this.getClass().getName());
+            VisualHealth.LOGGER.debug("VH COMPAT FIRED on {}", this.getClass().getName());
         }
         return BufferSourceSwapHelper.swapTexture(renderType);
     }

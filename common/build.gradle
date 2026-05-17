@@ -38,13 +38,6 @@ dependencies {
     // This allows us to separate client-side code from server-side code across all loaders
     // IMPORTANT: Do NOT use other Fabric classes in common code - only annotations!
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-
-    // EMF compat
-    // modCompileOnly "maven.modrinth:4I1XuqiY:3.0.11-fabric-1.20.1"
-
-    // ETF compat
-    // modCompileOnly "maven.modrinth:BVzZfTc1:7.0.8-fabric-1.20.1"
-
 }
 
 // Exclude stub classes from the output JAR - they're compile-only
