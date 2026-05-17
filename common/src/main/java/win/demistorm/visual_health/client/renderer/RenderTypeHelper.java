@@ -30,7 +30,6 @@ public final class RenderTypeHelper {
                 if (unwrapped == renderType || unwrapped == null) break;
                 if (!vh$loggedUnwrap) {
                     vh$loggedUnwrap = true;
-                    System.err.println("VH UNWRAP: " + renderType.getClass().getName() + " -> " + unwrapped.getClass().getName());
                 }
                 renderType = unwrapped;
                 depth++;
@@ -58,7 +57,7 @@ public final class RenderTypeHelper {
                 RenderType unwrapped = (RenderType) unwrap.invoke(renderType);
                 if (unwrapped == renderType || unwrapped == null) break;
 
-                String name = ((RenderStateShard) renderType).name;
+                String name = renderType.name;
                 RenderStateShard extraShard = findExtraShard(renderType);
 
                 layers.add(new WrapperLayer(renderType.getClass(), name, extraShard));
@@ -160,7 +159,7 @@ public final class RenderTypeHelper {
                 .setColorLogicState(origState.colorLogicState)
                 .createCompositeState(origState.outlineProperty);
 
-        String name = ((RenderStateShard) composite).name;
+        String name = composite.name;
         VertexFormat format = composite.format();
         VertexFormat.Mode mode = composite.mode();
         int bufferSize = composite.bufferSize();
@@ -195,7 +194,7 @@ public final class RenderTypeHelper {
             return true;
         }
 
-        String name = ((RenderStateShard) unwrapped).name;
+        String name = unwrapped.name;
 
         return switch (name) {
             case "eyes", "entity_shadow", "beacon_beam", "energy_swirl",

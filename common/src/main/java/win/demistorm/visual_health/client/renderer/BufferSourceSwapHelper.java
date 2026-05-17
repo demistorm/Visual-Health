@@ -16,7 +16,6 @@ import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 public final class BufferSourceSwapHelper {
 
     private static final int RENDER_DISTANCE_SQ = 96 * 96;
-    private static int debugLogCounter = 0;
 
     private BufferSourceSwapHelper() {}
 
@@ -136,10 +135,6 @@ public final class BufferSourceSwapHelper {
 
         if (path.contains("/environment/") || path.contains("/misc/")) return false;
 
-        if (texture.getNamespace().equals("visualhealth") && path.startsWith("dynamic/")) {
-            return false;
-        }
-
-        return true;
+        return !texture.getNamespace().equals("visualhealth") || !path.startsWith("dynamic/");
     }
 }
