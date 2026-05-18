@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.compat.CorpseCompat;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
@@ -20,6 +21,9 @@ public final class BufferSourceSwapHelper {
     private BufferSourceSwapHelper() {}
 
     public static RenderType swapTexture(RenderType renderType) {
+        RenderType corpseResult = CorpseCompat.handleCorpseTexture(renderType);
+        if (corpseResult != null) return corpseResult;
+
         LivingEntity entity = EntityHealthTracker.getCurrentRenderEntity();
         if (entity == null) {
             // if (debugLogCounter < 5) VisualHealth.LOGGER.debug("VH swap: entity is null");
@@ -113,7 +117,7 @@ public final class BufferSourceSwapHelper {
         return renderType;
     }
 
-    static boolean shouldSwapTexture(ResourceLocation texture) {
+    public static boolean shouldSwapTexture(ResourceLocation texture) {
         String path = texture.getPath();
 
         if (path.contains("armor") && (path.contains("leather") || path.contains("chain") ||
