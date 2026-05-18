@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.compat.CorpseCompat;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.damagestate.TintCalculator;
@@ -531,6 +532,7 @@ public class WoundTextureGenerator {
         COMPOSITED_IMAGE_CACHE.clear();
 
         AlphaMaskCache.clearAllCaches();
+        CorpseCompat.clearCaches();
 
         if (cacheSize > 0) {
             VisualHealth.LOGGER.info("Cleared {} texture cache entries on resource reload", cacheSize);
@@ -545,6 +547,7 @@ public class WoundTextureGenerator {
         WEAPON_WOUND_IMAGE_CACHE.clear();
         COMPOSITED_CACHE.clear();
         COMPOSITED_IMAGE_CACHE.clear();
+        CorpseCompat.clearCaches();
 
         if (cacheSize > 0) {
             VisualHealth.LOGGER.info("Cleared {} texture cache entries on config change", cacheSize);

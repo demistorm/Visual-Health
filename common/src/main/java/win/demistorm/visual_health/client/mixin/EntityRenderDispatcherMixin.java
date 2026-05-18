@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import win.demistorm.visual_health.client.compat.CorpseCompat;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 
 @Mixin(EntityRenderDispatcher.class)
@@ -22,8 +23,14 @@ public class EntityRenderDispatcherMixin {
                                            float partialTick, PoseStack poseStack,
                                            MultiBufferSource bufferSource, int packedLight,
                                            CallbackInfo ci) {
+        if (CorpseCompat.isCorpseEntity(entity)) {
+            CorpseCompat.setCorpseContext(entity.getUUID());
+        }
+
         if (entity instanceof LivingEntity livingEntity) {
-            EntityHealthTracker.updateEntityDamageTier(livingEntity);
+            if (!CorpseCompat.isCorpseRendering()) {
+                EntityHealthTracker.updateEntityDamageTier(livingEntity);
+            }
             EntityHealthTracker.setCurrentRenderEntity(livingEntity);
         }
     }
@@ -36,6 +43,9 @@ public class EntityRenderDispatcherMixin {
                                              float partialTick, PoseStack poseStack,
                                              MultiBufferSource bufferSource, int packedLight,
                                              CallbackInfo ci) {
+        if (CorpseCompat.isCorpseEntity(entity)) {
+            CorpseCompat.clearCorpseContext();
+        }
         EntityHealthTracker.clearCurrentRenderEntity();
     }
 }
