@@ -11,6 +11,7 @@ import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 import win.demistorm.visual_health.client.renderer.BufferSourceSwapHelper;
 import win.demistorm.visual_health.client.renderer.RenderTypeHelper;
 import win.demistorm.visual_health.client.texture.SkinColorSampler;
+import win.demistorm.visual_health.client.texture.TintUtils;
 import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 
 import java.util.Random;
@@ -97,10 +98,16 @@ public final class CorpseCompat {
     }
 
     private static int getTintForPlayerCorpse(DamageType damageType, ResourceLocation skinTexture) {
+        int weaponTint = getPlayerCorpseWeaponTint(skinTexture);
+
         if (damageType == DamageType.GENERIC) {
-            return TintCalculator.GENERIC_BRUISE_COLOR;
+            return TintUtils.blendColors(weaponTint, TintCalculator.BRUISE_BROWN, TintCalculator.BRUISE_BLEND_RATIO);
         }
 
+        return weaponTint;
+    }
+
+    private static int getPlayerCorpseWeaponTint(ResourceLocation skinTexture) {
         EntityDamageColors.DamageOverride override = EntityDamageColors.getOverride(EntityType.PLAYER);
         if (override != null) {
             return override.tintColor();

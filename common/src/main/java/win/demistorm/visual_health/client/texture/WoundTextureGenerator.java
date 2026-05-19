@@ -27,8 +27,8 @@ public class WoundTextureGenerator {
     private static final Map<String, NativeImage> IMAGE_CACHE = new ConcurrentHashMap<>();
 
     private static final int BASE_TEXTURE_SIZE = 64;
-    private static final float GENERIC_WOUND_MIN_OPACITY = 0.50f;
-    private static final float GENERIC_WOUND_MAX_OPACITY = 0.70f;
+    private static final float GENERIC_WOUND_MIN_OPACITY = 0.30f;
+    private static final float GENERIC_WOUND_MAX_OPACITY = 0.50f;
     private static final float WEAPON_WOUND_MIN_OPACITY = 0.70f;
     private static final float WEAPON_WOUND_MAX_OPACITY = 1.00f;
 
