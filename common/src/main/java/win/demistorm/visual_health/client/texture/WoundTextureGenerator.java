@@ -350,7 +350,17 @@ public class WoundTextureGenerator {
         DamageType[] types = buildDamageTypesFromTracker(entity.getId(), tier);
         String cacheKey = buildCacheKey("composite", "e" + entity.getId(), baseTexture, tier, types, false);
         ResourceLocation composited = TEXTURE_CACHE.get(cacheKey);
-        if (composited == null) return null;
+        if (composited == null) {
+            composited = builder()
+                    .category("composite")
+                    .entity(entity)
+                    .damageTier(tier)
+                    .texture(baseTexture)
+                    .damageTypes(types)
+                    .composite()
+                    .generate();
+            if (composited == null) return null;
+        }
 
         try {
             net.minecraft.client.renderer.texture.AbstractTexture tex =
