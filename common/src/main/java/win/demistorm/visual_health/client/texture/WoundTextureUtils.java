@@ -58,6 +58,10 @@ public final class WoundTextureUtils {
     }
 
     public static void stampTexture(NativeImage baseTexture, NativeImage stamp, int posX, int posY) {
+        stampTexture(baseTexture, stamp, posX, posY, 1.0f);
+    }
+
+    public static void stampTexture(NativeImage baseTexture, NativeImage stamp, int posX, int posY, float opacity) {
         for (int y = 0; y < stamp.getHeight(); y++) {
             for (int x = 0; x < stamp.getWidth(); x++) {
                 if (posX + x >= baseTexture.getWidth() || posY + y >= baseTexture.getHeight()) {
@@ -71,19 +75,25 @@ public final class WoundTextureUtils {
                     continue;
                 }
 
+                int effectiveAlpha = Math.min(255, (int)(stampAlpha * opacity));
+                if (effectiveAlpha == 0) {
+                    continue;
+                }
+
                 int baseX = posX + x;
                 int baseY = posY + y;
                 int basePixel = baseTexture.getPixelRGBA(baseX, baseY);
                 int baseAlpha = (basePixel >> 24) & 0xFF;
 
                 if (baseAlpha == 0) {
-                    baseTexture.setPixelRGBA(baseX, baseY, stampPixel);
+                    int adjustedPixel = (effectiveAlpha << 24) | (stampPixel & 0x00FFFFFF);
+                    baseTexture.setPixelRGBA(baseX, baseY, adjustedPixel);
                 } else {
-                    float alphaRatio = stampAlpha / 255.0f;
+                    float alphaRatio = effectiveAlpha / 255.0f;
                     int blendedR = blendChannel((basePixel >> 16) & 0xFF, (stampPixel >> 16) & 0xFF, alphaRatio);
                     int blendedG = blendChannel((basePixel >> 8) & 0xFF, (stampPixel >> 8) & 0xFF, alphaRatio);
                     int blendedB = blendChannel(basePixel & 0xFF, stampPixel & 0xFF, alphaRatio);
-                    int blendedA = Math.min(255, baseAlpha + stampAlpha);
+                    int blendedA = Math.min(255, baseAlpha + effectiveAlpha);
 
                     int blendedPixel = (blendedA << 24) | (blendedR << 16) | (blendedG << 8) | blendedB;
                     baseTexture.setPixelRGBA(baseX, baseY, blendedPixel);
