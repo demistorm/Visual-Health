@@ -1,13 +1,12 @@
 package win.demistorm.visual_health.client.texture;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
-import win.demistorm.visual_health.client.compat.CorpseCompat;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.damagestate.TintCalculator;
@@ -15,493 +14,279 @@ import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.ToIntFunction;
+import java.util.function.Predicate;
 
 import static win.demistorm.visual_health.client.texture.AlphaMaskCache.getOrGenerateAlphaMask;
 
 public class WoundTextureGenerator {
 
-    private WoundTextureGenerator() {
-    }
+    private WoundTextureGenerator() {}
 
-    private static final Map<String, ResourceLocation> WOUND_CACHE = new ConcurrentHashMap<>();
-    private static final Map<String, NativeImage> WOUND_IMAGE_CACHE = new ConcurrentHashMap<>();
-
-    private static final Map<String, ResourceLocation> WEAPON_WOUND_CACHE = new ConcurrentHashMap<>();
-    private static final Map<String, NativeImage> WEAPON_WOUND_IMAGE_CACHE = new ConcurrentHashMap<>();
-
-    private static final Map<String, ResourceLocation> COMPOSITED_CACHE = new ConcurrentHashMap<>();
-    private static final Map<String, NativeImage> COMPOSITED_IMAGE_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, ResourceLocation> TEXTURE_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, NativeImage> IMAGE_CACHE = new ConcurrentHashMap<>();
 
     private static final int BASE_TEXTURE_SIZE = 64;
 
-    public static ResourceLocation generateCompositedTexture(
-            LivingEntity entity, int damageTier, ResourceLocation baseTexture) {
+    public static Builder builder() {
+        return new Builder();
+    }
 
-        StringBuilder cacheKeyBuilder = new StringBuilder();
-        cacheKeyBuilder.append("composite_").append(baseTexture.toString());
-        cacheKeyBuilder.append("_e").append(entity.getId()).append("_tier").append(damageTier);
+    public static class Builder {
+        private String category;
+        private LivingEntity entity;
+        private String ownerId;
+        private int damageTier;
+        private ResourceLocation texture;
+        private DamageType[] damageTypes;
+        private Long seed;
+        private ToIntFunction<DamageType> tintProvider;
+        private Boolean transparent;
+        private Predicate<DamageType> stampFilter;
 
-        for (int tier = 1; tier <= damageTier; tier++) {
-            DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
-            cacheKeyBuilder.append("_").append(damageType.name());
+        private Builder() {}
+
+        public Builder category(String category) { this.category = category; return this; }
+        public Builder entity(LivingEntity entity) { this.entity = entity; return this; }
+        public Builder ownerId(String ownerId) { this.ownerId = ownerId; return this; }
+        public Builder damageTier(int damageTier) { this.damageTier = damageTier; return this; }
+        public Builder texture(ResourceLocation texture) { this.texture = texture; return this; }
+        public Builder damageTypes(DamageType[] damageTypes) { this.damageTypes = damageTypes; return this; }
+        public Builder seed(long seed) { this.seed = seed; return this; }
+        public Builder tint(ToIntFunction<DamageType> tintProvider) { this.tintProvider = tintProvider; return this; }
+        public Builder composite() {
+            transparent = false;
+            return this;
+        }
+        public Builder transparent() {
+            transparent = true;
+            return this;
+        }
+        public Builder stampFilter(Predicate<DamageType> filter) { this.stampFilter = filter; return this; }
+
+        public ResourceLocation generate() {
+            resolveDefaults();
+
+            String cacheKey = WoundTextureGenerator.buildCacheKey(
+                    category, ownerId, texture, damageTier, damageTypes, transparent);
+
+            ResourceLocation cached = TEXTURE_CACHE.get(cacheKey);
+            if (cached != null) return cached;
+
+            try {
+                String dynamicPath = WoundTextureGenerator.buildDynamicPath(
+                        category, ownerId, texture, damageTier, transparent);
+
+                if (transparent) {
+                    return generateOverlay(cacheKey, dynamicPath);
+                } else {
+                    return generateComposited(cacheKey, dynamicPath);
+                }
+            } catch (Exception e) {
+                VisualHealth.LOGGER.error("Failed to generate {} texture: {}",
+                        transparent ? "overlay" : "composited", e.getMessage(), e);
+                return null;
+            }
         }
 
-        String cacheKey = cacheKeyBuilder.toString();
-        if (COMPOSITED_CACHE.containsKey(cacheKey)) {
-            return COMPOSITED_CACHE.get(cacheKey);
+        private void resolveDefaults() {
+            if (entity != null) {
+                if (ownerId == null) ownerId = "e" + entity.getId();
+                if (damageTypes == null)
+                    damageTypes = WoundTextureGenerator.buildDamageTypesFromTracker(entity.getId(), damageTier);
+                if (seed == null) seed = entity.getUUID().getLeastSignificantBits();
+                if (tintProvider == null)
+                    tintProvider = type -> TintCalculator.getTintForDamageType(type, entity);
+            }
+            if (stampFilter == null) stampFilter = type -> true;
+            if (seed == null) seed = 0L;
+            if (transparent == null) transparent = false;
         }
 
-        try {
-            NativeImage baseImage = SkinTextureReader.readTexture(baseTexture);
+        private ResourceLocation generateComposited(String cacheKey, String dynamicPath) {
+            NativeImage baseImage = SkinTextureReader.readTexture(texture);
             if (baseImage == null) {
-                VisualHealth.LOGGER.error("Failed to load base texture {} for compositing", baseTexture);
+                VisualHealth.LOGGER.error("Failed to load base texture {} for compositing", texture);
                 return null;
             }
 
-            int textureWidth = baseImage.getWidth();
-            int textureHeight = baseImage.getHeight();
+            int w = baseImage.getWidth();
+            int h = baseImage.getHeight();
 
-            NativeImage composited = new NativeImage(textureWidth, textureHeight, true);
-            for (int y = 0; y < textureHeight; y++) {
-                for (int x = 0; x < textureWidth; x++) {
-                    composited.setPixelRGBA(x, y, baseImage.getPixelRGBA(x, y));
+            NativeImage canvas = new NativeImage(w, h, true);
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    canvas.setPixelRGBA(x, y, baseImage.getPixelRGBA(x, y));
                 }
             }
-
-            boolean[][] alphaMask = getOrGenerateAlphaMask(baseTexture);
-
-            double areaScale = (textureWidth * textureHeight) / (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
-            int densityPercent = win.demistorm.visual_health.ConfigHelper.INSTANCE.woundDensityPercentage;
-            int numTiers = ConfigHelper.INSTANCE.damageTierCount;
-            int baseWoundsPerTier = (densityPercent * 115) / 100;
-            int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / numTiers);
-
-            VisualHealth.LOGGER.debug("Compositing {}x{} texture for {} (area scale: {}) with {} wounds per tier ({} total tiers)",
-                    textureWidth, textureHeight, entity.getName().getString(), areaScale, woundsPerTier);
-
-            int woundIndex = 0;
-            net.minecraft.server.packs.resources.ResourceManager resourceManager =
-                    net.minecraft.client.Minecraft.getInstance().getResourceManager();
-            for (int tier = 1; tier <= damageTier; tier++) {
-                DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
-
-                long tierSeed = entity.getUUID().getLeastSignificantBits();
-                for (int t = 1; t <= tier; t++) {
-                    DamageType dt = EntityHealthTracker.getDamageTypeForTier(entity.getId(), t);
-                    tierSeed = tierSeed * 31 + dt.name().hashCode();
-                }
-                Random tierRandom = new Random(tierSeed);
-
-                int[] tierCells = WoundTextureUtils.shuffleGrid(textureWidth, textureHeight, tierRandom);
-
-                int woundTint = TintCalculator.getTintForDamageType(damageType, entity);
-
-                for (int i = 0; i < woundsPerTier; i++) {
-                    try {
-                        ResourceLocation woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
-
-                        NativeImage woundAsset;
-                        try (var resource = resourceManager.open(woundAssetId)) {
-                            woundAsset = NativeImage.read(resource);
-                        }
-
-                        NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
-
-                        int[] position = WoundTextureUtils.getFuzzyGridPosition(textureWidth, textureHeight,
-                                tintedWound.getWidth(), tintedWound.getHeight(),
-                                tierCells, i, tierRandom);
-
-                        WoundTextureUtils.stampTexture(composited, tintedWound, position[0], position[1]);
-
-                        VisualHealth.LOGGER.debug("Stamped wound {} (tier {}, {}) at ({}, {}) on composited texture",
-                                ++woundIndex, tier, damageType, position[0], position[1]);
-
-                        tintedWound.close();
-                        woundAsset.close();
-
-                    } catch (Exception e) {
-                        VisualHealth.LOGGER.error("Failed to load or stamp wound texture: {}", e.getMessage(), e);
-                    }
-                }
-            }
-
-            if (alphaMask != null) {
-                AlphaMaskCache.applyAlphaMaskToTexture(composited, alphaMask);
-            }
-
-            TextureManager textureManager = net.minecraft.client.Minecraft.getInstance().getTextureManager();
-            ResourceLocation dynamicTextureId = new ResourceLocation("visualhealth",
-                    "dynamic/composite/" + entity.getId() + "/" + baseTexture.getPath().replace('/', '_') + "_tier" + damageTier);
-
-            DynamicTexture texture = new DynamicTexture(composited);
-            textureManager.register(dynamicTextureId, texture);
-
-            COMPOSITED_CACHE.put(cacheKey, dynamicTextureId);
-            COMPOSITED_IMAGE_CACHE.put(cacheKey, composited);
-
             baseImage.close();
 
-            return dynamicTextureId;
+            boolean[][] alphaMask = getOrGenerateAlphaMask(texture);
 
-        } catch (Exception e) {
-            VisualHealth.LOGGER.error("Failed to generate composited texture: {}", e.getMessage(), e);
-            return null;
+            return stampAndRegister(canvas, w, h, alphaMask,
+                    seed, damageTypes, tintProvider, stampFilter,
+                    cacheKey, dynamicPath);
+        }
+
+        private ResourceLocation generateOverlay(String cacheKey, String dynamicPath) {
+            TextureSize texSize = AlphaMaskCache.getOrGenerateTextureSize(texture);
+            int w = texSize != null ? texSize.width() : 64;
+            int h = texSize != null ? texSize.height() : 64;
+
+            NativeImage canvas = new NativeImage(w, h, true);
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    canvas.setPixelRGBA(x, y, 0x00000000);
+                }
+            }
+
+            boolean[][] alphaMask = texture != null ? getOrGenerateAlphaMask(texture) : null;
+
+            return stampAndRegister(canvas, w, h, alphaMask,
+                    seed, damageTypes, tintProvider, stampFilter,
+                    cacheKey, dynamicPath);
         }
     }
 
-    public static ResourceLocation generateWoundedTexture(LivingEntity entity, int damageTier, int baseWidth, int baseHeight) {
-        StringBuilder cacheKeyBuilder = new StringBuilder();
-        cacheKeyBuilder.append(entity.getId()).append("_tier").append(damageTier);
-
-        for (int tier = 1; tier <= damageTier; tier++) {
-            DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
-            cacheKeyBuilder.append("_").append(damageType.name());
+    private static String buildCacheKey(String category, String ownerId,
+                                        ResourceLocation texture, int tier,
+                                        DamageType[] types, boolean isTransparent) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(category);
+        if (!isTransparent && texture != null) {
+            sb.append("_").append(texture);
         }
-
-        String cacheKey = cacheKeyBuilder.toString();
-        if (WOUND_CACHE.containsKey(cacheKey)) {
-            return WOUND_CACHE.get(cacheKey);
+        sb.append("_").append(ownerId);
+        sb.append("_tier").append(tier);
+        for (DamageType type : types) {
+            sb.append("_").append(type.name());
         }
+        return sb.toString();
+    }
 
-        try {
-            NativeImage woundTexture = new NativeImage(baseWidth, baseHeight, true);
+    private static String buildDynamicPath(String category, String ownerId,
+                                           ResourceLocation texture, int tier,
+                                           boolean isTransparent) {
+        String ownerPath = ownerId.replace(':', '_').replace('-', '_');
+        if (!isTransparent && texture != null) {
+            return "dynamic/" + category + "/" + ownerPath + "/"
+                    + texture.getPath().replace('/', '_') + "_tier" + tier;
+        }
+        return "dynamic/" + category + "/" + ownerPath + "/tier" + tier;
+    }
 
-            int transparent = 0x00000000;
-            for (int y = 0; y < baseHeight; y++) {
-                for (int x = 0; x < baseWidth; x++) {
-                    woundTexture.setPixelRGBA(x, y, transparent);
-                }
+    private static DamageType[] buildDamageTypesFromTracker(int entityId, int damageTier) {
+        DamageType[] types = new DamageType[damageTier];
+        for (int tier = 0; tier < damageTier; tier++) {
+            types[tier] = EntityHealthTracker.getDamageTypeForTier(entityId, tier + 1);
+        }
+        return types;
+    }
+
+    private static ResourceLocation stampAndRegister(
+            NativeImage canvas,
+            int width, int height,
+            boolean[][] alphaMask,
+            long seed,
+            DamageType[] damageTypes,
+            ToIntFunction<DamageType> tintProvider,
+            Predicate<DamageType> stampFilter,
+            String cacheKey,
+            String dynamicTexturePath) {
+
+        int maxTiers = ConfigHelper.INSTANCE.damageTierCount;
+        double areaScale = (width * height) / (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
+        int densityPercent = ConfigHelper.INSTANCE.woundDensityPercentage;
+        int baseWoundsPerTier = (densityPercent * 115) / 100;
+        int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / maxTiers);
+
+        VisualHealth.LOGGER.debug("Stamping {}x{} texture ({} tiers, {} wounds/tier, area scale: {})",
+                width, height, damageTypes.length, woundsPerTier, String.format("%.2f", areaScale));
+
+        var resourceManager = Minecraft.getInstance().getResourceManager();
+        int woundIndex = 0;
+
+        for (int tier = 0; tier < damageTypes.length; tier++) {
+            DamageType damageType = damageTypes[tier];
+
+            if (!stampFilter.test(damageType)) {
+                continue;
             }
 
-            ResourceLocation entityTexture = TextureLocator.getEntityTexture(entity);
-            boolean[][] alphaMask = null;
-
-            if (entityTexture != null) {
-                alphaMask = getOrGenerateAlphaMask(entityTexture);
+            long tierSeed = seed;
+            for (int t = 0; t <= tier; t++) {
+                tierSeed = tierSeed * 31 + damageTypes[t].name().hashCode();
             }
+            Random tierRandom = new Random(tierSeed);
 
-            double areaScale = (baseWidth * baseHeight) / (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
-            int densityPercent = win.demistorm.visual_health.ConfigHelper.INSTANCE.woundDensityPercentage;
-            int numTiers = ConfigHelper.INSTANCE.damageTierCount;
-            int baseWoundsPerTier = (densityPercent * 115) / 100;
-            int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / numTiers);
+            int[] tierCells = WoundTextureUtils.shuffleGrid(width, height, tierRandom);
 
-            int woundIndex = 0;
-            for (int tier = 1; tier <= damageTier; tier++) {
-                DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
+            int woundTint = tintProvider.applyAsInt(damageType);
 
-                long tierSeed = entity.getUUID().getLeastSignificantBits();
-                for (int t = 1; t <= tier; t++) {
-                    DamageType dt = EntityHealthTracker.getDamageTypeForTier(entity.getId(), t);
-                    tierSeed = tierSeed * 31 + dt.name().hashCode();
-                }
-                Random tierRandom = new Random(tierSeed);
+            for (int i = 0; i < woundsPerTier; i++) {
+                try {
+                    ResourceLocation woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
 
-                int[] tierCells = WoundTextureUtils.shuffleGrid(baseWidth, baseHeight, tierRandom);
-
-                int woundTint = TintCalculator.getTintForDamageType(damageType, entity);
-
-                for (int i = 0; i < woundsPerTier; i++) {
-                    try {
-                        ResourceLocation woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
-
-                        net.minecraft.server.packs.resources.ResourceManager resourceManager =
-                                net.minecraft.client.Minecraft.getInstance().getResourceManager();
-
-                        NativeImage woundAsset;
-                        try (var resource = resourceManager.open(woundAssetId)) {
-                            woundAsset = NativeImage.read(resource);
-                        }
-
-                        NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
-
-                        int[] position = WoundTextureUtils.getFuzzyGridPosition(baseWidth, baseHeight,
-                                tintedWound.getWidth(), tintedWound.getHeight(),
-                                tierCells, i, tierRandom);
-
-                        WoundTextureUtils.stampTexture(woundTexture, tintedWound, position[0], position[1]);
-
-                        tintedWound.close();
-                        woundAsset.close();
-
-                    } catch (Exception e) {
-                        VisualHealth.LOGGER.error("Failed to load or stamp wound texture: {}", e.getMessage(), e);
+                    NativeImage woundAsset;
+                    try (var resource = resourceManager.open(woundAssetId)) {
+                        woundAsset = NativeImage.read(resource);
                     }
+
+                    NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
+
+                    int[] position = WoundTextureUtils.getFuzzyGridPosition(width, height,
+                            tintedWound.getWidth(), tintedWound.getHeight(),
+                            tierCells, i, tierRandom);
+
+                    WoundTextureUtils.stampTexture(canvas, tintedWound, position[0], position[1]);
+
+                    VisualHealth.LOGGER.debug("Stamped wound {} (tier {}, {}) at ({}, {})",
+                            ++woundIndex, tier + 1, damageType, position[0], position[1]);
+
+                    tintedWound.close();
+                    woundAsset.close();
+
+                } catch (Exception e) {
+                    VisualHealth.LOGGER.error("Failed to load or stamp wound texture: {}", e.getMessage(), e);
                 }
             }
-
-            if (alphaMask != null) {
-                AlphaMaskCache.applyAlphaMaskToTexture(woundTexture, alphaMask);
-            }
-
-            TextureManager textureManager = net.minecraft.client.Minecraft.getInstance().getTextureManager();
-            ResourceLocation dynamicTextureId = new ResourceLocation("visualhealth",
-                    "dynamic/wounds/" + entity.getId() + "/tier" + damageTier);
-
-            DynamicTexture texture = new DynamicTexture(woundTexture);
-            textureManager.register(dynamicTextureId, texture);
-
-            WOUND_CACHE.put(cacheKey, dynamicTextureId);
-            WOUND_IMAGE_CACHE.put(cacheKey, woundTexture);
-
-            return dynamicTextureId;
-
-        } catch (Exception e) {
-            VisualHealth.LOGGER.error("Failed to generate wound texture: {}", e.getMessage(), e);
-            return getFallbackTexture();
-        }
-    }
-
-    public static boolean hasWeaponTiers(int entityId, int damageTier) {
-        for (int tier = 1; tier <= damageTier; tier++) {
-            if (EntityHealthTracker.getDamageTypeForTier(entityId, tier) != DamageType.GENERIC) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static ResourceLocation generateWeaponOnlyTexture(LivingEntity entity, int damageTier, int baseWidth, int baseHeight) {
-        StringBuilder cacheKeyBuilder = new StringBuilder();
-        cacheKeyBuilder.append("weapons_").append(entity.getId()).append("_tier").append(damageTier);
-
-        for (int tier = 1; tier <= damageTier; tier++) {
-            DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
-            cacheKeyBuilder.append("_").append(damageType.name());
         }
 
-        String cacheKey = cacheKeyBuilder.toString();
-        if (WEAPON_WOUND_CACHE.containsKey(cacheKey)) {
-            return WEAPON_WOUND_CACHE.get(cacheKey);
+        if (alphaMask != null) {
+            AlphaMaskCache.applyAlphaMaskToTexture(canvas, alphaMask);
         }
 
-        try {
-            NativeImage woundTexture = new NativeImage(baseWidth, baseHeight, true);
+        var textureManager = Minecraft.getInstance().getTextureManager();
+        ResourceLocation dynamicTextureId = new ResourceLocation("visualhealth", dynamicTexturePath);
 
-            int transparent = 0x00000000;
-            for (int y = 0; y < baseHeight; y++) {
-                for (int x = 0; x < baseWidth; x++) {
-                    woundTexture.setPixelRGBA(x, y, transparent);
-                }
-            }
+        DynamicTexture texture = new DynamicTexture(canvas);
+        textureManager.register(dynamicTextureId, texture);
 
-            ResourceLocation entityTexture = TextureLocator.getEntityTexture(entity);
-            boolean[][] alphaMask = null;
+        TEXTURE_CACHE.put(cacheKey, dynamicTextureId);
+        IMAGE_CACHE.put(cacheKey, canvas);
 
-            if (entityTexture != null) {
-                alphaMask = getOrGenerateAlphaMask(entityTexture);
-            }
-
-            double areaScale = (baseWidth * baseHeight) / (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
-            int densityPercent = win.demistorm.visual_health.ConfigHelper.INSTANCE.woundDensityPercentage;
-            int numTiers = ConfigHelper.INSTANCE.damageTierCount;
-            int baseWoundsPerTier = (densityPercent * 115) / 100;
-            int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / numTiers);
-
-            for (int tier = 1; tier <= damageTier; tier++) {
-                DamageType damageType = EntityHealthTracker.getDamageTypeForTier(entity.getId(), tier);
-                if (damageType == DamageType.GENERIC) {
-                    continue;
-                }
-
-                long tierSeed = entity.getUUID().getLeastSignificantBits();
-                for (int t = 1; t <= tier; t++) {
-                    DamageType dt = EntityHealthTracker.getDamageTypeForTier(entity.getId(), t);
-                    tierSeed = tierSeed * 31 + dt.name().hashCode();
-                }
-                Random tierRandom = new Random(tierSeed);
-
-                int[] tierCells = WoundTextureUtils.shuffleGrid(baseWidth, baseHeight, tierRandom);
-
-                int woundTint = TintCalculator.getTintForDamageType(damageType, entity);
-
-                for (int i = 0; i < woundsPerTier; i++) {
-                    try {
-                        ResourceLocation woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
-
-                        net.minecraft.server.packs.resources.ResourceManager resourceManager =
-                                net.minecraft.client.Minecraft.getInstance().getResourceManager();
-
-                        NativeImage woundAsset;
-                        try (var resource = resourceManager.open(woundAssetId)) {
-                            woundAsset = NativeImage.read(resource);
-                        }
-
-                        NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
-
-                        int[] position = WoundTextureUtils.getFuzzyGridPosition(baseWidth, baseHeight,
-                                tintedWound.getWidth(), tintedWound.getHeight(),
-                                tierCells, i, tierRandom);
-
-                        WoundTextureUtils.stampTexture(woundTexture, tintedWound, position[0], position[1]);
-
-                        tintedWound.close();
-                        woundAsset.close();
-
-                    } catch (Exception e) {
-                        VisualHealth.LOGGER.error("Failed to load or stamp weapon wound texture: {}", e.getMessage(), e);
-                    }
-                }
-            }
-
-            if (alphaMask != null) {
-                AlphaMaskCache.applyAlphaMaskToTexture(woundTexture, alphaMask);
-            }
-
-            TextureManager textureManager = net.minecraft.client.Minecraft.getInstance().getTextureManager();
-            ResourceLocation dynamicTextureId = new ResourceLocation("visualhealth",
-                    "dynamic/weapons/" + entity.getId() + "/tier" + damageTier);
-
-            DynamicTexture texture = new DynamicTexture(woundTexture);
-            textureManager.register(dynamicTextureId, texture);
-
-            WEAPON_WOUND_CACHE.put(cacheKey, dynamicTextureId);
-            WEAPON_WOUND_IMAGE_CACHE.put(cacheKey, woundTexture);
-
-            return dynamicTextureId;
-
-        } catch (Exception e) {
-            VisualHealth.LOGGER.error("Failed to generate weapon-only wound texture: {}", e.getMessage(), e);
-            return getFallbackTexture();
-        }
-    }
-
-    public static void saveAllCachedTextures() {
-        java.io.File outputDir = new java.io.File("VHDamage");
-        if (!outputDir.exists()) {
-            outputDir.mkdirs();
-        }
-
-        int savedCount = 0;
-        for (Map.Entry<String, NativeImage> entry : WOUND_IMAGE_CACHE.entrySet()) {
-            String cacheKey = entry.getKey();
-            NativeImage image = entry.getValue();
-
-            String filename = cacheKey.replaceAll("[^a-zA-Z0-9_-]", "_") + ".png";
-            java.io.File outputFile = new java.io.File(outputDir, filename);
-
-            try {
-                image.writeToFile(outputFile);
-                savedCount++;
-            } catch (Exception e) {
-                VisualHealth.LOGGER.error("Failed to save wound texture {}: {}", filename, e.getMessage());
-            }
-        }
-
-        for (Map.Entry<String, NativeImage> entry : WEAPON_WOUND_IMAGE_CACHE.entrySet()) {
-            String cacheKey = entry.getKey();
-            NativeImage image = entry.getValue();
-
-            String filename = cacheKey.replaceAll("[^a-zA-Z0-9_-]", "_") + ".png";
-            java.io.File outputFile = new java.io.File(outputDir, filename);
-
-            try {
-                image.writeToFile(outputFile);
-                savedCount++;
-            } catch (Exception e) {
-                VisualHealth.LOGGER.error("Failed to save weapon wound texture {}: {}", filename, e.getMessage());
-            }
-        }
-
-        for (Map.Entry<String, NativeImage> entry : COMPOSITED_IMAGE_CACHE.entrySet()) {
-            String cacheKey = entry.getKey();
-            NativeImage image = entry.getValue();
-
-            String filename = cacheKey.replaceAll("[^a-zA-Z0-9_-]", "_") + ".png";
-            java.io.File outputFile = new java.io.File(outputDir, filename);
-
-            try {
-                image.writeToFile(outputFile);
-                savedCount++;
-            } catch (Exception e) {
-                VisualHealth.LOGGER.error("Failed to save composited texture {}: {}", filename, e.getMessage());
-            }
-        }
-
-        VisualHealth.LOGGER.info("Saved {} texture(s) to VHDamage directory", savedCount);
+        return dynamicTextureId;
     }
 
     public static void clearEntityTiers(int entityId, int minTier, int maxTier) {
-        int cleared = 0;
         List<String> keysToRemove = new ArrayList<>();
 
-        for (String key : WOUND_CACHE.keySet()) {
-            if (key.startsWith(entityId + "_tier")) {
-                int tierEndIndex = key.indexOf("_", key.indexOf("tier") + 4);
-                if (tierEndIndex == -1) {
-                    tierEndIndex = key.length();
-                }
-
-                String tierStr = key.substring(key.indexOf("tier") + 4, tierEndIndex);
-                try {
-                    int tier = Integer.parseInt(tierStr);
-                    if (tier >= minTier && tier <= maxTier) {
-                        keysToRemove.add(key);
-                    }
-                } catch (NumberFormatException e) {
+        for (String key : TEXTURE_CACHE.keySet()) {
+            if (isEntityKey(key, entityId)) {
+                int tier = extractTier(key);
+                if (tier >= minTier && tier <= maxTier) {
+                    keysToRemove.add(key);
                 }
             }
         }
 
+        int cleared = 0;
         for (String key : keysToRemove) {
-            WOUND_CACHE.remove(key);
-            WOUND_IMAGE_CACHE.remove(key);
-            cleared++;
-        }
-
-        keysToRemove.clear();
-
-        for (String key : WEAPON_WOUND_CACHE.keySet()) {
-            if (key.startsWith("weapons_" + entityId + "_tier")) {
-                int tierStart = key.indexOf("_tier");
-                int tierEndIndex = key.indexOf("_", tierStart + 5);
-                if (tierEndIndex == -1) {
-                    tierEndIndex = key.length();
-                }
-
-                String tierStr = key.substring(tierStart + 5, tierEndIndex);
-                try {
-                    int tier = Integer.parseInt(tierStr);
-                    if (tier >= minTier && tier <= maxTier) {
-                        keysToRemove.add(key);
-                    }
-                } catch (NumberFormatException e) {
-                }
+            TEXTURE_CACHE.remove(key);
+            NativeImage img = IMAGE_CACHE.remove(key);
+            if (img != null) {
+                try { img.close(); } catch (Exception ignored) {}
             }
-        }
-
-        for (String key : keysToRemove) {
-            WEAPON_WOUND_CACHE.remove(key);
-            WEAPON_WOUND_IMAGE_CACHE.remove(key);
-            cleared++;
-        }
-
-        keysToRemove.clear();
-
-        for (String key : COMPOSITED_CACHE.keySet()) {
-            if (key.contains("_e" + entityId + "_tier")) {
-                int tierStart = key.indexOf("_tier", key.indexOf("_e" + entityId));
-                if (tierStart == -1) continue;
-
-                int tierEndIndex = key.indexOf("_", tierStart + 5);
-                if (tierEndIndex == -1) {
-                    tierEndIndex = key.length();
-                }
-
-                String tierStr = key.substring(tierStart + 5, tierEndIndex);
-                try {
-                    int tier = Integer.parseInt(tierStr);
-                    if (tier >= minTier && tier <= maxTier) {
-                        keysToRemove.add(key);
-                    }
-                } catch (NumberFormatException e) {
-                }
-            }
-        }
-
-        for (String key : keysToRemove) {
-            COMPOSITED_CACHE.remove(key);
-            COMPOSITED_IMAGE_CACHE.remove(key);
             cleared++;
         }
 
@@ -511,28 +296,34 @@ public class WoundTextureGenerator {
         }
     }
 
+    private static boolean isEntityKey(String key, int entityId) {
+        return key.contains("_e" + entityId + "_tier");
+    }
+
+    private static int extractTier(String key) {
+        int tierIdx = key.indexOf("_tier");
+        if (tierIdx == -1) return -1;
+        int tierStart = tierIdx + 5;
+        int tierEnd = key.indexOf("_", tierStart);
+        if (tierEnd == -1) tierEnd = key.length();
+        try {
+            return Integer.parseInt(key.substring(tierStart, tierEnd));
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
     public static void clearAllCaches() {
-        int cacheSize = WOUND_CACHE.size() + WEAPON_WOUND_CACHE.size() + COMPOSITED_CACHE.size();
+        int cacheSize = TEXTURE_CACHE.size();
 
-        for (NativeImage image : WOUND_IMAGE_CACHE.values()) {
-            try { image.close(); } catch (Exception e) { }
-        }
-        for (NativeImage image : WEAPON_WOUND_IMAGE_CACHE.values()) {
-            try { image.close(); } catch (Exception e) { }
-        }
-        for (NativeImage image : COMPOSITED_IMAGE_CACHE.values()) {
-            try { image.close(); } catch (Exception e) { }
+        for (NativeImage image : IMAGE_CACHE.values()) {
+            try { image.close(); } catch (Exception ignored) {}
         }
 
-        WOUND_CACHE.clear();
-        WOUND_IMAGE_CACHE.clear();
-        WEAPON_WOUND_CACHE.clear();
-        WEAPON_WOUND_IMAGE_CACHE.clear();
-        COMPOSITED_CACHE.clear();
-        COMPOSITED_IMAGE_CACHE.clear();
+        TEXTURE_CACHE.clear();
+        IMAGE_CACHE.clear();
 
         AlphaMaskCache.clearAllCaches();
-        CorpseCompat.clearCaches();
 
         if (cacheSize > 0) {
             VisualHealth.LOGGER.info("Cleared {} texture cache entries on resource reload", cacheSize);
@@ -540,14 +331,9 @@ public class WoundTextureGenerator {
     }
 
     public static void clearTextureCaches() {
-        int cacheSize = WOUND_CACHE.size() + WEAPON_WOUND_CACHE.size() + COMPOSITED_CACHE.size();
-        WOUND_CACHE.clear();
-        WOUND_IMAGE_CACHE.clear();
-        WEAPON_WOUND_CACHE.clear();
-        WEAPON_WOUND_IMAGE_CACHE.clear();
-        COMPOSITED_CACHE.clear();
-        COMPOSITED_IMAGE_CACHE.clear();
-        CorpseCompat.clearCaches();
+        int cacheSize = TEXTURE_CACHE.size();
+        TEXTURE_CACHE.clear();
+        IMAGE_CACHE.clear();
 
         if (cacheSize > 0) {
             VisualHealth.LOGGER.info("Cleared {} texture cache entries on config change", cacheSize);
@@ -561,28 +347,40 @@ public class WoundTextureGenerator {
         ResourceLocation baseTexture = TextureLocator.getEntityTexture(entity);
         if (baseTexture == null) return null;
 
-        StringBuilder keyBuilder = new StringBuilder();
-        keyBuilder.append("composite_").append(baseTexture.toString());
-        keyBuilder.append("_e").append(entity.getId()).append("_tier").append(tier);
-        for (int t = 1; t <= tier; t++) {
-            DamageType dt = EntityHealthTracker.getDamageTypeForTier(entity.getId(), t);
-            keyBuilder.append("_").append(dt.name());
-        }
-
-        ResourceLocation composited = COMPOSITED_CACHE.get(keyBuilder.toString());
+        DamageType[] types = buildDamageTypesFromTracker(entity.getId(), tier);
+        String cacheKey = buildCacheKey("composite", "e" + entity.getId(), baseTexture, tier, types, false);
+        ResourceLocation composited = TEXTURE_CACHE.get(cacheKey);
         if (composited == null) return null;
 
         try {
             net.minecraft.client.renderer.texture.AbstractTexture tex =
-                    net.minecraft.client.Minecraft.getInstance().getTextureManager().getTexture(composited);
-            if (tex != null) return tex.getId();
+                    Minecraft.getInstance().getTextureManager().getTexture(composited);
+            return tex.getId();
         } catch (Exception e) {
             VisualHealth.LOGGER.debug("Failed to get GL ID for composited texture: {}", e.getMessage());
         }
         return null;
     }
 
-    private static ResourceLocation getFallbackTexture() {
-        return new ResourceLocation("visualhealth", "damage/scratches/scratch1.png");
+    public static void saveAllCachedTextures() {
+        java.io.File outputDir = new java.io.File("VHDamage");
+        if (!outputDir.exists()) {
+            outputDir.mkdirs();
+        }
+
+        int savedCount = 0;
+        for (Map.Entry<String, NativeImage> entry : IMAGE_CACHE.entrySet()) {
+            String filename = entry.getKey().replaceAll("[^a-zA-Z0-9_-]", "_") + ".png";
+            java.io.File outputFile = new java.io.File(outputDir, filename);
+
+            try {
+                entry.getValue().writeToFile(outputFile);
+                savedCount++;
+            } catch (Exception e) {
+                VisualHealth.LOGGER.error("Failed to save texture {}: {}", filename, e.getMessage());
+            }
+        }
+
+        VisualHealth.LOGGER.info("Saved {} texture(s) to VHDamage directory", savedCount);
     }
 }

@@ -1,41 +1,29 @@
 package win.demistorm.visual_health.client.compat;
 
-import com.mojang.blaze3d.platform.NativeImage;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.damagestate.TintCalculator;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 import win.demistorm.visual_health.client.renderer.BufferSourceSwapHelper;
 import win.demistorm.visual_health.client.renderer.RenderTypeHelper;
-import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
-import win.demistorm.visual_health.client.texture.AlphaMaskCache;
-import win.demistorm.visual_health.client.texture.SkinTextureReader;
-import win.demistorm.visual_health.client.texture.TintUtils;
-import win.demistorm.visual_health.client.texture.WoundTextureUtils;
+import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Random;
+import java.util.UUID;
 
 public final class CorpseCompat {
 
-    private static final int BASE_TEXTURE_SIZE = 64;
-    private static final int CORPSE_TIER_COUNT = 10;
-
     // 60% sword/20% axe/20% generic
-    private static final DamageType[] CORPSE_DAMAGE_TYPES = {
+    private static final DamageType[] WEIGHTED_TYPES = {
             DamageType.SWORD, DamageType.SWORD, DamageType.SWORD,
             DamageType.SWORD, DamageType.SWORD, DamageType.SWORD,
             DamageType.AXE, DamageType.AXE,
             DamageType.GENERIC, DamageType.GENERIC
     };
-
-    // Brown bruise color for generic damage
-    private static final int GENERIC_BRUISE_COLOR = 0xFF13458B;
 
     private CorpseCompat() {}
 
@@ -66,19 +54,16 @@ public final class CorpseCompat {
         CORPSE_UUID.remove();
     }
 
-    public static boolean isCorpseRendering() {
-        return CORPSE_UUID.get() != null;
+    public static boolean isCorpseInactive() {
+        return CORPSE_UUID.get() == null;
     }
 
     public static UUID getCorpseEntityUUID() {
         return CORPSE_UUID.get();
     }
 
-    private static final Map<String, ResourceLocation> CORPSE_CACHE = new ConcurrentHashMap<>();
-    private static final Map<String, NativeImage> CORPSE_IMAGE_CACHE = new ConcurrentHashMap<>();
-
     public static RenderType handleCorpseTexture(RenderType renderType) {
-        if (!isCorpseRendering()) return null;
+        if (isCorpseInactive()) return null;
         if (!ConfigHelper.INSTANCE.damagePlayers) return null;
 
         ResourceLocation texture = RenderTypeHelper.extractTexture(renderType);
@@ -87,7 +72,7 @@ public final class CorpseCompat {
         if (!isPlayerSkin(texture)) return null;
 
         if (RenderTypeHelper.shouldSkipRenderType(renderType)) return null;
-        if (!BufferSourceSwapHelper.shouldSwapTexture(texture)) return null;
+        if (BufferSourceSwapHelper.shouldSkipTexture(texture)) return null;
         if (!ConfigHelper.INSTANCE.drawOnOptifineEmissives && texture.getPath().endsWith("_e.png")) return null;
 
         try {
@@ -112,7 +97,7 @@ public final class CorpseCompat {
 
     private static int getTintForPlayerCorpse(DamageType damageType) {
         if (damageType == DamageType.GENERIC) {
-            return GENERIC_BRUISE_COLOR;
+            return TintCalculator.GENERIC_BRUISE_COLOR;
         }
 
         EntityDamageColors.DamageOverride override = EntityDamageColors.getOverride(EntityType.PLAYER);
@@ -128,124 +113,27 @@ public final class CorpseCompat {
     }
 
     private static ResourceLocation generateCorpseTexture(UUID corpseUUID, ResourceLocation baseTexture) {
-        String cacheKey = "corpse_" + corpseUUID + "_" + baseTexture;
+        DamageType[] damageTypes = generateCorpseDamageTypes(corpseUUID);
 
-        if (CORPSE_CACHE.containsKey(cacheKey)) {
-            return CORPSE_CACHE.get(cacheKey);
-        }
-
-        try {
-            NativeImage baseImage = SkinTextureReader.readTexture(baseTexture);
-            if (baseImage == null) {
-                VisualHealth.LOGGER.error("Failed to load base texture {} for corpse compositing", baseTexture);
-                return null;
-            }
-
-            int textureWidth = baseImage.getWidth();
-            int textureHeight = baseImage.getHeight();
-
-            NativeImage composited = new NativeImage(textureWidth, textureHeight, true);
-            for (int y = 0; y < textureHeight; y++) {
-                for (int x = 0; x < textureWidth; x++) {
-                    composited.setPixelRGBA(x, y, baseImage.getPixelRGBA(x, y));
-                }
-            }
-
-            boolean[][] alphaMask = AlphaMaskCache.getOrGenerateAlphaMask(baseTexture);
-
-            double areaScale = (textureWidth * textureHeight) / (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
-            int densityPercent = ConfigHelper.INSTANCE.woundDensityPercentage;
-            int numTiers = CORPSE_TIER_COUNT;
-            int baseWoundsPerTier = (densityPercent * 115) / 100;
-            int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / numTiers);
-
-            VisualHealth.LOGGER.debug("Compositing {}x{} corpse texture for {} (area scale: {}) with {} wounds per tier ({} total tiers)",
-                    textureWidth, textureHeight, corpseUUID, areaScale, woundsPerTier, numTiers);
-
-            long baseSeed = corpseUUID.getLeastSignificantBits();
-            var resourceManager = Minecraft.getInstance().getResourceManager();
-
-            int woundIndex = 0;
-            for (int tier = 1; tier <= numTiers; tier++) {
-                DamageType damageType = CORPSE_DAMAGE_TYPES[tier - 1];
-
-                long tierSeed = baseSeed;
-                for (int t = 1; t <= tier; t++) {
-                    tierSeed = tierSeed * 31 + CORPSE_DAMAGE_TYPES[t - 1].name().hashCode();
-                }
-                Random tierRandom = new Random(tierSeed);
-
-                int[] tierCells = WoundTextureUtils.shuffleGrid(textureWidth, textureHeight, tierRandom);
-
-                int woundTint = getTintForPlayerCorpse(damageType);
-
-                for (int i = 0; i < woundsPerTier; i++) {
-                    try {
-                        ResourceLocation woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
-
-                        NativeImage woundAsset;
-                        try (var resource = resourceManager.open(woundAssetId)) {
-                            woundAsset = NativeImage.read(resource);
-                        }
-
-                        NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
-
-                        int[] position = WoundTextureUtils.getFuzzyGridPosition(textureWidth, textureHeight,
-                                tintedWound.getWidth(), tintedWound.getHeight(),
-                                tierCells, i, tierRandom);
-
-                        WoundTextureUtils.stampTexture(composited, tintedWound, position[0], position[1]);
-
-                        VisualHealth.LOGGER.debug("Stamped corpse wound {} (tier {}, {}) at ({}, {})",
-                                ++woundIndex, tier, damageType, position[0], position[1]);
-
-                        tintedWound.close();
-                        woundAsset.close();
-
-                    } catch (Exception e) {
-                        VisualHealth.LOGGER.error("Failed to load or stamp corpse wound texture: {}", e.getMessage(), e);
-                    }
-                }
-            }
-
-            if (alphaMask != null) {
-                AlphaMaskCache.applyAlphaMaskToTexture(composited, alphaMask);
-            }
-
-            var textureManager = Minecraft.getInstance().getTextureManager();
-            ResourceLocation dynamicTextureId = new ResourceLocation("visualhealth",
-                    "dynamic/corpse/" + corpseUUID + "/" + baseTexture.getPath().replace('/', '_'));
-
-            DynamicTexture texture = new DynamicTexture(composited);
-            textureManager.register(dynamicTextureId, texture);
-
-            CORPSE_CACHE.put(cacheKey, dynamicTextureId);
-            CORPSE_IMAGE_CACHE.put(cacheKey, composited);
-
-            baseImage.close();
-
-            VisualHealth.LOGGER.info("Generated corpse damage texture for {} ({} total wounds)", corpseUUID, woundIndex);
-
-            return dynamicTextureId;
-
-        } catch (Exception e) {
-            VisualHealth.LOGGER.error("Failed to generate corpse texture: {}", e.getMessage(), e);
-            return null;
-        }
+        return WoundTextureGenerator.builder()
+                .category("corpse")
+                .ownerId("corpse:" + corpseUUID)
+                .damageTier(damageTypes.length)
+                .texture(baseTexture)
+                .composite()
+                .damageTypes(damageTypes)
+                .seed(corpseUUID.getLeastSignificantBits())
+                .tint(CorpseCompat::getTintForPlayerCorpse)
+                .generate();
     }
 
-    public static void clearCaches() {
-        int cacheSize = CORPSE_CACHE.size();
-
-        for (NativeImage image : CORPSE_IMAGE_CACHE.values()) {
-            try { image.close(); } catch (Exception ignored) {}
+    private static DamageType[] generateCorpseDamageTypes(UUID corpseUUID) {
+        int tierCount = ConfigHelper.INSTANCE.damageTierCount;
+        DamageType[] types = new DamageType[tierCount];
+        Random random = new Random(corpseUUID.getLeastSignificantBits());
+        for (int i = 0; i < tierCount; i++) {
+            types[i] = WEIGHTED_TYPES[random.nextInt(WEIGHTED_TYPES.length)];
         }
-
-        CORPSE_CACHE.clear();
-        CORPSE_IMAGE_CACHE.clear();
-
-        if (cacheSize > 0) {
-            VisualHealth.LOGGER.info("Cleared {} corpse texture cache entries", cacheSize);
-        }
+        return types;
     }
 }

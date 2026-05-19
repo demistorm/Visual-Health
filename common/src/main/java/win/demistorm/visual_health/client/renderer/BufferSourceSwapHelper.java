@@ -55,7 +55,7 @@ public final class BufferSourceSwapHelper {
             return renderType;
         }
 
-        if (!shouldSwapTexture(texture)) {
+        if (shouldSkipTexture(texture)) {
             VisualHealth.LOGGER.debug("VH swap: {} tier={} texture {} filtered by path",
                     entity.getName().getString(), damageTier, texture);
             return renderType;
@@ -97,8 +97,13 @@ public final class BufferSourceSwapHelper {
                 entity.getName().getString(), damageTier, texture);
 
         try {
-            ResourceLocation replacement = WoundTextureGenerator.generateCompositedTexture(
-                    entity, damageTier, texture);
+            ResourceLocation replacement = WoundTextureGenerator.builder()
+                    .category("composite")
+                    .entity(entity)
+                    .damageTier(damageTier)
+                    .texture(texture)
+                    .composite()
+                    .generate();
 
             if (replacement != null) {
                 RenderType swapped = RenderTypeHelper.createWithTexture(renderType, texture, replacement);
@@ -117,28 +122,28 @@ public final class BufferSourceSwapHelper {
         return renderType;
     }
 
-    public static boolean shouldSwapTexture(ResourceLocation texture) {
+    public static boolean shouldSkipTexture(ResourceLocation texture) {
         String path = texture.getPath();
 
         if (path.contains("armor") && (path.contains("leather") || path.contains("chain") ||
                 path.contains("iron") || path.contains("gold") || path.contains("diamond") ||
                 path.contains("netherite"))) {
-            return false;
+            return true;
         }
 
-        if (path.contains("/models/armor/")) return false;
+        if (path.contains("/models/armor/")) return true;
 
-        if (path.contains("/cape")) return false;
-        if (path.endsWith("/cape.png")) return false;
+        if (path.contains("/cape")) return true;
+        if (path.endsWith("/cape.png")) return true;
 
-        if (path.contains("glint")) return false;
+        if (path.contains("glint")) return true;
 
-        if (path.contains("/block/") || path.contains("/item/")) return false;
+        if (path.contains("/block/") || path.contains("/item/")) return true;
 
-        if (path.contains("particle")) return false;
+        if (path.contains("particle")) return true;
 
-        if (path.contains("/environment/") || path.contains("/misc/")) return false;
+        if (path.contains("/environment/") || path.contains("/misc/")) return true;
 
-        return !texture.getNamespace().equals("visualhealth") || !path.startsWith("dynamic/");
+        return texture.getNamespace().equals("visualhealth") && path.startsWith("dynamic/");
     }
 }

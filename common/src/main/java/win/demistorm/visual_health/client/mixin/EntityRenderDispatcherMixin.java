@@ -28,7 +28,7 @@ public class EntityRenderDispatcherMixin {
         }
 
         if (entity instanceof LivingEntity livingEntity) {
-            if (!CorpseCompat.isCorpseRendering()) {
+            if (CorpseCompat.isCorpseInactive()) {
                 EntityHealthTracker.updateEntityDamageTier(livingEntity);
             }
             EntityHealthTracker.setCurrentRenderEntity(livingEntity);
