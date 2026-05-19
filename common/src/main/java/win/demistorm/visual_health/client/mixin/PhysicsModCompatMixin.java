@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.compat.PhysicsModBridge;
+import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 
 @Mixin(targets = "net.diebuddies.physics.PhysicsMod")
 public class PhysicsModCompatMixin {
@@ -22,6 +23,7 @@ public class PhysicsModCompatMixin {
             vh$fired = true;
             VisualHealth.LOGGER.debug("VH COMPAT FIRED on PhysicsMod");
         }
+        EntityHealthTracker.updateEntityDamageTier(entity);
         PhysicsModBridge.setCapturingEntity(entity);
     }
 
