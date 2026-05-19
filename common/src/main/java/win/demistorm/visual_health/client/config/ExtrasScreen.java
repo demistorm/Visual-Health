@@ -14,6 +14,7 @@ public class ExtrasScreen extends Screen {
     private final Minecraft client = Minecraft.getInstance();
 
     private boolean resourcePackEmissivesValue;
+    private boolean playerSampledDamageValue;
 
     protected ExtrasScreen(Screen parent) {
         super(Component.literal("Extras"));
@@ -23,6 +24,7 @@ public class ExtrasScreen extends Screen {
     @Override
     protected void init() {
         resourcePackEmissivesValue = ConfigHelper.INSTANCE.drawOnOptifineEmissives;
+        playerSampledDamageValue = ConfigHelper.INSTANCE.playerSampledDamage;
 
         addRenderableWidget(
                 Button.builder(
@@ -37,12 +39,25 @@ public class ExtrasScreen extends Screen {
 
         addRenderableWidget(
                 Button.builder(
+                                Component.literal("Player Sampled Damage: " + (playerSampledDamageValue ? "ON" : "OFF")),
+                                btn -> {
+                                    playerSampledDamageValue = !playerSampledDamageValue;
+                                    btn.setMessage(Component.literal("Player Sampled Damage: " + (playerSampledDamageValue ? "ON" : "OFF")));
+                                })
+                        .bounds(width / 2 - 80, height / 6 + 28, 160, 20)
+                        .tooltip(Tooltip.create(Component.literal("Samples player skins and renders a matching damage color for unique damage colors between players")))
+                        .build());
+
+        addRenderableWidget(
+                Button.builder(
                                 Component.literal("Done"),
                                 btn -> {
                                     ConfigHelper.INSTANCE.drawOnOptifineEmissives = resourcePackEmissivesValue;
+                                    ConfigHelper.INSTANCE.playerSampledDamage = playerSampledDamageValue;
                                     ConfigHelper.save();
                                     ConfigHelper.clearTextureCaches();
-                                    VisualHealth.LOGGER.info("Visual Health extras config saved: resource pack emissives: {}", resourcePackEmissivesValue);
+                                    VisualHealth.LOGGER.info("Visual Health extras config saved: resource pack emissives: {}, player sampled damage: {}",
+                                            resourcePackEmissivesValue, playerSampledDamageValue);
                                     client.setScreen(parent);
                                 })
                         .bounds(width / 2 - 100, height - 30, 200, 20)

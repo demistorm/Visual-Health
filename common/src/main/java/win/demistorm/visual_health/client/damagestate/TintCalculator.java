@@ -1,9 +1,11 @@
 package win.demistorm.visual_health.client.damagestate;
 
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
+import win.demistorm.visual_health.client.texture.SkinColorSampler;
 
 // Calculates the appropriate tint color for wounds based on damage type and entity
 // Uses hierarchical system: generic bruise color > entity override for weapons > config weapon color
@@ -33,6 +35,10 @@ public final class TintCalculator {
         }
 
         // No override for weapon damage, use config damage color (ABGR format)
+        if (entity instanceof Player && ConfigHelper.INSTANCE.playerSampledDamage) {
+            return SkinColorSampler.getSampledTint(entity);
+        }
+
         return switch (ConfigHelper.INSTANCE.damageColor) {
             case RED -> 0xFF00009F;   // Blood red (A=FF, B=00, G=00, R=9F)
             case BLACK -> 0xFF000000; // Black
