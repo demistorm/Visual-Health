@@ -15,7 +15,7 @@ public final class TintCalculator {
 
     // Brown bruise color for generic damage (punches, falls, etc.)
     // ABGR format: A=FF, B=13, G=45, R=8B
-    private static final int GENERIC_BRUISE_COLOR = 0xFF13458B; // Saddle brown
+    public static final int GENERIC_BRUISE_COLOR = 0xFF13458B; // Saddle brown
 
     // Get the appropriate tint color for a wound based on damage type and entity
     // Returns ABGR format color

@@ -11,14 +11,17 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
-import win.demistorm.visual_health.client.texture.TextureSize;
+import win.demistorm.visual_health.client.texture.TextureLocator;
+import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 
 public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>>
         extends RenderLayer<T, M> {
 
     private static final int RENDER_DISTANCE = 96;
+    private static final ResourceLocation FALLBACK_TEXTURE = new ResourceLocation("visualhealth", "damage/scratches/scratch1.png");
 
     public DamageOverlayLayer(RenderLayerParent<T, M> renderer) {
         super(renderer);
@@ -60,7 +63,7 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
             return;
         }
 
-        if (!win.demistorm.visual_health.client.texture.WoundTextureGenerator.hasWeaponTiers(entity.getId(), damageTier)) {
+        if (!EntityHealthTracker.hasWeaponTiers(entity.getId(), damageTier)) {
             return;
         }
 
@@ -85,17 +88,23 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
         }
 
         try {
-            ResourceLocation baseTexture = win.demistorm.visual_health.client.texture.TextureLocator.getEntityTexture(entity);
+            ResourceLocation baseTexture = TextureLocator.getEntityTexture(entity);
             if (baseTexture == null) {
                 return;
             }
 
-            TextureSize texSize = win.demistorm.visual_health.client.texture.AlphaMaskCache.getOrGenerateTextureSize(baseTexture);
-            int textureWidth = texSize != null ? texSize.width() : 64;
-            int textureHeight = texSize != null ? texSize.height() : 64;
+            ResourceLocation woundTexture = WoundTextureGenerator.builder()
+                    .category("weapons")
+                    .entity(entity)
+                    .damageTier(damageTier)
+                    .texture(baseTexture)
+                    .transparent()
+                    .stampFilter(type -> type != DamageType.GENERIC)
+                    .generate();
 
-            ResourceLocation woundTexture = win.demistorm.visual_health.client.texture.WoundTextureGenerator.generateWeaponOnlyTexture(
-                    entity, damageTier, textureWidth, textureHeight);
+            if (woundTexture == null) {
+                woundTexture = FALLBACK_TEXTURE;
+            }
 
             int overlay = net.minecraft.client.renderer.entity.LivingEntityRenderer.getOverlayCoords(entity, 0.0f);
 

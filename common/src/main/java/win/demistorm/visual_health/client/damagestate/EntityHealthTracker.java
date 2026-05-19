@@ -118,6 +118,15 @@ public final class EntityHealthTracker {
         CURRENT_RENDER_ENTITY.remove();
     }
 
+    public static boolean hasWeaponTiers(int entityId, int damageTier) {
+        for (int tier = 1; tier <= damageTier; tier++) {
+            if (getDamageTypeForTier(entityId, tier) != DamageType.GENERIC) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static void clearAllCaches() {
         int tierCount = ENTITY_DAMAGE_TIERS.size();
         int damageTypeCount = ENTITY_TIER_DAMAGE_TYPES.size();
