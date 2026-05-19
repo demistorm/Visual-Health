@@ -27,6 +27,10 @@ public class WoundTextureGenerator {
     private static final Map<String, NativeImage> IMAGE_CACHE = new ConcurrentHashMap<>();
 
     private static final int BASE_TEXTURE_SIZE = 64;
+    private static final float GENERIC_WOUND_MIN_OPACITY = 0.50f;
+    private static final float GENERIC_WOUND_MAX_OPACITY = 0.70f;
+    private static final float WEAPON_WOUND_MIN_OPACITY = 0.70f;
+    private static final float WEAPON_WOUND_MAX_OPACITY = 1.00f;
 
     public static Builder builder() {
         return new Builder();
@@ -238,10 +242,11 @@ public class WoundTextureGenerator {
                             tintedWound.getWidth(), tintedWound.getHeight(),
                             tierCells, i, tierRandom);
 
-                    WoundTextureUtils.stampTexture(canvas, tintedWound, position[0], position[1]);
+                    float opacity = getWoundOpacity(damageType, tierRandom);
+                    WoundTextureUtils.stampTexture(canvas, tintedWound, position[0], position[1], opacity);
 
-                    VisualHealth.LOGGER.debug("Stamped wound {} (tier {}, {}) at ({}, {})",
-                            ++woundIndex, tier + 1, damageType, position[0], position[1]);
+                    VisualHealth.LOGGER.debug("Stamped wound {} (tier {}, {}, opacity: {}) at ({}, {})",
+                            ++woundIndex, tier + 1, damageType, String.format("%.0f%%", opacity * 100), position[0], position[1]);
 
                     tintedWound.close();
                     woundAsset.close();
@@ -372,7 +377,15 @@ public class WoundTextureGenerator {
         return null;
     }
 
+    private static float getWoundOpacity(DamageType damageType, Random random) {
+        if (damageType == DamageType.GENERIC) {
+            return GENERIC_WOUND_MIN_OPACITY + random.nextFloat() * (GENERIC_WOUND_MAX_OPACITY - GENERIC_WOUND_MIN_OPACITY);
+        }
+        return WEAPON_WOUND_MIN_OPACITY + random.nextFloat() * (WEAPON_WOUND_MAX_OPACITY - WEAPON_WOUND_MIN_OPACITY);
+    }
+
     public static void saveAllCachedTextures() {
+
         java.io.File outputDir = new java.io.File("VHDamage");
         if (!outputDir.exists()) {
             outputDir.mkdirs();
