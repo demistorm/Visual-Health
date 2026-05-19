@@ -10,6 +10,7 @@ import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 import win.demistorm.visual_health.client.renderer.BufferSourceSwapHelper;
 import win.demistorm.visual_health.client.renderer.RenderTypeHelper;
+import win.demistorm.visual_health.client.texture.SkinColorSampler;
 import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 
 import java.util.Random;
@@ -95,7 +96,7 @@ public final class CorpseCompat {
         return "minecraft".equals(texture.getNamespace()) && texture.getPath().startsWith("skins/");
     }
 
-    private static int getTintForPlayerCorpse(DamageType damageType) {
+    private static int getTintForPlayerCorpse(DamageType damageType, ResourceLocation skinTexture) {
         if (damageType == DamageType.GENERIC) {
             return TintCalculator.GENERIC_BRUISE_COLOR;
         }
@@ -103,6 +104,10 @@ public final class CorpseCompat {
         EntityDamageColors.DamageOverride override = EntityDamageColors.getOverride(EntityType.PLAYER);
         if (override != null) {
             return override.tintColor();
+        }
+
+        if (ConfigHelper.INSTANCE.playerSampledDamage) {
+            return SkinColorSampler.getSampledTint(skinTexture);
         }
 
         return switch (ConfigHelper.INSTANCE.damageColor) {
@@ -123,7 +128,7 @@ public final class CorpseCompat {
                 .composite()
                 .damageTypes(damageTypes)
                 .seed(corpseUUID.getLeastSignificantBits())
-                .tint(CorpseCompat::getTintForPlayerCorpse)
+                .tint(type -> getTintForPlayerCorpse(type, baseTexture))
                 .generate();
     }
 

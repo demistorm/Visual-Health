@@ -54,6 +54,8 @@ public class VisualHealthClient {
 
         win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearAllCaches();
 
+        win.demistorm.visual_health.client.texture.SkinColorSampler.clearCache();
+
         WoundAssetSelector.cleanup();
 
         try {

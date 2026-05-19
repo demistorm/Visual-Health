@@ -26,6 +26,7 @@ public final class ConfigHelper {
         public boolean damageVillagers = false;
         public boolean damagePlayers = true;
         public boolean drawOnOptifineEmissives = false;
+        public boolean playerSampledDamage = false;
         public DamageColor damageColor = DamageColor.RED;
 
         // Entity-specific overrides
@@ -83,6 +84,7 @@ public final class ConfigHelper {
         ConfigHelper.INSTANCE.damageVillagers = from.damageVillagers;
         ConfigHelper.INSTANCE.damagePlayers = from.damagePlayers;
         ConfigHelper.INSTANCE.drawOnOptifineEmissives = from.drawOnOptifineEmissives;
+        ConfigHelper.INSTANCE.playerSampledDamage = from.playerSampledDamage;
         ConfigHelper.INSTANCE.damageColor = from.damageColor;
         ConfigHelper.INSTANCE.colorOverrides = new LinkedHashMap<>(from.colorOverrides);
     }
@@ -93,6 +95,7 @@ public final class ConfigHelper {
 
     public static void clearTextureCaches() {
         win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearTextureCaches();
+        win.demistorm.visual_health.client.texture.SkinColorSampler.clearCache();
         win.demistorm.visual_health.client.renderer.WoundAssetSelector.cleanup();
         VisualHealth.LOGGER.info("Visual Health texture caches cleared on config change (damage history preserved)");
     }
