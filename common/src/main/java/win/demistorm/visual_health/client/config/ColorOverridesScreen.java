@@ -226,6 +226,11 @@ public class ColorOverridesScreen extends Screen {
         }
 
         @Override
+        protected int getScrollbarPosition() {
+            return width - 6;
+        }
+
+        @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
             if (!this.isMouseOver(mouseX, mouseY)) return false;
             for (OverrideEntry entry : this.children()) {
@@ -241,9 +246,13 @@ public class ColorOverridesScreen extends Screen {
         }
 
         public class OverrideEntry extends ObjectSelectionList.Entry<OverrideEntry> {
+            private static final int PREVIEW_SIZE = 20;
+            private static final int PREVIEW_GAP = 3;
+
             private final String entityId;
             private final Button cycleButton;
             private final Button removeButton;
+            private final Button colorPreview;
             private final EditBox hexInput;
             private final String mode;
             private final String hexValue;
@@ -275,6 +284,13 @@ public class ColorOverridesScreen extends Screen {
                         .tooltip(Tooltip.create(Component.literal("Remove " + entityId)))
                         .build();
 
+                this.colorPreview = Button.builder(
+                                Component.literal(""),
+                                btn -> openColorPicker())
+                        .bounds(0, 0, PREVIEW_SIZE, PREVIEW_SIZE)
+                        .tooltip(Tooltip.create(Component.literal("Pick a color")))
+                        .build();
+
                 this.hexInput = new EditBox(font, 0, 0, 80, WIDGET_HEIGHT - 4, Component.literal("Hex"));
                 this.hexInput.setHint(Component.literal("FF0000"));
                 this.hexInput.setMaxLength(6);
@@ -290,6 +306,17 @@ public class ColorOverridesScreen extends Screen {
                 });
             }
 
+            private void openColorPicker() {
+                String currentHex = hexValue != null && !hexValue.isEmpty() ? hexValue : "FF0000";
+                client.setScreen(new ColorPickerScreen(ColorOverridesScreen.this, currentHex, newHex -> {
+                    String current = overrides.getOrDefault(entityId, "RED");
+                    String baseMode = parseMode(current);
+                    if (baseMode.equals("CUSTOM") || baseMode.equals("EMISSIVE")) {
+                        overrides.put(entityId, baseMode + ":" + newHex);
+                    }
+                }));
+            }
+
             @Override
             public void render(GuiGraphics context, int index, int y, int x, int entryWidth, int entryHeight,
                                int mouseX, int mouseY, boolean hovered, float tickDelta) {
@@ -297,7 +324,7 @@ public class ColorOverridesScreen extends Screen {
 
                 String display = entityId;
                 int fixedRightWidth = 70 + 13 + 20;
-                if (showHex) fixedRightWidth += 80 + 5;
+                if (showHex) fixedRightWidth += 80 + PREVIEW_SIZE + PREVIEW_GAP * 2 + 5;
                 int maxLabelWidth = entryWidth - fixedRightWidth;
                 if (font.width(display) > maxLabelWidth) {
                     display = font.plainSubstrByWidth(display, maxLabelWidth - 15) + "...";
@@ -321,6 +348,24 @@ public class ColorOverridesScreen extends Screen {
                     hexInput.setPosition(hexX, hexY);
                     hexInput.setWidth(80);
                     hexInput.render(context, mouseX, mouseY, tickDelta);
+
+                    int previewX = hexX - PREVIEW_SIZE - PREVIEW_GAP;
+                    int previewY = cycleY;
+                    colorPreview.setPosition(previewX, previewY);
+                    colorPreview.render(context, mouseX, mouseY, tickDelta);
+
+                    String hex = hexInput.getValue().trim();
+                    int fillColor;
+                    if (hex.length() == 6) {
+                        try {
+                            fillColor = 0xFF000000 | Integer.parseInt(hex, 16);
+                        } catch (NumberFormatException e) {
+                            fillColor = 0xFF808080;
+                        }
+                    } else {
+                        fillColor = 0xFF808080;
+                    }
+                    context.fill(previewX + 2, previewY + 2, previewX + PREVIEW_SIZE - 2, previewY + PREVIEW_SIZE - 2, fillColor);
                 }
             }
 
@@ -329,6 +374,7 @@ public class ColorOverridesScreen extends Screen {
                 if (cycleButton.mouseClicked(mouseX, mouseY, button)) return true;
                 if (removeButton.mouseClicked(mouseX, mouseY, button)) return true;
                 if (mode.equals("CUSTOM") || mode.equals("EMISSIVE")) {
+                    if (colorPreview.mouseClicked(mouseX, mouseY, button)) return true;
                     if (hexInput.mouseClicked(mouseX, mouseY, button)) {
                         if (focusedHexInput != null) {
                             focusedHexInput.setFocused(false);
