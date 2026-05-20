@@ -74,6 +74,9 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
                 return;
             }
         } else {
+            if (win.demistorm.visual_health.ConfigHelper.INSTANCE.playerDamageOnly) {
+                return;
+            }
             net.minecraft.world.entity.MobCategory spawnCategory = entity.getType().getCategory();
             boolean isMonster = spawnCategory == net.minecraft.world.entity.MobCategory.MONSTER;
 

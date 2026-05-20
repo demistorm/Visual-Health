@@ -15,6 +15,7 @@ public class ExtrasScreen extends Screen {
 
     private boolean resourcePackEmissivesValue;
     private boolean playerSampledDamageValue;
+    private boolean playerDamageOnlyValue;
 
     protected ExtrasScreen(Screen parent) {
         super(Component.literal("Extras"));
@@ -25,6 +26,7 @@ public class ExtrasScreen extends Screen {
     protected void init() {
         resourcePackEmissivesValue = ConfigHelper.INSTANCE.drawOnOptifineEmissives;
         playerSampledDamageValue = ConfigHelper.INSTANCE.playerSampledDamage;
+        playerDamageOnlyValue = ConfigHelper.INSTANCE.playerDamageOnly;
 
         addRenderableWidget(
                 Button.builder(
@@ -50,14 +52,26 @@ public class ExtrasScreen extends Screen {
 
         addRenderableWidget(
                 Button.builder(
+                                Component.literal("Show Player Damage Only: " + (playerDamageOnlyValue ? "ON" : "OFF")),
+                                btn -> {
+                                    playerDamageOnlyValue = !playerDamageOnlyValue;
+                                    btn.setMessage(Component.literal("Show Player Damage Only: " + (playerDamageOnlyValue ? "ON" : "OFF")));
+                                })
+                        .bounds(width / 2 - 80, height / 6 + 56, 160, 20)
+                        .tooltip(Tooltip.create(Component.literal("When ON, only players will show damage overlays")))
+                        .build());
+
+        addRenderableWidget(
+                Button.builder(
                                 Component.literal("Done"),
                                 btn -> {
                                     ConfigHelper.INSTANCE.drawOnOptifineEmissives = resourcePackEmissivesValue;
                                     ConfigHelper.INSTANCE.playerSampledDamage = playerSampledDamageValue;
+                                    ConfigHelper.INSTANCE.playerDamageOnly = playerDamageOnlyValue;
                                     ConfigHelper.save();
                                     ConfigHelper.clearTextureCaches();
-                                    VisualHealth.LOGGER.info("Visual Health extras config saved: resource pack emissives: {}, player sampled damage: {}",
-                                            resourcePackEmissivesValue, playerSampledDamageValue);
+                                    VisualHealth.LOGGER.info("Visual Health extras config saved: resource pack emissives: {}, player sampled damage: {}, player damage only: {}",
+                                            resourcePackEmissivesValue, playerSampledDamageValue, playerDamageOnlyValue);
                                     client.setScreen(parent);
                                 })
                         .bounds(width / 2 - 100, height - 30, 200, 20)
