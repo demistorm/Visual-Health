@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.DamageRenderCheck;
 import win.demistorm.visual_health.client.damagestate.TintCalculator;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
@@ -66,7 +67,7 @@ public final class CorpseCompat {
 
     public static RenderType handleCorpseTexture(RenderType renderType) {
         if (isCorpseInactive()) return null;
-        if (!ConfigHelper.INSTANCE.damagePlayers) return null;
+        if (!DamageRenderCheck.shouldRenderCorpseDamage()) return null;
 
         ResourceLocation texture = RenderTypeHelper.extractTexture(renderType);
         if (texture == null) return null;
