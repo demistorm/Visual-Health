@@ -78,6 +78,9 @@ public final class BufferSourceSwapHelper {
                 return renderType;
             }
         } else {
+            if (ConfigHelper.INSTANCE.playerDamageOnly) {
+                return renderType;
+            }
             MobCategory category = entity.getType().getCategory();
             boolean isMonster = category == MobCategory.MONSTER;
             if (!isMonster && !ConfigHelper.INSTANCE.damagePassiveMobs) {

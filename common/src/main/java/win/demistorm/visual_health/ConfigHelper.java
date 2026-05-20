@@ -27,6 +27,7 @@ public final class ConfigHelper {
         public boolean damagePlayers = true;
         public boolean drawOnOptifineEmissives = false;
         public boolean playerSampledDamage = false;
+        public boolean playerDamageOnly = false;
         public DamageColor damageColor = DamageColor.RED;
 
         // Entity-specific overrides
@@ -85,6 +86,7 @@ public final class ConfigHelper {
         ConfigHelper.INSTANCE.damagePlayers = from.damagePlayers;
         ConfigHelper.INSTANCE.drawOnOptifineEmissives = from.drawOnOptifineEmissives;
         ConfigHelper.INSTANCE.playerSampledDamage = from.playerSampledDamage;
+        ConfigHelper.INSTANCE.playerDamageOnly = from.playerDamageOnly;
         ConfigHelper.INSTANCE.damageColor = from.damageColor;
         ConfigHelper.INSTANCE.colorOverrides = new LinkedHashMap<>(from.colorOverrides);
     }

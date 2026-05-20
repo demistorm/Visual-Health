@@ -2,9 +2,11 @@ package win.demistorm.visual_health.client.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Unique;
+import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.compat.PhysicsModBridge;
 import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
@@ -23,6 +25,9 @@ public class PhysicsTextureHelperMixin {
         }
         LivingEntity entity = PhysicsModBridge.getCapturingEntity();
         if (entity != null) {
+            if (ConfigHelper.INSTANCE.playerDamageOnly && !(entity instanceof Player)) {
+                return RenderSystem.getShaderTexture(0);
+            }
             Integer glId = WoundTextureGenerator.getCompositedTextureGLId(entity);
             if (glId != null) {
                 VisualHealth.LOGGER.debug("VH Physics: substituted composited texture GL ID {} for {}",
