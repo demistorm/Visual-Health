@@ -11,6 +11,7 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.DamageRenderCheck;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
@@ -39,11 +40,7 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
             return;
         }
 
-        if (entity.isInvisible()) {
-            return;
-        }
-
-        if (EntityDamageColors.isDisabled(entity.getType())) {
+        if (!DamageRenderCheck.shouldRender(entity, DamageRenderCheck.ALL)) {
             return;
         }
 
@@ -68,27 +65,6 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
         }
 
         M model = getParentModel();
-
-        if (entity instanceof net.minecraft.world.entity.player.Player) {
-            if (!win.demistorm.visual_health.ConfigHelper.INSTANCE.damagePlayers) {
-                return;
-            }
-        } else {
-            if (win.demistorm.visual_health.ConfigHelper.INSTANCE.playerDamageOnly) {
-                return;
-            }
-            net.minecraft.world.entity.MobCategory spawnCategory = entity.getType().getCategory();
-            boolean isMonster = spawnCategory == net.minecraft.world.entity.MobCategory.MONSTER;
-
-            if (!isMonster && !win.demistorm.visual_health.ConfigHelper.INSTANCE.damagePassiveMobs) {
-                return;
-            }
-
-            if (entity instanceof net.minecraft.world.entity.npc.AbstractVillager
-                    && !win.demistorm.visual_health.ConfigHelper.INSTANCE.damageVillagers) {
-                return;
-            }
-        }
 
         try {
             ResourceLocation baseTexture = TextureLocator.getEntityTexture(entity);

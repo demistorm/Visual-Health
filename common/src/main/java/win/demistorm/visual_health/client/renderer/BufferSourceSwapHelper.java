@@ -4,13 +4,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.npc.AbstractVillager;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.DamageRenderCheck;
 import win.demistorm.visual_health.client.compat.CorpseCompat;
-import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 
@@ -30,12 +27,7 @@ public final class BufferSourceSwapHelper {
             return renderType;
         }
 
-        if (entity.isInvisible()) {
-            VisualHealth.LOGGER.debug("VH swap: {} is invisible, skipping", entity.getName().getString());
-            return renderType;
-        }
-
-        if (EntityDamageColors.isDisabled(entity.getType())) {
+        if (!DamageRenderCheck.shouldRender(entity, DamageRenderCheck.ALL)) {
             return renderType;
         }
 
@@ -69,31 +61,6 @@ public final class BufferSourceSwapHelper {
                 > RENDER_DISTANCE_SQ) {
             VisualHealth.LOGGER.debug("VH swap: {} too far away", entity.getName().getString());
             return renderType;
-        }
-
-        if (entity instanceof Player) {
-            if (!ConfigHelper.INSTANCE.damagePlayers) {
-                VisualHealth.LOGGER.debug("VH swap: {} is a player and player damage disabled",
-                        entity.getName().getString());
-                return renderType;
-            }
-        } else {
-            if (ConfigHelper.INSTANCE.playerDamageOnly) {
-                return renderType;
-            }
-            MobCategory category = entity.getType().getCategory();
-            boolean isMonster = category == MobCategory.MONSTER;
-            if (!isMonster && !ConfigHelper.INSTANCE.damagePassiveMobs) {
-                VisualHealth.LOGGER.debug("VH swap: {} is passive mob and passive mobs disabled",
-                        entity.getName().getString());
-                return renderType;
-            }
-
-            if (entity instanceof AbstractVillager && !ConfigHelper.INSTANCE.damageVillagers) {
-                VisualHealth.LOGGER.debug("VH swap: {} is villager and villager damage disabled",
-                        entity.getName().getString());
-                return renderType;
-            }
         }
 
         VisualHealth.LOGGER.debug("VH swap: attempting composite for {} tier={} texture={}",
