@@ -5,11 +5,9 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import win.demistorm.visual_health.client.emf.EMFPerEntityTextures;
 import win.demistorm.visual_health.client.renderer.DamageOverlayLayer;
 import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
 
-// Client initialization
 public class VisualHealthClient {
 
     private static final Logger log = LogManager.getLogger(VisualHealthClient.class);
@@ -26,7 +24,6 @@ public class VisualHealthClient {
 
         win.demistorm.visual_health.ConfigHelper.loadOrCreate();
 
-        // Assets will be loaded on first use (when entity takes damage)
         log.info("Visual Health wound textures will load on first use");
 
         initialized = true;
@@ -34,16 +31,16 @@ public class VisualHealthClient {
     }
 
     public static void forceReRegisterLayers() {
-        log.info("Forcing re-registration of damage overlay layers after resource reload");
+        log.info("Forcing re-registration of emissive damage overlay layers after resource reload");
 
         layersRegistered = false;
 
         boolean success = registerDamageLayers();
 
         if (success) {
-            log.info("Successfully re-registered damage overlay layers after resource reload");
+            log.info("Successfully re-registered emissive damage overlay layers after resource reload");
         } else {
-            log.warn("Failed to re-register damage overlay layers after resource reload, will retry on next tick");
+            log.warn("Failed to re-register emissive damage overlay layers after resource reload, will retry on next tick");
         }
     }
 
@@ -55,10 +52,8 @@ public class VisualHealthClient {
         win.demistorm.visual_health.client.entitymappings.EntityDamageColors.applyUserOverrides(
                 win.demistorm.visual_health.ConfigHelper.INSTANCE.colorOverrides);
 
-        win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator.clearAllCaches();
         win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearAllCaches();
-
-        EMFPerEntityTextures.clearAllCaches();
+        win.demistorm.visual_health.client.texture.SkinColorSampler.clearCache();
 
         WoundAssetSelector.cleanup();
 
@@ -69,8 +64,7 @@ public class VisualHealthClient {
             log.error("Failed to reload wound textures", e);
         }
 
-
-        System.out.println("[Visual Health] Resource reload detected, full reset complete");
+        log.debug("Resource reload detected, full reset complete");
     }
 
     @SuppressWarnings({"rawtypes"})
@@ -79,7 +73,7 @@ public class VisualHealthClient {
             return true;
         }
 
-        log.info("Registering Visual Health damage overlay layers to entity renderers");
+        log.info("Registering Visual Health emissive damage overlay layers to entity renderers");
 
         Minecraft client = Minecraft.getInstance();
 
@@ -119,7 +113,7 @@ public class VisualHealthClient {
         }
 
         layersRegistered = true;
-        log.info("Visual Health registered {} damage overlay layers across {} renderers",
+        log.info("Visual Health registered {} emissive damage overlay layers across {} renderers",
                 layersAdded, renderersProcessed);
         return true;
     }
