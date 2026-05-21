@@ -8,21 +8,20 @@ import static net.minecraft.world.entity.EntityType.*;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
-// Entity-specific damage color overrides
 public class EntityDamageColors {
 
     public record DamageOverride(int tintColor, boolean isEmissive) {
     }
 
-    // Override wound colors
     private static final Map<EntityType<?>, DamageOverride> OVERRIDE_MAP = new HashMap<>();
-
-    // User overrides (always take priority)
     private static final Map<EntityType<?>, DamageOverride> USER_OVERRIDE_MAP = new HashMap<>();
+    private static final Set<EntityType<?>> DISABLED_OVERRIDE_SET = new HashSet<>();
 
     private static final Map<String, Integer> PRESET_COLORS = Map.of(
             "RED", 0xFF9F0000,
@@ -68,8 +67,13 @@ public class EntityDamageColors {
     }
 
     private static void OC(EntityType<?> entityType, String colorHex, boolean isEmissive) {
-        int color = 0xFF000000 | Integer.parseInt(colorHex, 16);
+        int rgb = Integer.parseInt(colorHex, 16);
+        int color = 0xFF000000 | rgb; // RGB hex layout matches ARGB
         OVERRIDE_MAP.put(entityType, new DamageOverride(color, isEmissive));
+    }
+
+    public static boolean isDisabled(EntityType<?> entityType) {
+        return DISABLED_OVERRIDE_SET.contains(entityType);
     }
 
     public static DamageOverride getOverride(EntityType<?> entityType) {
@@ -93,6 +97,7 @@ public class EntityDamageColors {
 
     public static void applyUserOverrides(Map<String, String> overrides) {
         USER_OVERRIDE_MAP.clear();
+        DISABLED_OVERRIDE_SET.clear();
         for (Map.Entry<String, String> entry : overrides.entrySet()) {
             EntityType<?> entityType;
             try {
@@ -107,6 +112,10 @@ public class EntityDamageColors {
                 continue;
             }
             String value = entry.getValue();
+            if ("DISABLED".equals(value)) {
+                DISABLED_OVERRIDE_SET.add(entityType);
+                continue;
+            }
             DamageOverride override = parseOverride(value);
             if (override != null) {
                 USER_OVERRIDE_MAP.put(entityType, override);
@@ -114,10 +123,9 @@ public class EntityDamageColors {
                 VisualHealth.LOGGER.warn("Invalid color override '{}' for entity '{}', skipping", value, entry.getKey());
             }
         }
-        VisualHealth.LOGGER.info("Applied {} color overrides", USER_OVERRIDE_MAP.size());
+        VisualHealth.LOGGER.info("Applied {} color overrides, {} disabled entities", USER_OVERRIDE_MAP.size(), DISABLED_OVERRIDE_SET.size());
     }
 
-    // Presets: "RED", "BLACK", "WHITE", "CUSTOM:FF0000", "EMISSIVE:FFFFFF"
     public static DamageOverride parseOverride(String value) {
         Integer preset = PRESET_COLORS.get(value);
         if (preset != null) {
@@ -136,11 +144,8 @@ public class EntityDamageColors {
         if (hex.length() != 6) return null;
         try {
             int rgb = Integer.parseInt(hex, 16);
-            int r = (rgb >> 16) & 0xFF;
-            int g = (rgb >> 8) & 0xFF;
-            int b = rgb & 0xFF;
-            int abgr = 0xFF000000 | (b << 16) | (g << 8) | r;
-            return new DamageOverride(abgr, emissive);
+            int color = 0xFF000000 | rgb; // RGB hex layout matches ARGB
+            return new DamageOverride(color, emissive);
         } catch (NumberFormatException e) {
             return null;
         }

@@ -1,41 +1,44 @@
 package win.demistorm.visual_health.client.damagestate;
 
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
+import win.demistorm.visual_health.client.texture.SkinColorSampler;
+import win.demistorm.visual_health.client.texture.TintUtils;
 
-// Calculates the appropriate tint color for wounds based on damage type and entity
-// Uses hierarchical system: generic bruise color > entity override for weapons > config weapon color
 public final class TintCalculator {
 
     private TintCalculator() {
-        // Utility class - no instances
     }
 
-    // Brown bruise color for generic damage (punches, falls, etc.)
-    private static final int GENERIC_BRUISE_COLOR = 0xFF8B4513; // Saddle brown
+    public static final int BRUISE_BROWN = 0xFF503F36;
+    public static final float BRUISE_BLEND_RATIO = 0.35f;
+    public static final int FALLBACK_BRUISE_COLOR = 0xFF503F36;
 
-    // Get the appropriate tint color for a wound based on damage type and entity
-    // Returns ARGB format color
     public static int getTintForDamageType(DamageType damageType, LivingEntity entity) {
-        // Generic damage (punches, falls, etc.) ALWAYS uses brown bruise color
-        // Entity overrides do NOT apply to generic damage
         if (damageType == DamageType.GENERIC) {
-            return GENERIC_BRUISE_COLOR;
+            return TintUtils.blendColors(getWeaponTint(entity), BRUISE_BROWN, BRUISE_BLEND_RATIO);
         }
 
-        // For weapon damage (sword, axe, trident, spear), check entity-specific overrides first
+        return getWeaponTint(entity);
+    }
+
+    public static int getWeaponTint(LivingEntity entity) {
         EntityDamageColors.DamageOverride override = EntityDamageColors.getOverride(entity.getType());
         if (override != null) {
             return override.tintColor();
         }
 
-        // No override for weapon damage, use config damage color
+        if (entity instanceof Player && ConfigHelper.INSTANCE.playerSampledDamage) {
+            return SkinColorSampler.getSampledTint(entity);
+        }
+
         return switch (ConfigHelper.INSTANCE.damageColor) {
-            case RED -> 0xFF9F0000;   // Blood red
-            case BLACK -> 0xFF000000; // Black
-            case WHITE -> 0xFFFFFFFF; // Pure white
+            case RED -> 0xFF9F0000;
+            case BLACK -> 0xFF000000;
+            case WHITE -> 0xFFFFFFFF;
         };
     }
 }

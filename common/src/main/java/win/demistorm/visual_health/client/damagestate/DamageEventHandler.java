@@ -22,6 +22,10 @@ public final class DamageEventHandler {
         return LAST_DAMAGE_TYPE.getOrDefault(entityId, DamageType.SWORD);
     }
 
+    public static void setLastDamageType(int entityId, DamageType type) {
+        LAST_DAMAGE_TYPE.put(entityId, type);
+    }
+
     public static void clearAllCaches() {
         int cacheSize = LAST_DAMAGE_TYPE.size();
         LAST_DAMAGE_TYPE.clear();
@@ -37,8 +41,8 @@ public final class DamageEventHandler {
         }
 
         DamageType damageType = detectDamageType(source);
-
         int entityId = entity.getId();
+
         LAST_DAMAGE_TYPE.put(entityId, damageType);
 
         int currentTier = EntityHealthTracker.getDamageTier(entityId);
@@ -61,12 +65,26 @@ public final class DamageEventHandler {
             } else if (weapon.is(ItemTags.TRIDENT_ENCHANTABLE)) {
                 return DamageType.TRIDENT;
             } else if (weapon.is(ItemTags.SPEARS)) {
-                return DamageType.SPEAR; // Added in 1.21.11!
+                return DamageType.SPEAR;
+            }
+
+            DamageType nameMatch = detectByName(weapon);
+            if (nameMatch != null) {
+                return nameMatch;
             }
 
             return DamageType.GENERIC;
         }
 
         return DamageType.GENERIC;
+    }
+
+    private static DamageType detectByName(ItemStack weapon) {
+        String name = weapon.getHoverName().getString().toLowerCase();
+        if (name.contains("sword")) return DamageType.SWORD;
+        if (name.contains("axe")) return DamageType.AXE;
+        if (name.contains("trident")) return DamageType.TRIDENT;
+        if (name.contains("spear")) return DamageType.SPEAR;
+        return null;
     }
 }

@@ -9,6 +9,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import win.demistorm.visual_health.ConfigHelper;
@@ -31,7 +32,7 @@ public class ColorOverridesScreen extends Screen {
 
     private final Map<String, String> overrides;
 
-    private static final String[] MODES = {"RED", "BLACK", "WHITE", "CUSTOM", "EMISSIVE"};
+    private static final String[] MODES = {"RED", "BLACK", "WHITE", "CUSTOM", "EMISSIVE", "DISABLED"};
     private static final int WIDGET_HEIGHT = 20;
 
     protected ColorOverridesScreen(Screen parent) {
@@ -112,14 +113,14 @@ public class ColorOverridesScreen extends Screen {
 
         String current = overrides.getOrDefault(entityId, "RED");
         String baseMode = parseMode(current);
-        int idx = indexOf(baseMode);
+        int idx = indexOf(MODES, baseMode);
         int nextIdx = (idx + 1) % MODES.length;
         String nextMode = MODES[nextIdx];
 
         String currentHex = nextIdx == 0 ? "FF0000" : parseHex(current);
         if (currentHex == null) currentHex = nextMode.equals("EMISSIVE") ? "FFFFFF" : "FF0000";
 
-        overrides.put(entityId, nextMode.equals("RED") || nextMode.equals("BLACK") || nextMode.equals("WHITE")
+        overrides.put(entityId, nextMode.equals("RED") || nextMode.equals("BLACK") || nextMode.equals("WHITE") || nextMode.equals("DISABLED")
                 ? nextMode
                 : nextMode + ":" + currentHex);
         overrideList.updateEntries();
@@ -151,22 +152,20 @@ public class ColorOverridesScreen extends Screen {
         return null;
     }
 
-    private static int indexOf(String target) {
-        for (int i = 0; i < ColorOverridesScreen.MODES.length; i++) {
-            if (ColorOverridesScreen.MODES[i].equals(target)) return i;
+    private static int indexOf(String[] arr, String target) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i].equals(target)) return i;
         }
         return 0;
     }
 
     @Override
     public void tick() {
-        if (focusedHexInput != null) {
-            if (entityIdInput.isFocused()) {
-                flushFocusedHex();
-                focusedHexInput.setFocused(false);
-                focusedHexInput = null;
-                focusedHexEntityId = null;
-            }
+        if (focusedHexInput != null && entityIdInput.isFocused()) {
+            flushFocusedHex();
+            focusedHexInput.setFocused(false);
+            focusedHexInput = null;
+            focusedHexEntityId = null;
         }
     }
 
@@ -220,8 +219,12 @@ public class ColorOverridesScreen extends Screen {
 
         public void updateEntries() {
             clearEntries();
+            int index = 0;
             for (String entityId : overrides.keySet()) {
-                addEntry(new OverrideEntry(entityId));
+                OverrideEntry entry = new OverrideEntry(entityId);
+                entry.rowIndex = index;
+                addEntry(entry);
+                index++;
             }
         }
 
@@ -236,7 +239,6 @@ public class ColorOverridesScreen extends Screen {
             for (OverrideEntry entry : this.children()) {
                 if (entry.mouseClicked(mouseButtonEvent, bl)) return true;
             }
-            // Clicked empty space in list, unfocus input
             if (focusedHexInput != null) {
                 focusedHexInput.setFocused(false);
                 focusedHexInput = null;
@@ -246,24 +248,30 @@ public class ColorOverridesScreen extends Screen {
         }
 
         public class OverrideEntry extends ObjectSelectionList.Entry<OverrideEntry> {
+            private static final int PREVIEW_SIZE = 20;
+            private static final int PREVIEW_GAP = 3;
+
             private final String entityId;
             private final Button cycleButton;
             private final Button removeButton;
+            private final Button colorPreview;
             private final EditBox hexInput;
             private final String mode;
+            private final String hexValue;
+            private int rowIndex;
 
             OverrideEntry(String entityId) {
                 this.entityId = entityId;
 
                 String raw = overrides.getOrDefault(entityId, "RED");
                 this.mode = parseMode(raw);
-                String hexValue = parseHex(raw);
+                this.hexValue = parseHex(raw);
 
                 Component tooltip = Component.literal(
-                        """
-                                RED/BLACK/WHITE: Preset colors
-                                CUSTOM: Enter a hex color code
-                                EMISSIVE: Custom color that glows""");
+                                "RED/BLACK/WHITE: Preset colors\n" +
+                                "CUSTOM: Enter a hex color code\n" +
+                                "EMISSIVE: Custom color that glows\n" +
+                                "DISABLED: No damage rendering");
 
                 this.cycleButton = Button.builder(
                                 Component.literal(mode),
@@ -277,6 +285,13 @@ public class ColorOverridesScreen extends Screen {
                                 btn -> removeEntity(entityId))
                         .bounds(0, 0, 13, 13)
                         .tooltip(Tooltip.create(Component.literal("Remove " + entityId)))
+                        .build();
+
+                this.colorPreview = Button.builder(
+                                Component.literal(""),
+                                btn -> openColorPicker())
+                        .bounds(0, 0, PREVIEW_SIZE, PREVIEW_SIZE)
+                        .tooltip(Tooltip.create(Component.literal("Pick a color")))
                         .build();
 
                 this.hexInput = new EditBox(font, 0, 0, 80, WIDGET_HEIGHT - 4, Component.literal("Hex"));
@@ -294,6 +309,17 @@ public class ColorOverridesScreen extends Screen {
                 });
             }
 
+            private void openColorPicker() {
+                String currentHex = hexValue != null && !hexValue.isEmpty() ? hexValue : "FF0000";
+                client.setScreen(new ColorPickerScreen(ColorOverridesScreen.this, currentHex, newHex -> {
+                    String current = overrides.getOrDefault(entityId, "RED");
+                    String baseMode = parseMode(current);
+                    if (baseMode.equals("CUSTOM") || baseMode.equals("EMISSIVE")) {
+                        overrides.put(entityId, baseMode + ":" + newHex);
+                    }
+                }));
+            }
+
             @Override
             public void extractContent(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta) {
                 int x = getX();
@@ -305,7 +331,7 @@ public class ColorOverridesScreen extends Screen {
 
                 String display = entityId;
                 int fixedRightWidth = 70 + 13 + 20;
-                if (showHex) fixedRightWidth += 80 + 5;
+                if (showHex) fixedRightWidth += 80 + PREVIEW_SIZE + PREVIEW_GAP * 2 + 5;
                 int maxLabelWidth = entryWidth - fixedRightWidth;
                 if (font.width(display) > maxLabelWidth) {
                     display = font.plainSubstrByWidth(display, maxLabelWidth - 15) + "...";
@@ -329,6 +355,24 @@ public class ColorOverridesScreen extends Screen {
                     hexInput.setPosition(hexX, hexY);
                     hexInput.setWidth(80);
                     hexInput.extractRenderState(context, mouseX, mouseY, tickDelta);
+
+                    int previewX = hexX - PREVIEW_SIZE - PREVIEW_GAP;
+                    int previewY = cycleY;
+                    colorPreview.setPosition(previewX, previewY);
+                    colorPreview.extractRenderState(context, mouseX, mouseY, tickDelta);
+
+                    String hex = hexInput.getValue().trim();
+                    int fillColor;
+                    if (hex.length() == 6) {
+                        try {
+                            fillColor = 0xFF000000 | Integer.parseInt(hex, 16);
+                        } catch (NumberFormatException e) {
+                            fillColor = 0xFF808080;
+                        }
+                    } else {
+                        fillColor = 0xFF808080;
+                    }
+                    context.fill(previewX + 2, previewY + 2, previewX + PREVIEW_SIZE - 2, previewY + PREVIEW_SIZE - 2, fillColor);
                 }
             }
 
@@ -337,6 +381,7 @@ public class ColorOverridesScreen extends Screen {
                 if (cycleButton.mouseClicked(mouseButtonEvent, bl)) return true;
                 if (removeButton.mouseClicked(mouseButtonEvent, bl)) return true;
                 if (mode.equals("CUSTOM") || mode.equals("EMISSIVE")) {
+                    if (colorPreview.mouseClicked(mouseButtonEvent, bl)) return true;
                     if (hexInput.mouseClicked(mouseButtonEvent, bl)) {
                         if (focusedHexInput != null) {
                             focusedHexInput.setFocused(false);

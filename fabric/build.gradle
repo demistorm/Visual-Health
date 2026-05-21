@@ -46,14 +46,6 @@ dependencies {
 
     // Mod Menu integration for Fabric users
     compileOnly "com.terraformersmc:modmenu:${rootProject.modmenu_version}"
-
-    // EMF compat
-    compileOnly "maven.modrinth:4I1XuqiY:3.0.17-fabric-26.1"
-
-    // ETF compat
-    compileOnly "maven.modrinth:BVzZfTc1:7.0.13-fabric-26.1"
-
-    // MixinExtras for advanced mixin features
 }
 
 // Process resources and expand version placeholders
