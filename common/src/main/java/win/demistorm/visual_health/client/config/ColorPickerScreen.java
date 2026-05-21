@@ -155,7 +155,8 @@ public class ColorPickerScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        renderBackground(graphics);
+        renderBackground(graphics, mouseX, mouseY, delta);
+        super.render(graphics, mouseX, mouseY, delta);
 
         graphics.drawCenteredString(font, title, width / 2, 10, 0xFFFFFF);
 
@@ -176,8 +177,6 @@ public class ColorPickerScreen extends Screen {
         y += font.lineHeight + LABEL_GAP;
         int currentRgb = Color.HSBtoRGB(hue, saturation, brightness);
         drawColorPreview(graphics, previewX, y, 0xFF000000 | (currentRgb & 0xFFFFFF));
-
-        super.render(graphics, mouseX, mouseY, delta);
     }
 
     private void drawCenteredLabel(GuiGraphics graphics, String text, int rightX, int columnWidth, int y) {

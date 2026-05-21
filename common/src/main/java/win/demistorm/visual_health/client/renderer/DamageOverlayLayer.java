@@ -22,7 +22,7 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
         extends RenderLayer<T, M> {
 
     private static final int RENDER_DISTANCE = 96;
-    private static final ResourceLocation FALLBACK_TEXTURE = new ResourceLocation("visualhealth", "damage/scratches/scratch1.png");
+    private static final ResourceLocation FALLBACK_TEXTURE = ResourceLocation.fromNamespaceAndPath("visualhealth", "damage/scratches/scratch1.png");
 
     public DamageOverlayLayer(RenderLayerParent<T, M> renderer) {
         super(renderer);

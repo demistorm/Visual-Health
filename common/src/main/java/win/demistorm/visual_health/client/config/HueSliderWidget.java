@@ -11,7 +11,8 @@ import java.util.function.Consumer;
 
 public class HueSliderWidget extends AbstractSliderButton {
 
-    private static final ResourceLocation SLIDER_LOCATION = new ResourceLocation("textures/gui/slider.png");
+    private static final ResourceLocation HANDLE_SPRITE = ResourceLocation.withDefaultNamespace("widget/slider_handle");
+    private static final ResourceLocation HANDLE_HIGHLIGHTED_SPRITE = ResourceLocation.withDefaultNamespace("widget/slider_handle_highlighted");
     private static final int SLIDER_WIDTH = 150;
     private static final int SLIDER_HEIGHT = 20;
 
@@ -49,8 +50,8 @@ public class HueSliderWidget extends AbstractSliderButton {
         graphics.fill(getX() + width - insetX, getY(), getX() + width, getY() + height, frameColor);
 
         int handleX = getX() + (int) (value * (width - 8));
-        int handleTexY = isHovered() ? 60 : 40;
-        graphics.blitNineSliced(SLIDER_LOCATION, handleX, getY(), 8, 20, 20, 4, 200, 20, 0, handleTexY);
+        ResourceLocation handleSprite = isHovered() ? HANDLE_HIGHLIGHTED_SPRITE : HANDLE_SPRITE;
+        graphics.blitSprite(handleSprite, handleX, getY(), 8, getHeight());
     }
 
     @Override

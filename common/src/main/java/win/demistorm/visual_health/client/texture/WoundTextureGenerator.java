@@ -262,7 +262,7 @@ public class WoundTextureGenerator {
         }
 
         var textureManager = Minecraft.getInstance().getTextureManager();
-        ResourceLocation dynamicTextureId = new ResourceLocation("visualhealth", dynamicTexturePath);
+        ResourceLocation dynamicTextureId = ResourceLocation.fromNamespaceAndPath("visualhealth", dynamicTexturePath);
 
         DynamicTexture texture = new DynamicTexture(canvas);
         textureManager.register(dynamicTextureId, texture);
