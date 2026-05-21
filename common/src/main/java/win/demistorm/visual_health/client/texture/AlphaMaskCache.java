@@ -2,7 +2,6 @@ package win.demistorm.visual_health.client.texture;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.resources.ResourceManager;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.Map;
@@ -14,38 +13,31 @@ public class AlphaMaskCache {
     }
 
     private static final Map<Identifier, boolean[][]> ALPHA_CACHE = new ConcurrentHashMap<>();
-
     private static final Map<Identifier, TextureSize> DIMENSION_CACHE = new ConcurrentHashMap<>();
 
-    private static final TextureSize EMPTY = new TextureSize(0, 0);
-
     public static TextureSize getOrGenerateTextureSize(Identifier textureId) {
-        TextureSize cached = DIMENSION_CACHE.get(textureId);
-        if (cached != null) {
-            return cached == EMPTY ? null : cached;
+        if (DIMENSION_CACHE.containsKey(textureId)) {
+            return DIMENSION_CACHE.get(textureId);
         }
 
         TextureSize textureSize = generateTextureSize(textureId);
         if (textureSize != null) {
             DIMENSION_CACHE.put(textureId, textureSize);
-        } else {
-            DIMENSION_CACHE.put(textureId, EMPTY);
         }
         return textureSize;
     }
 
     private static TextureSize generateTextureSize(Identifier textureId) {
         try {
-            ResourceManager resourceManager = net.minecraft.client.Minecraft.getInstance().getResourceManager();
+            NativeImage image = SkinTextureReader.readTexture(textureId);
+            if (image == null) return null;
 
-            try (var resource = resourceManager.open(textureId);
-                 NativeImage image = NativeImage.read(resource)) {
-
+            try {
                 int width = image.getWidth();
                 int height = image.getHeight();
-                TextureSize textureSize = new TextureSize(width, height);
-
-                return textureSize;
+                return new TextureSize(width, height);
+            } finally {
+                image.close();
             }
         } catch (Exception e) {
             VisualHealth.LOGGER.error("Failed to get texture dimensions for {}: {}",
@@ -68,36 +60,25 @@ public class AlphaMaskCache {
 
     private static boolean[][] generateAlphaMask(Identifier textureId) {
         try {
-            ResourceManager resourceManager = net.minecraft.client.Minecraft.getInstance().getResourceManager();
+            NativeImage image = SkinTextureReader.readTexture(textureId);
+            if (image == null) return null;
 
-            try (var resource = resourceManager.open(textureId)) {
-                NativeImage image = NativeImage.read(resource);
-
+            try {
                 int width = image.getWidth();
                 int height = image.getHeight();
                 boolean[][] alphaMask = new boolean[width][height];
-
-                int visiblePixels = 0;
-                int invisiblePixels = 0;
 
                 for (int x = 0; x < width; x++) {
                     for (int y = 0; y < height; y++) {
                         int pixel = image.getPixel(x, y);
                         int alpha = (pixel >> 24) & 0xFF;
-                        boolean isVisible = alpha == 255;
-                        alphaMask[x][y] = isVisible;
-
-                        if (isVisible) {
-                            visiblePixels++;
-                        } else {
-                            invisiblePixels++;
-                        }
+                        alphaMask[x][y] = alpha == 255;
                     }
                 }
 
-                image.close();
-
                 return alphaMask;
+            } finally {
+                image.close();
             }
         } catch (Exception e) {
             VisualHealth.LOGGER.error("Failed to generate alpha mask for texture {}: {}",
@@ -151,6 +132,7 @@ public class AlphaMaskCache {
         int dimensionCacheSize = DIMENSION_CACHE.size();
         ALPHA_CACHE.clear();
         DIMENSION_CACHE.clear();
+        SkinTextureReader.clearCache();
 
         if (alphaCacheSize > 0 || dimensionCacheSize > 0) {
             VisualHealth.LOGGER.info("Cleared {} alpha mask and {} dimension cache entries on resource reload",

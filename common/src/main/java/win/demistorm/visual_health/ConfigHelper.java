@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// Client-side config for Visual Health
 public final class ConfigHelper {
 
     public enum DamageColor {
@@ -20,12 +19,16 @@ public final class ConfigHelper {
 
     public static final class Data {
         public int woundDensityPercentage = 50;
+        public int damageTierCount = 5;
 
         public boolean damagePassiveMobs = true;
         public boolean damageVillagers = false;
+        public boolean damagePlayers = true;
+        public boolean drawOnOptifineEmissives = false;
+        public boolean playerSampledDamage = false;
+        public boolean playerDamageOnly = false;
         public DamageColor damageColor = DamageColor.RED;
 
-        // Entity-specific overrides
         public Map<String, String> colorOverrides = new LinkedHashMap<>();
     }
 
@@ -48,8 +51,8 @@ public final class ConfigHelper {
         write(loaded);
         copyInto(loaded);
         win.demistorm.visual_health.client.entitymappings.EntityDamageColors.applyUserOverrides(INSTANCE.colorOverrides);
-        VisualHealth.LOGGER.info("Visual Health config loaded: {}% wound density, passive mobs: {}, villagers: {}, color: {}",
-                INSTANCE.woundDensityPercentage, INSTANCE.damagePassiveMobs, INSTANCE.damageVillagers, INSTANCE.damageColor);
+        VisualHealth.LOGGER.info("Visual Health config loaded: {}% wound density, {} tiers, passive mobs: {}, villagers: {}, players: {}, color: {}",
+                INSTANCE.woundDensityPercentage, INSTANCE.damageTierCount, INSTANCE.damagePassiveMobs, INSTANCE.damageVillagers, INSTANCE.damagePlayers, INSTANCE.damageColor);
     }
 
     private static Data read() {
@@ -75,8 +78,13 @@ public final class ConfigHelper {
 
     private static void copyInto(Data from) {
         ConfigHelper.INSTANCE.woundDensityPercentage = from.woundDensityPercentage;
+        ConfigHelper.INSTANCE.damageTierCount = Math.max(2, Math.min(10, from.damageTierCount));
         ConfigHelper.INSTANCE.damagePassiveMobs = from.damagePassiveMobs;
         ConfigHelper.INSTANCE.damageVillagers = from.damageVillagers;
+        ConfigHelper.INSTANCE.damagePlayers = from.damagePlayers;
+        ConfigHelper.INSTANCE.drawOnOptifineEmissives = from.drawOnOptifineEmissives;
+        ConfigHelper.INSTANCE.playerSampledDamage = from.playerSampledDamage;
+        ConfigHelper.INSTANCE.playerDamageOnly = from.playerDamageOnly;
         ConfigHelper.INSTANCE.damageColor = from.damageColor;
         ConfigHelper.INSTANCE.colorOverrides = new LinkedHashMap<>(from.colorOverrides);
     }
@@ -87,7 +95,7 @@ public final class ConfigHelper {
 
     public static void clearTextureCaches() {
         win.demistorm.visual_health.client.texture.WoundTextureGenerator.clearTextureCaches();
-        win.demistorm.visual_health.client.texture.EMFDamageTextureGenerator.clearTextureCaches();
+        win.demistorm.visual_health.client.texture.SkinColorSampler.clearCache();
         win.demistorm.visual_health.client.renderer.WoundAssetSelector.cleanup();
         VisualHealth.LOGGER.info("Visual Health texture caches cleared on config change (damage history preserved)");
     }
