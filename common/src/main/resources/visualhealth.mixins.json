@@ -8,7 +8,10 @@
   ],
   "client": [
     "LivingEntityMixin",
-    "LivingEntityRendererMixin"
+    "LivingEntityRenderStateMixin",
+    "LivingEntityRendererMixin",
+    "ModelFeatureRendererMixin",
+    "RenderTypesMixin"
   ],
   "server": [],
   "injectors": {
