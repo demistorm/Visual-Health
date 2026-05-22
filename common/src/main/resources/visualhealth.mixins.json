@@ -11,6 +11,8 @@
     "LivingEntityRenderStateMixin",
     "LivingEntityRendererMixin",
     "ModelFeatureRendererMixin",
+    "PhysicsModCompatMixin",
+    "PhysicsTextureHelperMixin",
     "RenderTypesMixin"
   ],
   "server": [],
