@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import win.demistorm.visual_health.client.compat.CorpseCompat;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.damagestate.VisualHealthStateAccess;
 
@@ -29,7 +30,9 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
             at = @At("RETURN")
     )
     private void visualhealth$trackEntity(T entity, S state, float partialTick, CallbackInfo ci) {
-        EntityHealthTracker.updateEntityDamageTier(entity);
+        if (!CorpseCompat.isDummyPlayer(entity)) {
+            EntityHealthTracker.updateEntityDamageTier(entity);
+        }
 
         VisualHealthStateAccess vhState = (VisualHealthStateAccess) (Object) state;
         vhState.visualhealth$setEntity(entity);
@@ -45,6 +48,10 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
                                            CallbackInfo ci) {
         VisualHealthStateAccess vhState = (VisualHealthStateAccess) (Object) state;
         EntityHealthTracker.setCurrentRenderEntity(vhState.visualhealth$getEntity());
+
+        if (CorpseCompat.isDummyPlayer(vhState.visualhealth$getEntity())) {
+            CorpseCompat.setCorpseContext(vhState.visualhealth$getEntity().getUUID());
+        }
     }
 
     @Inject(
@@ -56,5 +63,6 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
                                        CameraRenderState cameraRenderState,
                                        CallbackInfo ci) {
         EntityHealthTracker.clearCurrentRenderEntity();
+        CorpseCompat.clearCorpseContext();
     }
 }
