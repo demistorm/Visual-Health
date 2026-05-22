@@ -40,6 +40,14 @@ publishing {
     }
 }
 
+// Stubs for compile-time type resolution of optional mod compat mixins
+sourceSets.main.java.srcDirs += 'src/stubs/java'
+
+// Exclude stub packages from the output JAR - they're only needed at compile time
+jar {
+    exclude 'net/diebuddies/**'
+}
+
 // Java configuration for the common module
 java {
     // Ensure consistent Java version across all platforms
