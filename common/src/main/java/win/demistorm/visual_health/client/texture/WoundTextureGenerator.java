@@ -1,6 +1,5 @@
 package win.demistorm.visual_health.client.texture;
 
-import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -344,38 +343,6 @@ public class WoundTextureGenerator {
         if (cacheSize > 0) {
             VisualHealth.LOGGER.info("Cleared {} texture cache entries on config change", cacheSize);
         }
-    }
-
-    public static Integer getCompositedTextureGLId(LivingEntity entity) {
-        int tier = EntityHealthTracker.getDamageTier(entity.getId());
-        if (tier <= 0) return null;
-
-        Identifier baseTexture = TextureLocator.getEntityTexture(entity);
-        if (baseTexture == null) return null;
-
-        DamageType[] types = buildDamageTypesFromTracker(entity.getId(), tier);
-        String cacheKey = buildCacheKey("composite", "e" + entity.getId(), baseTexture, tier, types, false);
-        Identifier composited = TEXTURE_CACHE.get(cacheKey);
-        if (composited == null) {
-            composited = builder()
-                    .category("composite")
-                    .entity(entity)
-                    .damageTier(tier)
-                    .texture(baseTexture)
-                    .damageTypes(types)
-                    .composite()
-                    .generate();
-            if (composited == null) return null;
-        }
-
-        try {
-            net.minecraft.client.renderer.texture.AbstractTexture tex =
-                    Minecraft.getInstance().getTextureManager().getTexture(composited);
-            return ((GlTexture) tex.getTexture()).glId();
-        } catch (Exception e) {
-            VisualHealth.LOGGER.debug("Failed to get GL ID for composited texture: {}", e.getMessage());
-        }
-        return null;
     }
 
     private static float getWoundOpacity(DamageType damageType, Random random) {

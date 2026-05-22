@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.DamageRenderCheck;
+import win.demistorm.visual_health.client.compat.PhysicsModBridge;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
@@ -35,6 +36,8 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
         net.minecraft.world.entity.LivingEntity entity = EntityHealthTracker.getCurrentRenderEntity();
         if (entity == null) return;
+
+        if (PhysicsModBridge.getCapturingEntity() != null) return;
 
         if (entityRenderState.distanceToCameraSq > RENDER_DISTANCE * RENDER_DISTANCE) return;
         if (entityRenderState.isInvisible) return;
