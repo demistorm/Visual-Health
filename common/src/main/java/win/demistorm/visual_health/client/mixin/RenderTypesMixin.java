@@ -6,6 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import win.demistorm.visual_health.client.compat.CorpseCompat;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.renderer.TextureSwapHelper;
 
@@ -35,6 +36,9 @@ public class RenderTypesMixin {
             argsOnly = true
     )
     private static Identifier visualhealth$swapTexture(Identifier texture) {
+        Identifier corpseResult = CorpseCompat.swapCorpseTexture(texture);
+        if (corpseResult != null) return corpseResult;
+
         LivingEntity entity = EntityHealthTracker.getCurrentRenderEntity();
         if (entity == null) return texture;
 
