@@ -78,6 +78,8 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
             poseStack.pushPose();
 
+            submitNodeCollector.order(0).submitModel(model, entityRenderState, poseStack, renderType,
+                    finalPackedLight, overlay, -1, null, 0, null);
         if (isEmissive) {
             renderType = RenderTypes.entityTranslucentEmissive(woundTexture);
             finalPackedLight = 15728880;
