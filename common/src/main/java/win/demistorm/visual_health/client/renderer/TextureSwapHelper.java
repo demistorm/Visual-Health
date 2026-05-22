@@ -73,6 +73,11 @@ public final class TextureSwapHelper {
         if (path.contains("particle")) return true;
         if (path.contains("/environment/") || path.contains("/misc/")) return true;
 
-        return texture.getNamespace().equals("visualhealth") && path.startsWith("dynamic/");
+        if (texture.getNamespace().equals("visualhealth")
+                && (path.startsWith("dynamic/") || path.startsWith("damage/"))) {
+            return true;
+        }
+
+        return false;
     }
 }
