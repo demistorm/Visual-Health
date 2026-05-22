@@ -25,7 +25,8 @@ public final class EntityHealthTracker {
 
     private static final Set<EntityType<?>> DISABLED_ENTITIES = Set.of(
             EntityType.IRON_GOLEM,
-            EntityType.SNOW_GOLEM
+            EntityType.SNOW_GOLEM,
+            EntityType.COPPER_GOLEM
     );
 
     public static void updateEntityDamageTier(LivingEntity entity) {
