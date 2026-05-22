@@ -1,14 +1,12 @@
 package win.demistorm.visual_health.client.renderer;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.DamageRenderCheck;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
-import win.demistorm.visual_health.client.texture.TextureLocator;
 import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 
 public final class TextureSwapHelper {
@@ -17,10 +15,7 @@ public final class TextureSwapHelper {
 
     private TextureSwapHelper() {}
 
-    public static RenderType swapTexture(RenderType renderType) {
-        LivingEntity entity = EntityHealthTracker.getCurrentRenderEntity();
-        if (entity == null) return null;
-
+    public static Identifier swapTexture(Identifier originalTexture, LivingEntity entity) {
         if (!DamageRenderCheck.shouldRender(entity, DamageRenderCheck.ALL)) {
             return null;
         }
@@ -28,15 +23,9 @@ public final class TextureSwapHelper {
         int damageTier = EntityHealthTracker.getDamageTier(entity.getId());
         if (damageTier == 0) return null;
 
-        Identifier baseTexture = TextureLocator.getEntityTexture(entity);
-        if (baseTexture == null) {
-            VisualHealth.LOGGER.debug("VH swap: no base texture for {}", entity.getName().getString());
-            return null;
-        }
+        if (shouldSkipTexture(originalTexture)) return null;
 
-        if (shouldSkipTexture(baseTexture)) return null;
-
-        if (!ConfigHelper.INSTANCE.drawOnOptifineEmissives && baseTexture.getPath().endsWith("_e.png")) {
+        if (!ConfigHelper.INSTANCE.drawOnOptifineEmissives && originalTexture.getPath().endsWith("_e.png")) {
             return null;
         }
 
@@ -50,14 +39,14 @@ public final class TextureSwapHelper {
                     .category("composite")
                     .entity(entity)
                     .damageTier(damageTier)
-                    .texture(baseTexture)
+                    .texture(originalTexture)
                     .composite()
                     .generate();
 
             if (composited != null) {
                 VisualHealth.LOGGER.debug("Swapped texture {} -> {} for {} (ID: {})",
-                        baseTexture, composited, entity.getName().getString(), entity.getId());
-                return RenderTypeHelper.createWithTexture(renderType, baseTexture, composited);
+                        originalTexture, composited, entity.getName().getString(), entity.getId());
+                return composited;
             }
         } catch (Exception e) {
             VisualHealth.LOGGER.error("Failed to swap texture for {}: {}",
