@@ -144,14 +144,14 @@ public class ColorPickerScreen extends Screen {
 
     private String getHex() {
         int rgb = Color.HSBtoRGB(hue, saturation, brightness);
-        return String.format("%06X", rgb & 0xFFFFFF);
+        return String.format("%06X", rgb & 0xFFFFFFFF);
     }
 
     private static int hexToRgb(String hex) {
         try {
             return Integer.parseInt(hex, 16);
         } catch (NumberFormatException e) {
-            return 0xFF0000;
+            return 0xFFFF0000;
         }
     }
 
@@ -159,7 +159,7 @@ public class ColorPickerScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         super.render(graphics, mouseX, mouseY, delta);
 
-        graphics.drawCenteredString(font, title, width / 2, 10, 0xFFFFFF);
+        graphics.drawCenteredString(font, title, width / 2, 10, 0xFFFFFFFF);
 
         int rightX = getRightX();
         int rcw = getRightColumnWidth();
@@ -177,13 +177,13 @@ public class ColorPickerScreen extends Screen {
         drawCenteredLabel(graphics, "Selected:", rightX, rcw, y);
         y += font.lineHeight + LABEL_GAP;
         int currentRgb = Color.HSBtoRGB(hue, saturation, brightness);
-        drawColorPreview(graphics, previewX, y, 0xFF000000 | (currentRgb & 0xFFFFFF));
+        drawColorPreview(graphics, previewX, y, 0xFF000000 | (currentRgb & 0xFFFFFFFF));
     }
 
     private void drawCenteredLabel(GuiGraphics graphics, String text, int rightX, int columnWidth, int y) {
         int textWidth = font.width(text);
         int x = rightX + (columnWidth - textWidth) / 2;
-        graphics.drawString(font, text, x, y, 0xAAAAAA);
+        graphics.drawString(font, text, x, y, 0xFFAAAAAA);
     }
 
     private void drawColorPreview(GuiGraphics graphics, int x, int y, int color) {
