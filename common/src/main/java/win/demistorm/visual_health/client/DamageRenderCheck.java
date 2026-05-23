@@ -3,7 +3,7 @@ package win.demistorm.visual_health.client;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.npc.villager.AbstractVillager;
+import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;

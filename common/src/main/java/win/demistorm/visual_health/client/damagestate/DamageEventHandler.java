@@ -64,8 +64,6 @@ public final class DamageEventHandler {
                 return DamageType.AXE;
             } else if (weapon.is(ItemTags.TRIDENT_ENCHANTABLE)) {
                 return DamageType.TRIDENT;
-            } else if (weapon.is(ItemTags.SPEARS)) {
-                return DamageType.SPEAR;
             }
 
             DamageType nameMatch = detectByName(weapon);

@@ -7,8 +7,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.Identifier;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.DamageRenderCheck;
@@ -74,7 +73,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             int overlay = net.minecraft.client.renderer.entity.LivingEntityRenderer
                     .getOverlayCoords(entityRenderState, 0.0f);
 
-            RenderType renderType = RenderTypes.entityTranslucentEmissive(woundTexture);
+            RenderType renderType = RenderType.entityTranslucentEmissive(woundTexture);
             int finalPackedLight = LightTexture.FULL_BRIGHT;
 
             poseStack.pushPose();
