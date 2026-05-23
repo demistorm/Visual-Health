@@ -1,6 +1,6 @@
 package win.demistorm.visual_health.client.damagestate;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.ConfigHelper;
@@ -17,7 +17,7 @@ public final class EntityHealthTracker {
     }
 
     private static final ThreadLocal<LivingEntity> CURRENT_RENDER_ENTITY = new ThreadLocal<>();
-    private static final ThreadLocal<Identifier> CURRENT_RENDER_TEXTURE = new ThreadLocal<>();
+    private static final ThreadLocal<ResourceLocation> CURRENT_RENDER_TEXTURE = new ThreadLocal<>();
 
     private static final Map<Integer, Integer> ENTITY_DAMAGE_TIERS = new ConcurrentHashMap<>();
     private static final Map<Integer, Map<Integer, DamageType>> ENTITY_TIER_DAMAGE_TYPES = new ConcurrentHashMap<>();
@@ -121,11 +121,11 @@ public final class EntityHealthTracker {
         CURRENT_RENDER_ENTITY.remove();
     }
 
-    public static void setCurrentRenderTexture(Identifier texture) {
+    public static void setCurrentRenderTexture(ResourceLocation texture) {
         CURRENT_RENDER_TEXTURE.set(texture);
     }
 
-    public static Identifier getCurrentRenderTexture() {
+    public static ResourceLocation getCurrentRenderTexture() {
         return CURRENT_RENDER_TEXTURE.get();
     }
 

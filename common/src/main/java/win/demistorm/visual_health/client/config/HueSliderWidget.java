@@ -4,7 +4,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 import java.awt.Color;
@@ -12,8 +12,8 @@ import java.util.function.Consumer;
 
 public class HueSliderWidget extends AbstractSliderButton {
 
-    private static final Identifier HANDLE_SPRITE = Identifier.withDefaultNamespace("widget/slider_handle");
-    private static final Identifier HANDLE_HIGHLIGHTED_SPRITE = Identifier.withDefaultNamespace("widget/slider_handle_highlighted");
+    private static final ResourceLocation HANDLE_SPRITE = ResourceLocation.withDefaultNamespace("widget/slider_handle");
+    private static final ResourceLocation HANDLE_HIGHLIGHTED_SPRITE = ResourceLocation.withDefaultNamespace("widget/slider_handle_highlighted");
     private static final int SLIDER_WIDTH = 150;
     private static final int SLIDER_HEIGHT = 20;
 
@@ -51,7 +51,7 @@ public class HueSliderWidget extends AbstractSliderButton {
         graphics.fill(getX() + width - insetX, getY(), getX() + width, getY() + height, frameColor);
 
         int handleX = getX() + (int) (value * (width - 8));
-        Identifier handleSprite = isHovered() ? HANDLE_HIGHLIGHTED_SPRITE : HANDLE_SPRITE;
+        ResourceLocation handleSprite = isHovered() ? HANDLE_HIGHLIGHTED_SPRITE : HANDLE_SPRITE;
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, handleSprite, handleX, getY(), 8, getHeight());
     }
 

@@ -2,7 +2,7 @@ package win.demistorm.visual_health.client.entitymappings;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import static net.minecraft.world.entity.EntityType.*;
 import win.demistorm.visual_health.VisualHealth;
@@ -79,7 +79,7 @@ public class EntityDamageColors {
 
     public static boolean isValidEntityId(String id) {
         try {
-            Identifier rl = Identifier.tryParse(id);
+            ResourceLocation rl = ResourceLocation.tryParse(id);
             return BuiltInRegistries.ENTITY_TYPE.containsKey(rl);
         } catch (Exception e) {
             return false;
@@ -87,7 +87,7 @@ public class EntityDamageColors {
     }
 
     public static String normalizeEntityId(String id) {
-        return Objects.requireNonNull(Identifier.tryParse(id)).toString();
+        return Objects.requireNonNull(ResourceLocation.tryParse(id)).toString();
     }
 
     public static void applyUserOverrides(Map<String, String> overrides) {
@@ -96,7 +96,7 @@ public class EntityDamageColors {
         for (Map.Entry<String, String> entry : overrides.entrySet()) {
             EntityType<?> entityType;
             try {
-                Optional<Holder.Reference<EntityType<?>>> holder = BuiltInRegistries.ENTITY_TYPE.get(Identifier.tryParse(entry.getKey()));
+                Optional<Holder.Reference<EntityType<?>>> holder = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.tryParse(entry.getKey()));
                 if (holder.isEmpty()) {
                     VisualHealth.LOGGER.warn("Unknown entity type '{}' in color overrides, skipping", entry.getKey());
                     continue;

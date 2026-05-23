@@ -3,7 +3,7 @@ package win.demistorm.visual_health.client.texture;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
@@ -23,7 +23,7 @@ public class WoundTextureGenerator {
 
     private WoundTextureGenerator() {}
 
-    private static final Map<String, Identifier> TEXTURE_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, ResourceLocation> TEXTURE_CACHE = new ConcurrentHashMap<>();
     private static final Map<String, NativeImage> IMAGE_CACHE = new ConcurrentHashMap<>();
 
     private static final int BASE_TEXTURE_SIZE = 64;
@@ -41,7 +41,7 @@ public class WoundTextureGenerator {
         private LivingEntity entity;
         private String ownerId;
         private int damageTier;
-        private Identifier texture;
+        private ResourceLocation texture;
         private DamageType[] damageTypes;
         private Long seed;
         private ToIntFunction<DamageType> tintProvider;
@@ -54,7 +54,7 @@ public class WoundTextureGenerator {
         public Builder entity(LivingEntity entity) { this.entity = entity; return this; }
         public Builder ownerId(String ownerId) { this.ownerId = ownerId; return this; }
         public Builder damageTier(int damageTier) { this.damageTier = damageTier; return this; }
-        public Builder texture(Identifier texture) { this.texture = texture; return this; }
+        public Builder texture(ResourceLocation texture) { this.texture = texture; return this; }
         public Builder damageTypes(DamageType[] damageTypes) { this.damageTypes = damageTypes; return this; }
         public Builder seed(long seed) { this.seed = seed; return this; }
         public Builder tint(ToIntFunction<DamageType> tintProvider) { this.tintProvider = tintProvider; return this; }
@@ -68,13 +68,13 @@ public class WoundTextureGenerator {
         }
         public Builder stampFilter(Predicate<DamageType> filter) { this.stampFilter = filter; return this; }
 
-        public Identifier generate() {
+        public ResourceLocation generate() {
             resolveDefaults();
 
             String cacheKey = WoundTextureGenerator.buildCacheKey(
                     category, ownerId, texture, damageTier, damageTypes, transparent);
 
-            Identifier cached = TEXTURE_CACHE.get(cacheKey);
+            ResourceLocation cached = TEXTURE_CACHE.get(cacheKey);
             if (cached != null) return cached;
 
             try {
@@ -107,7 +107,7 @@ public class WoundTextureGenerator {
             if (transparent == null) transparent = false;
         }
 
-        private Identifier generateComposited(String cacheKey, String dynamicPath) {
+        private ResourceLocation generateComposited(String cacheKey, String dynamicPath) {
             NativeImage baseImage = SkinTextureReader.readTexture(texture);
             if (baseImage == null) {
                 VisualHealth.LOGGER.error("Failed to load base texture {} for compositing", texture);
@@ -132,7 +132,7 @@ public class WoundTextureGenerator {
                     cacheKey, dynamicPath);
         }
 
-        private Identifier generateOverlay(String cacheKey, String dynamicPath) {
+        private ResourceLocation generateOverlay(String cacheKey, String dynamicPath) {
             TextureSize texSize = AlphaMaskCache.getOrGenerateTextureSize(texture);
             int w = texSize != null ? texSize.width() : 64;
             int h = texSize != null ? texSize.height() : 64;
@@ -153,7 +153,7 @@ public class WoundTextureGenerator {
     }
 
     private static String buildCacheKey(String category, String ownerId,
-                                        Identifier texture, int tier,
+                                        ResourceLocation texture, int tier,
                                         DamageType[] types, boolean isTransparent) {
         StringBuilder sb = new StringBuilder();
         sb.append(category);
@@ -169,7 +169,7 @@ public class WoundTextureGenerator {
     }
 
     private static String buildDynamicPath(String category, String ownerId,
-                                           Identifier texture, int tier,
+                                           ResourceLocation texture, int tier,
                                            boolean isTransparent) {
         String ownerPath = ownerId.replace(':', '_').replace('-', '_');
         if (!isTransparent && texture != null) {
@@ -187,7 +187,7 @@ public class WoundTextureGenerator {
         return types;
     }
 
-    private static Identifier stampAndRegister(
+    private static ResourceLocation stampAndRegister(
             NativeImage canvas,
             int width, int height,
             boolean[][] alphaMask,
@@ -229,7 +229,7 @@ public class WoundTextureGenerator {
 
             for (int i = 0; i < woundsPerTier; i++) {
                 try {
-                    Identifier woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
+                    ResourceLocation woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
 
                     NativeImage woundAsset;
                     try (var resource = resourceManager.open(woundAssetId)) {
@@ -262,7 +262,7 @@ public class WoundTextureGenerator {
         }
 
         var textureManager = Minecraft.getInstance().getTextureManager();
-        Identifier dynamicTextureId = Identifier.fromNamespaceAndPath("visualhealth", dynamicTexturePath);
+        ResourceLocation dynamicTextureId = ResourceLocation.fromNamespaceAndPath("visualhealth", dynamicTexturePath);
 
         DynamicTexture texture = new DynamicTexture(dynamicTextureId::toString, canvas);
         textureManager.register(dynamicTextureId, texture);

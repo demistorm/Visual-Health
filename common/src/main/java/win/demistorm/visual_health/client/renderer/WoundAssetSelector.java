@@ -1,7 +1,7 @@
 package win.demistorm.visual_health.client.renderer;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.Resource;
 import win.demistorm.visual_health.VisualHealth;
@@ -21,7 +21,7 @@ public class WoundAssetSelector {
     private static final String MODID = "visualhealth";
     private static final String TEXTURE_FOLDER = "damage";
 
-    private static final Map<DamageType, List<Identifier>> woundTextures = new ConcurrentHashMap<>();
+    private static final Map<DamageType, List<ResourceLocation>> woundTextures = new ConcurrentHashMap<>();
     private static boolean texturesLoaded = false;
 
     public static synchronized void loadTextures() {
@@ -36,7 +36,7 @@ public class WoundAssetSelector {
         }
 
         int totalTextures = 0;
-        for (List<Identifier> list : woundTextures.values()) {
+        for (List<ResourceLocation> list : woundTextures.values()) {
             totalTextures += list.size();
         }
 
@@ -46,18 +46,18 @@ public class WoundAssetSelector {
         texturesLoaded = true;
     }
 
-    private static List<Identifier> loadTexturesFromFolder(DamageType damageType) {
+    private static List<ResourceLocation> loadTexturesFromFolder(DamageType damageType) {
 
         ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
         String folderPath = TEXTURE_FOLDER + "/" + damageType.getFolderName();
 
-        Predicate<Identifier> predicate = id ->
+        Predicate<ResourceLocation> predicate = id ->
                 id.getNamespace().equals("visualhealth") &&
                         id.getPath().startsWith(folderPath + "/") &&
                         id.getPath().endsWith(".png");
 
-        Map<Identifier, Resource> foundResources = resourceManager.listResources(folderPath, predicate);
-        List<Identifier> textures = new ArrayList<>(foundResources.keySet());
+        Map<ResourceLocation, Resource> foundResources = resourceManager.listResources(folderPath, predicate);
+        List<ResourceLocation> textures = new ArrayList<>(foundResources.keySet());
 
         VisualHealth.LOGGER.debug("Found {} textures in folder {} for damage type {}",
                 textures.size(), folderPath, damageType);
@@ -66,18 +66,18 @@ public class WoundAssetSelector {
     }
 
     // Get a random wound texture based on damage type
-    public static Identifier getRandomWoundTexture(DamageType damageType, Random random) {
+    public static ResourceLocation getRandomWoundTexture(DamageType damageType, Random random) {
         if (!texturesLoaded) {
             loadTextures();
         }
 
-        List<Identifier> textures = woundTextures.get(damageType);
+        List<ResourceLocation> textures = woundTextures.get(damageType);
         if (textures == null || textures.isEmpty()) {
             VisualHealth.LOGGER.warn("No textures found for damage type: {}", damageType);
             return getFallbackTexture();
         }
 
-        Identifier texture = textures.get(random.nextInt(textures.size()));
+        ResourceLocation texture = textures.get(random.nextInt(textures.size()));
 
         VisualHealth.LOGGER.debug("Selected texture: {} (from {} textures)",
                 texture, textures.size());
@@ -86,8 +86,8 @@ public class WoundAssetSelector {
     }
 
     // Fallback texture if none found
-    private static Identifier getFallbackTexture() {
-        return Identifier.fromNamespaceAndPath(MODID, "damage/generic/generic1.png");
+    private static ResourceLocation getFallbackTexture() {
+        return ResourceLocation.fromNamespaceAndPath(MODID, "damage/generic/generic1.png");
     }
 
     // Clean up on resource reload

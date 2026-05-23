@@ -2,7 +2,7 @@ package win.demistorm.visual_health.client.compat;
 
 import com.mojang.blaze3d.textures.GpuTextureView;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
@@ -31,10 +31,10 @@ public final class PhysicsModBridge {
         int tier = EntityHealthTracker.getDamageTier(entity.getId());
         if (tier <= 0) return null;
 
-        Identifier baseTexture = TextureLocator.getEntityTexture(entity);
+        ResourceLocation baseTexture = TextureLocator.getEntityTexture(entity);
         if (baseTexture == null) return null;
 
-        Identifier composited = WoundTextureGenerator.builder()
+        ResourceLocation composited = WoundTextureGenerator.builder()
                 .category("composite")
                 .entity(entity)
                 .damageTier(tier)

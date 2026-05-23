@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
@@ -15,8 +15,8 @@ public class TextureLocator {
     private TextureLocator() {
     }
 
-    public static Identifier getEntityTexture(LivingEntity entity) {
-        Identifier cached = EntityHealthTracker.getCurrentRenderTexture();
+    public static ResourceLocation getEntityTexture(LivingEntity entity) {
+        ResourceLocation cached = EntityHealthTracker.getCurrentRenderTexture();
         if (cached != null) {
             return cached;
         }
@@ -25,7 +25,7 @@ public class TextureLocator {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Identifier getEntityTextureFromRenderer(LivingEntity entity) {
+    private static ResourceLocation getEntityTextureFromRenderer(LivingEntity entity) {
         try {
             Minecraft client = Minecraft.getInstance();
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();

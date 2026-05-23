@@ -1,6 +1,6 @@
 package win.demistorm.visual_health.neoforge.client;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
@@ -23,7 +23,7 @@ public class NeoClient {
         modEventBus.addListener((AddClientReloadListenersEvent event) -> {
             VisualHealth.LOGGER.info("Registering Visual Health reload listener");
 
-            Identifier listenerId = Identifier.fromNamespaceAndPath(
+            ResourceLocation listenerId = ResourceLocation.fromNamespaceAndPath(
                     VisualHealth.MOD_ID,
                     "texture_reload"
             );

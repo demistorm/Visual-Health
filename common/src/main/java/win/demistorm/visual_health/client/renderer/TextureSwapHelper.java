@@ -1,7 +1,7 @@
 package win.demistorm.visual_health.client.renderer;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
@@ -15,7 +15,7 @@ public final class TextureSwapHelper {
 
     private TextureSwapHelper() {}
 
-    public static Identifier swapTexture(Identifier originalTexture, LivingEntity entity) {
+    public static ResourceLocation swapTexture(ResourceLocation originalTexture, LivingEntity entity) {
         if (!DamageRenderCheck.shouldRender(entity, DamageRenderCheck.ALL)) {
             return null;
         }
@@ -35,7 +35,7 @@ public final class TextureSwapHelper {
         }
 
         try {
-            Identifier composited = WoundTextureGenerator.builder()
+            ResourceLocation composited = WoundTextureGenerator.builder()
                     .category("composite")
                     .entity(entity)
                     .damageTier(damageTier)
@@ -56,7 +56,7 @@ public final class TextureSwapHelper {
         return null;
     }
 
-    public static boolean shouldSkipTexture(Identifier texture) {
+    public static boolean shouldSkipTexture(ResourceLocation texture) {
         String path = texture.getPath();
 
         if (path.contains("armor") && (path.contains("leather") || path.contains("chain") ||

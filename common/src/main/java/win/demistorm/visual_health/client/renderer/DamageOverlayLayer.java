@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.DamageRenderCheck;
 import win.demistorm.visual_health.client.compat.PhysicsModBridge;
@@ -22,8 +22,8 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         extends RenderLayer<S, M> {
 
     private static final int RENDER_DISTANCE = 96;
-    private static final Identifier FALLBACK_TEXTURE =
-            Identifier.fromNamespaceAndPath("visualhealth", "damage/generic/generic1.png");
+    private static final ResourceLocation FALLBACK_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath("visualhealth", "damage/generic/generic1.png");
 
     public DamageOverlayLayer(RenderLayerParent<S, M> renderer) {
         super(renderer);
@@ -54,10 +54,10 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         M model = getParentModel();
 
         try {
-            Identifier baseTexture = TextureLocator.getEntityTexture(entity);
+            ResourceLocation baseTexture = TextureLocator.getEntityTexture(entity);
             if (baseTexture == null) return;
 
-            Identifier woundTexture = WoundTextureGenerator.builder()
+            ResourceLocation woundTexture = WoundTextureGenerator.builder()
                     .category("weapons")
                     .entity(entity)
                     .damageTier(damageTier)

@@ -1,6 +1,6 @@
 package win.demistorm.visual_health.client.entitymappings;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.client.texture.AlphaMaskCache;
@@ -117,7 +117,7 @@ public class TextureSizeIndex {
         }
 
         try {
-            Identifier textureId = TextureLocator.getEntityTexture(entity);
+            ResourceLocation textureId = TextureLocator.getEntityTexture(entity);
             if (textureId != null) {
                 TextureSize dynamicSize = AlphaMaskCache.getOrGenerateTextureSize(textureId);
                 if (dynamicSize != null) {

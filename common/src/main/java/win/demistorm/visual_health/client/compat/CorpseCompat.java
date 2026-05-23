@@ -1,6 +1,6 @@
 package win.demistorm.visual_health.client.compat;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.ConfigHelper;
@@ -59,7 +59,7 @@ public final class CorpseCompat {
         return CORPSE_UUID.get() != null;
     }
 
-    public static Identifier swapCorpseTexture(Identifier texture) {
+    public static ResourceLocation swapCorpseTexture(ResourceLocation texture) {
         if (!isCorpseActive()) return null;
         if (!DamageRenderCheck.shouldRenderCorpseDamage()) return null;
         if (!isPlayerSkin(texture)) return null;
@@ -68,7 +68,7 @@ public final class CorpseCompat {
 
         try {
             UUID corpseUUID = CORPSE_UUID.get();
-            Identifier replacement = generateCorpseTexture(corpseUUID, texture);
+            ResourceLocation replacement = generateCorpseTexture(corpseUUID, texture);
 
             if (replacement != null) {
                 VisualHealth.LOGGER.debug("Corpse swap: {} -> {} for corpse {}", texture, replacement, corpseUUID);
@@ -81,11 +81,11 @@ public final class CorpseCompat {
         return null;
     }
 
-    private static boolean isPlayerSkin(Identifier texture) {
+    private static boolean isPlayerSkin(ResourceLocation texture) {
         return "minecraft".equals(texture.getNamespace()) && texture.getPath().startsWith("skins/");
     }
 
-    private static int getTintForPlayerCorpse(DamageType damageType, Identifier skinTexture) {
+    private static int getTintForPlayerCorpse(DamageType damageType, ResourceLocation skinTexture) {
         int weaponTint = getPlayerCorpseWeaponTint(skinTexture);
 
         if (damageType == DamageType.GENERIC) {
@@ -95,7 +95,7 @@ public final class CorpseCompat {
         return weaponTint;
     }
 
-    private static int getPlayerCorpseWeaponTint(Identifier skinTexture) {
+    private static int getPlayerCorpseWeaponTint(ResourceLocation skinTexture) {
         EntityDamageColors.DamageOverride override = EntityDamageColors.getOverride(EntityType.PLAYER);
         if (override != null) {
             return override.tintColor();
@@ -112,7 +112,7 @@ public final class CorpseCompat {
         };
     }
 
-    private static Identifier generateCorpseTexture(UUID corpseUUID, Identifier baseTexture) {
+    private static ResourceLocation generateCorpseTexture(UUID corpseUUID, ResourceLocation baseTexture) {
         DamageType[] damageTypes = generateCorpseDamageTypes(corpseUUID);
 
         return WoundTextureGenerator.builder()

@@ -1,7 +1,7 @@
 package win.demistorm.visual_health.client.texture;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.Map;
@@ -12,10 +12,10 @@ public class AlphaMaskCache {
     private AlphaMaskCache() {
     }
 
-    private static final Map<Identifier, boolean[][]> ALPHA_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Identifier, TextureSize> DIMENSION_CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, boolean[][]> ALPHA_CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, TextureSize> DIMENSION_CACHE = new ConcurrentHashMap<>();
 
-    public static TextureSize getOrGenerateTextureSize(Identifier textureId) {
+    public static TextureSize getOrGenerateTextureSize(ResourceLocation textureId) {
         if (DIMENSION_CACHE.containsKey(textureId)) {
             return DIMENSION_CACHE.get(textureId);
         }
@@ -27,7 +27,7 @@ public class AlphaMaskCache {
         return textureSize;
     }
 
-    private static TextureSize generateTextureSize(Identifier textureId) {
+    private static TextureSize generateTextureSize(ResourceLocation textureId) {
         try {
             NativeImage image = SkinTextureReader.readTexture(textureId);
             if (image == null) return null;
@@ -46,7 +46,7 @@ public class AlphaMaskCache {
         }
     }
 
-    public static boolean[][] getOrGenerateAlphaMask(Identifier textureId) {
+    public static boolean[][] getOrGenerateAlphaMask(ResourceLocation textureId) {
         if (ALPHA_CACHE.containsKey(textureId)) {
             return ALPHA_CACHE.get(textureId);
         }
@@ -58,7 +58,7 @@ public class AlphaMaskCache {
         return alphaMask;
     }
 
-    private static boolean[][] generateAlphaMask(Identifier textureId) {
+    private static boolean[][] generateAlphaMask(ResourceLocation textureId) {
         try {
             NativeImage image = SkinTextureReader.readTexture(textureId);
             if (image == null) return null;

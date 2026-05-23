@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import win.demistorm.visual_health.VisualHealth;
 
@@ -19,9 +19,9 @@ public final class SkinTextureReader {
     private SkinTextureReader() {
     }
 
-    private static final Map<Identifier, NativeImage> CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, NativeImage> CACHE = new ConcurrentHashMap<>();
 
-    public static NativeImage readTexture(Identifier textureId) {
+    public static NativeImage readTexture(ResourceLocation textureId) {
         if (CACHE.containsKey(textureId)) {
             NativeImage cached = CACHE.get(textureId);
             if (cached != null) {
@@ -38,7 +38,7 @@ public final class SkinTextureReader {
         return null;
     }
 
-    private static NativeImage loadTexture(Identifier textureId) {
+    private static NativeImage loadTexture(ResourceLocation textureId) {
         // Try resource manager first (mob textures, default skins)
         try {
             ResourceManager rm = Minecraft.getInstance().getResourceManager();

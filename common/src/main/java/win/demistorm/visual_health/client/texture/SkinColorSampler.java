@@ -1,7 +1,7 @@
 package win.demistorm.visual_health.client.texture;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.VisualHealth;
 
@@ -13,7 +13,7 @@ public final class SkinColorSampler {
     private SkinColorSampler() {
     }
 
-    private static final Map<Identifier, Integer> COLOR_CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, Integer> COLOR_CACHE = new ConcurrentHashMap<>();
 
     private static final int QUANTIZE_SHIFT = 6;
     private static final int QUANTIZE_MASK = 0x03;
@@ -21,7 +21,7 @@ public final class SkinColorSampler {
     private static final int FALLBACK_TINT = 0xFF9F0000;
 
     public static int getSampledTint(LivingEntity entity) {
-        Identifier skinTexture = TextureLocator.getEntityTexture(entity);
+        ResourceLocation skinTexture = TextureLocator.getEntityTexture(entity);
         if (skinTexture == null) {
             VisualHealth.LOGGER.debug("SkinColorSampler: no texture for {}, using fallback tint",
                     entity.getName().getString());
@@ -31,11 +31,11 @@ public final class SkinColorSampler {
         return getSampledTint(skinTexture);
     }
 
-    public static int getSampledTint(Identifier skinTexture) {
+    public static int getSampledTint(ResourceLocation skinTexture) {
         return COLOR_CACHE.computeIfAbsent(skinTexture, SkinColorSampler::sampleColor);
     }
 
-    private static int sampleColor(Identifier skinTexture) {
+    private static int sampleColor(ResourceLocation skinTexture) {
         NativeImage skin = SkinTextureReader.readTexture(skinTexture);
 
         try (skin) {
