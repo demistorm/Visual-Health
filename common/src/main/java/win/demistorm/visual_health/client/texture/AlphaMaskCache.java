@@ -2,6 +2,7 @@ package win.demistorm.visual_health.client.texture;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.Nullable;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.Map;
@@ -87,7 +88,7 @@ public class AlphaMaskCache {
         }
     }
 
-    public static void applyAlphaMaskToTexture(NativeImage woundTexture, boolean[][] alphaMask) {
+    public static void applyAlphaMaskToTexture(NativeImage woundTexture, boolean[][] alphaMask, @Nullable NativeImage originalImage) {
         int width = woundTexture.getWidth();
         int height = woundTexture.getHeight();
 
@@ -99,29 +100,15 @@ public class AlphaMaskCache {
                 }
 
                 if (!alphaMask[x][y]) {
+                    if (originalImage != null && x < originalImage.getWidth() && y < originalImage.getHeight()) {
+                        int originalPixel = originalImage.getPixel(x, y);
+                        int originalAlpha = (originalPixel >> 24) & 0xFF;
+                        if (originalAlpha > 0) {
+                            woundTexture.setPixel(x, y, originalPixel);
+                            continue;
+                        }
+                    }
                     woundTexture.setPixel(x, y, 0x00000000);
-                }
-            }
-        }
-    }
-
-    public static void maskWoundOnInvisiblePixels(NativeImage woundTexture, boolean[][] alphaMask, int posX, int posY) {
-        int width = woundTexture.getWidth();
-        int height = woundTexture.getHeight();
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int entityX = posX + x;
-                int entityY = posY + y;
-
-                if (entityX < 0 || entityX >= alphaMask.length ||
-                        entityY < 0 || entityY >= alphaMask[0].length) {
-                    woundTexture.setPixel(x + posX, y + posY, 0x00000000);
-                    continue;
-                }
-
-                if (!alphaMask[entityX][entityY]) {
-                    woundTexture.setPixel(x + posX, y + posY, 0x00000000);
                 }
             }
         }

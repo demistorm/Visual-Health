@@ -123,13 +123,16 @@ public class WoundTextureGenerator {
                     canvas.setPixel(x, y, baseImage.getPixel(x, y));
                 }
             }
-            baseImage.close();
 
             boolean[][] alphaMask = getOrGenerateAlphaMask(texture);
 
-            return stampAndRegister(canvas, w, h, alphaMask,
-                    seed, damageTypes, tintProvider, stampFilter,
-                    cacheKey, dynamicPath);
+            try {
+                return stampAndRegister(canvas, w, h, alphaMask, baseImage,
+                        seed, damageTypes, tintProvider, stampFilter,
+                        cacheKey, dynamicPath);
+            } finally {
+                baseImage.close();
+            }
         }
 
         private Identifier generateOverlay(String cacheKey, String dynamicPath) {
@@ -146,7 +149,7 @@ public class WoundTextureGenerator {
 
             boolean[][] alphaMask = texture != null ? getOrGenerateAlphaMask(texture) : null;
 
-            return stampAndRegister(canvas, w, h, alphaMask,
+            return stampAndRegister(canvas, w, h, alphaMask, null,
                     seed, damageTypes, tintProvider, stampFilter,
                     cacheKey, dynamicPath);
         }
@@ -191,6 +194,7 @@ public class WoundTextureGenerator {
             NativeImage canvas,
             int width, int height,
             boolean[][] alphaMask,
+            NativeImage originalImage,
             long seed,
             DamageType[] damageTypes,
             ToIntFunction<DamageType> tintProvider,
@@ -258,7 +262,7 @@ public class WoundTextureGenerator {
         }
 
         if (alphaMask != null) {
-            AlphaMaskCache.applyAlphaMaskToTexture(canvas, alphaMask);
+            AlphaMaskCache.applyAlphaMaskToTexture(canvas, alphaMask, originalImage);
         }
 
         var textureManager = Minecraft.getInstance().getTextureManager();
