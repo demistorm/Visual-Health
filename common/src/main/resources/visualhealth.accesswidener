@@ -13,20 +13,3 @@ accessible field net/minecraft/client/renderer/entity/EntityRenderDispatcher pla
 # Make LivingEntityRenderer layers field accessible
 # Required to add damage overlay layer to entity renderers
 accessible field net/minecraft/client/renderer/entity/LivingEntityRenderer layers Ljava/util/List;
-
-# RenderType — access state for texture extraction and name for cloning
-accessible field net/minecraft/client/renderer/rendertype/RenderType state Lnet/minecraft/client/renderer/rendertype/RenderSetup;
-accessible field net/minecraft/client/renderer/rendertype/RenderType name Ljava/lang/String;
-accessible method net/minecraft/client/renderer/rendertype/RenderType create (Ljava/lang/String;Lnet/minecraft/client/renderer/rendertype/RenderSetup;)Lnet/minecraft/client/renderer/rendertype/RenderType;
-
-# RenderSetup — access fields for render type cloning
-accessible field net/minecraft/client/renderer/rendertype/RenderSetup textures Ljava/util/Map;
-accessible field net/minecraft/client/renderer/rendertype/RenderSetup textureTransform Lnet/minecraft/client/renderer/rendertype/TextureTransform;
-accessible field net/minecraft/client/renderer/rendertype/RenderSetup outputTarget Lnet/minecraft/client/renderer/rendertype/OutputTarget;
-accessible field net/minecraft/client/renderer/rendertype/RenderSetup outlineProperty Lnet/minecraft/client/renderer/rendertype/RenderSetup$OutlineProperty;
-accessible field net/minecraft/client/renderer/rendertype/RenderSetup useLightmap Z
-accessible field net/minecraft/client/renderer/rendertype/RenderSetup useOverlay Z
-accessible field net/minecraft/client/renderer/rendertype/RenderSetup layeringTransform Lnet/minecraft/client/renderer/rendertype/LayeringTransform;
-
-# TextureBinding record — access for texture extraction
-accessible class net/minecraft/client/renderer/rendertype/RenderSetup$TextureBinding
