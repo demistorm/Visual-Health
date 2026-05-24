@@ -144,7 +144,7 @@ public class ColorPickerScreen extends Screen {
 
     private String getHex() {
         int rgb = Color.HSBtoRGB(hue, saturation, brightness);
-        return String.format("%06X", rgb & 0xFFFFFFFF);
+        return String.format("%06X", rgb & 0x00FFFFFF);
     }
 
     private static int hexToRgb(String hex) {
