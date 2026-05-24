@@ -10,7 +10,7 @@ public final class VisualHealth {
     public static final Logger LOGGER = LogManager.getLogger(VisualHealth.class);
 
     // Debug mode switch
-    public static final boolean debugMode = true;
+    public static final boolean debugMode = false;
 
     static {
         Configurator.setLevel(VisualHealth.class.getName(), debugMode ? Level.DEBUG : Level.INFO);
