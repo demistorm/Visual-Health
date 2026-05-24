@@ -60,7 +60,7 @@ public class EntityDamageColors {
         OC(MAGMA_CUBE, "ddaf13", false);
         OC(PARCHED, "c2c2c2", false);
         OC(SHULKER, "ae6984", false);
-        OC(SLIME, "9fc08a", false);
+        OC(SLIME, "9db45f", false);
         OC(WARDEN, "008388", false);
 
         VisualHealth.LOGGER.info("Loaded {} entity damage overrides", OVERRIDE_MAP.size());
