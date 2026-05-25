@@ -1,16 +1,15 @@
 package win.demistorm.visual_health.client.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.model.monster.dragon.EnderDragonModel;
+import net.minecraft.client.model.dragon.EnderDragonModel;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EnderDragonRenderer;
 import net.minecraft.client.renderer.entity.state.EnderDragonRenderState;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,15 +30,15 @@ public abstract class EnderDragonRendererMixin {
     private EnderDragonModel model;
 
     @Unique
-    private static final Identifier DRAGON_LOCATION =
-            Identifier.withDefaultNamespace("textures/entity/enderdragon/dragon.png");
+    private static final ResourceLocation DRAGON_LOCATION =
+            ResourceLocation.withDefaultNamespace("textures/entity/enderdragon/dragon.png");
 
     @Unique
     private static final int RENDER_DISTANCE = 96;
 
     @Unique
-    private static final Identifier FALLBACK_TEXTURE =
-            Identifier.fromNamespaceAndPath("visualhealth", "damage/generic/generic1.png");
+    private static final ResourceLocation FALLBACK_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath("visualhealth", "damage/generic/generic1.png");
 
     @Unique
     private EnderDragon visualhealth$currentDragon;
@@ -91,7 +90,7 @@ public abstract class EnderDragonRendererMixin {
         if (!EntityHealthTracker.hasWeaponTiers(entityId, damageTier)) return;
 
         try {
-            Identifier woundTexture = WoundTextureGenerator.builder()
+            ResourceLocation woundTexture = WoundTextureGenerator.builder()
                     .category("weapons")
                     .entity(visualhealth$currentDragon)
                     .damageTier(damageTier)
@@ -103,7 +102,7 @@ public abstract class EnderDragonRendererMixin {
 
             if (woundTexture == null) woundTexture = FALLBACK_TEXTURE;
 
-            RenderType renderType = RenderTypes.entityTranslucentEmissive(woundTexture);
+            RenderType renderType = RenderType.entityTranslucentEmissive(woundTexture);
 
             submitNodeCollector.order(0).submitModel(
                     this.model, state, poseStack, renderType,
