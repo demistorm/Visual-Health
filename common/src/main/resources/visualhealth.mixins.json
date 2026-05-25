@@ -13,6 +13,7 @@
     "ModelFeatureRendererMixin",
     "PhysicsModCompatMixin",
     "PhysicsTextureHelperMixin",
+    "EnderDragonRendererMixin",
     "RenderTypesMixin"
   ],
   "server": [],
