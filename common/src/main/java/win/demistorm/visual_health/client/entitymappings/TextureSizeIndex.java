@@ -98,8 +98,7 @@ public class TextureSizeIndex {
         TEXTURE_SIZES.put(EntityType.ZOGLIN, new TextureSize(128, 64));
         TEXTURE_SIZES.put(EntityType.ZOMBIE, new TextureSize(64, 64));
         TEXTURE_SIZES.put(EntityType.ZOMBIE_VILLAGER, new TextureSize(64, 64));
-
-        // NOTE: Ender Dragon uses a different rendering system so is not included
+        TEXTURE_SIZES.put(EntityType.ENDER_DRAGON, new TextureSize(256, 256));
 
         VisualHealth.LOGGER.info("Loaded {} entity texture sizes", TEXTURE_SIZES.size());
     }

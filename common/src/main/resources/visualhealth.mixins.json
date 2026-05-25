@@ -9,7 +9,8 @@
   "client": [
     "LivingEntityMixin",
     "EntityRenderDispatcherMixin",
-    "BufferSourceMixin"
+    "BufferSourceMixin",
+    "EnderDragonRendererMixin"
   ],
   "server": [],
   "injectors": {

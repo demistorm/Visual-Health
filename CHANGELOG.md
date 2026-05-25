@@ -12,6 +12,7 @@ compatibility with many mods and resourcepacks!
 - Per-player skin sampling damage tint option added (Extras screen) for unique player colors
 - New color picker UI in the Entity Overrides screen to select for CUSTOM/EMISSIVE tints!
 - Option to render damage on only the player (Extras screen)
+- Added **Enderdragon** emissive damage
 
 **Changes:**
 - Generic/bruise damage now appears on the base texture instead of emissive renderlayer

@@ -47,6 +47,7 @@ public class WoundTextureGenerator {
         private ToIntFunction<DamageType> tintProvider;
         private Boolean transparent;
         private Predicate<DamageType> stampFilter;
+        private float densityMultiplier = 1.0f;
 
         private Builder() {}
 
@@ -67,6 +68,7 @@ public class WoundTextureGenerator {
             return this;
         }
         public Builder stampFilter(Predicate<DamageType> filter) { this.stampFilter = filter; return this; }
+        public Builder densityMultiplier(float densityMultiplier) { this.densityMultiplier = densityMultiplier; return this; }
 
         public ResourceLocation generate() {
             resolveDefaults();
@@ -129,7 +131,7 @@ public class WoundTextureGenerator {
             try {
                 return stampAndRegister(canvas, w, h, alphaMask, baseImage,
                         seed, damageTypes, tintProvider, stampFilter,
-                        cacheKey, dynamicPath);
+                        densityMultiplier, cacheKey, dynamicPath);
             } finally {
                 baseImage.close();
             }
@@ -151,7 +153,7 @@ public class WoundTextureGenerator {
 
             return stampAndRegister(canvas, w, h, alphaMask, null,
                     seed, damageTypes, tintProvider, stampFilter,
-                    cacheKey, dynamicPath);
+                    densityMultiplier, cacheKey, dynamicPath);
         }
     }
 
@@ -199,6 +201,7 @@ public class WoundTextureGenerator {
             DamageType[] damageTypes,
             ToIntFunction<DamageType> tintProvider,
             Predicate<DamageType> stampFilter,
+            float densityMultiplier,
             String cacheKey,
             String dynamicTexturePath) {
 
@@ -206,7 +209,7 @@ public class WoundTextureGenerator {
         double areaScale = (width * height) / (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
         int densityPercent = ConfigHelper.INSTANCE.woundDensityPercentage;
         int baseWoundsPerTier = (densityPercent * 115) / 100;
-        int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / maxTiers);
+        int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / maxTiers * densityMultiplier);
 
         VisualHealth.LOGGER.debug("Stamping {}x{} texture ({} tiers, {} wounds/tier, area scale: {})",
                 width, height, damageTypes.length, woundsPerTier, String.format("%.2f", areaScale));
