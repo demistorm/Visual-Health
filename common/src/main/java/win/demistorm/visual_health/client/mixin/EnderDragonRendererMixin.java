@@ -29,11 +29,11 @@ public abstract class EnderDragonRendererMixin {
 
     @Unique
     private static final ResourceLocation DRAGON_LOCATION =
-            ResourceLocation.withDefaultNamespace("textures/entity/enderdragon/dragon.png");
+            new ResourceLocation("textures/entity/enderdragon/dragon.png");
 
     @Unique
     private static final ResourceLocation FALLBACK_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath("visualhealth", "damage/scratches/scratch1.png");
+            new ResourceLocation("visualhealth", "damage/scratches/scratch1.png");
 
     @Final
     @Shadow
@@ -80,7 +80,8 @@ public abstract class EnderDragonRendererMixin {
             RenderType renderType = RenderType.entityTranslucentEmissive(woundTexture);
             VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
             this.model.renderToBuffer(poseStack, vertexConsumer,
-                    LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+                    LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
+                    1.0f, 1.0f, 1.0f, 1.0f);
 
             VisualHealth.LOGGER.debug("Rendered emissive dragon wounds (ID: {}) at tier {}",
                     entityId, damageTier);
