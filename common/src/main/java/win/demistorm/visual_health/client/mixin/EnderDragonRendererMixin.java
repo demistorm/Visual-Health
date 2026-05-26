@@ -1,16 +1,17 @@
 package win.demistorm.visual_health.client.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.model.dragon.EnderDragonModel;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.entity.EnderDragonRenderer;
-import net.minecraft.client.renderer.entity.state.EnderDragonRenderState;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.entity.EnderDragonRenderer;
+import net.minecraft.client.renderer.entity.EnderDragonRenderer.DragonModel;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -26,64 +27,38 @@ import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 @Mixin(EnderDragonRenderer.class)
 public abstract class EnderDragonRendererMixin {
 
-    @Shadow
-    private EnderDragonModel model;
-
     @Unique
     private static final ResourceLocation DRAGON_LOCATION =
             ResourceLocation.withDefaultNamespace("textures/entity/enderdragon/dragon.png");
 
     @Unique
-    private static final int RENDER_DISTANCE = 96;
-
-    @Unique
     private static final ResourceLocation FALLBACK_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath("visualhealth", "damage/generic/generic1.png");
+            ResourceLocation.fromNamespaceAndPath("visualhealth", "damage/scratches/scratch1.png");
 
-    @Unique
-    private EnderDragon visualhealth$currentDragon;
-
-    @Inject(method = "extractRenderState", at = @At("RETURN"))
-    private void visualhealth$trackDragon(EnderDragon dragon, EnderDragonRenderState state,
-                                           float partialTick, CallbackInfo ci) {
-        EntityHealthTracker.updateEntityDamageTier(dragon);
-        visualhealth$currentDragon = dragon;
-    }
-
-    @Inject(method = "submit", at = @At("HEAD"))
-    private void visualhealth$setupSubmit(EnderDragonRenderState state, PoseStack poseStack,
-                                           SubmitNodeCollector submitNodeCollector,
-                                           CameraRenderState cameraRenderState, CallbackInfo ci) {
-        if (visualhealth$currentDragon != null) {
-            EntityHealthTracker.setCurrentRenderEntity(visualhealth$currentDragon);
-            EntityHealthTracker.setCurrentRenderTexture(DRAGON_LOCATION);
-        }
-    }
-
-    @Inject(method = "submit", at = @At("RETURN"))
-    private void visualhealth$cleanup(CallbackInfo ci) {
-        EntityHealthTracker.clearCurrentRenderEntity();
-        EntityHealthTracker.clearCurrentRenderTexture();
-        visualhealth$currentDragon = null;
-    }
+    @Final
+    @Shadow
+    private DragonModel model;
 
     @Inject(
-            method = "submit",
+            method = "render(Lnet/minecraft/world/entity/boss/enderdragon/EnderDragon;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V"
+                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V",
+                    ordinal = 1
             )
     )
-    private void visualhealth$renderWounds(EnderDragonRenderState state, PoseStack poseStack,
-                                            SubmitNodeCollector submitNodeCollector,
-                                            CameraRenderState cameraRenderState, CallbackInfo ci) {
-        if (visualhealth$currentDragon == null) return;
-        if (state.deathTime > 0.0F) return;
-        if (state.distanceToCameraSq > (double) (RENDER_DISTANCE * RENDER_DISTANCE)) return;
+    private void visualhealth$renderWounds(EnderDragon dragon, float entityYaw, float partialTick,
+                                            PoseStack poseStack, MultiBufferSource bufferSource,
+                                            int packedLight, CallbackInfo ci) {
+        if (dragon.dragonDeathTime > 0) return;
 
-        if (!DamageRenderCheck.shouldRender(visualhealth$currentDragon, DamageRenderCheck.ALL)) return;
+        double distanceSq = dragon.distanceToSqr(
+                Minecraft.getInstance().gameRenderer.getMainCamera().getPosition());
+        if (distanceSq > (double) (96 * 96)) return;
 
-        int entityId = visualhealth$currentDragon.getId();
+        if (!DamageRenderCheck.shouldRender(dragon, DamageRenderCheck.ALL)) return;
+
+        int entityId = dragon.getId();
         int damageTier = EntityHealthTracker.getDamageTier(entityId);
         if (damageTier == 0) return;
 
@@ -92,7 +67,7 @@ public abstract class EnderDragonRendererMixin {
         try {
             ResourceLocation woundTexture = WoundTextureGenerator.builder()
                     .category("weapons")
-                    .entity(visualhealth$currentDragon)
+                    .entity(dragon)
                     .damageTier(damageTier)
                     .texture(DRAGON_LOCATION)
                     .transparent()
@@ -103,12 +78,9 @@ public abstract class EnderDragonRendererMixin {
             if (woundTexture == null) woundTexture = FALLBACK_TEXTURE;
 
             RenderType renderType = RenderType.entityTranslucentEmissive(woundTexture);
-
-            submitNodeCollector.order(0).submitModel(
-                    this.model, state, poseStack, renderType,
-                    LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                    -1, null, 0,
-                    null);
+            VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+            this.model.renderToBuffer(poseStack, vertexConsumer,
+                    LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
 
             VisualHealth.LOGGER.debug("Rendered emissive dragon wounds (ID: {}) at tier {}",
                     entityId, damageTier);
