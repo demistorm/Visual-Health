@@ -2,15 +2,13 @@ package win.demistorm.visual_health.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.resources.Identifier;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.DamageRenderCheck;
@@ -77,26 +75,12 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
                     .getOverlayCoords(entityRenderState, 0.0f);
 
             RenderType renderType = RenderTypes.entityTranslucentEmissive(woundTexture);
-            int finalPackedLight = LightTexture.FULL_BRIGHT;
+            int finalPackedLight = LightCoordsUtil.FULL_BRIGHT;
 
             poseStack.pushPose();
 
             submitNodeCollector.order(0).submitModel(model, entityRenderState, poseStack, renderType,
                     finalPackedLight, overlay, -1, null, 0, null);
-        if (isEmissive) {
-            renderType = RenderTypes.entityTranslucentEmissive(woundTexture);
-            finalPackedLight = 15728880;
-        } else {
-            renderType = RenderTypes.entityCutoutZOffset(woundTexture);
-            finalPackedLight = packedLight;
-        }
-
-        int identityTint = 0xFFFFFFFF;
-
-        submitNodeCollector.order(0).submitModel(model, entityRenderState, poseStack, renderType,
-                finalPackedLight, overlay, identityTint, null, 0, null);
-            submitNodeCollector.submitModel(model, entityRenderState, poseStack, renderType,
-                    finalPackedLight, overlay, -1, null);
 
             poseStack.popPose();
 

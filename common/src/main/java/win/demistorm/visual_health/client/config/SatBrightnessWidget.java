@@ -1,7 +1,7 @@
 package win.demistorm.visual_health.client.config;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -46,7 +46,7 @@ public class SatBrightnessWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         for (int col = 0; col < SIZE; col++) {
             float sat = (float) col / (SIZE - 1);
             int topColor = Color.HSBtoRGB(hue, sat, 1.0f) | 0xFF000000;

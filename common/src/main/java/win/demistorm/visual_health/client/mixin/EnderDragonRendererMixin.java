@@ -2,15 +2,15 @@ package win.demistorm.visual_health.client.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.monster.dragon.EnderDragonModel;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EnderDragonRenderer;
 import net.minecraft.client.renderer.entity.state.EnderDragonRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -107,7 +107,7 @@ public abstract class EnderDragonRendererMixin {
 
             submitNodeCollector.order(0).submitModel(
                     this.model, state, poseStack, renderType,
-                    LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
+                    LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
                     -1, null, 0,
                     null);
 

@@ -1,7 +1,7 @@
 package win.demistorm.visual_health.client.mixin;
 
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,7 +18,7 @@ public class PhysicsModCompatMixin {
     private static boolean vh$fired = false;
 
     @Inject(method = "blockifyEntity", at = @At("HEAD"))
-    private static void visualhealth$beforeBlockify(Level level, LivingEntity entity, CallbackInfo ci) {
+    private static void visualhealth$beforeBlockify(ClientLevel level, LivingEntity entity, CallbackInfo ci) {
         if (!vh$fired) {
             vh$fired = true;
             VisualHealth.LOGGER.debug("VH COMPAT FIRED on PhysicsMod");
@@ -28,7 +28,7 @@ public class PhysicsModCompatMixin {
     }
 
     @Inject(method = "blockifyEntity", at = @At("TAIL"))
-    private static void visualhealth$afterBlockify(Level level, LivingEntity entity, CallbackInfo ci) {
+    private static void visualhealth$afterBlockify(ClientLevel level, LivingEntity entity, CallbackInfo ci) {
         PhysicsModBridge.clearCapturingEntity();
     }
 }

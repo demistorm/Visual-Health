@@ -1,7 +1,7 @@
 package win.demistorm.visual_health.client.config;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -156,10 +156,10 @@ public class ColorPickerScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        super.render(graphics, mouseX, mouseY, delta);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
 
-        graphics.drawCenteredString(font, title, width / 2, 10, 0xFFFFFFFF);
+        graphics.centeredText(font, title, width / 2, 10, 0xFFFFFFFF);
 
         int rightX = getRightX();
         int rcw = getRightColumnWidth();
@@ -180,13 +180,13 @@ public class ColorPickerScreen extends Screen {
         drawColorPreview(graphics, previewX, y, 0xFF000000 | (currentRgb & 0xFFFFFFFF));
     }
 
-    private void drawCenteredLabel(GuiGraphics graphics, String text, int rightX, int columnWidth, int y) {
+    private void drawCenteredLabel(GuiGraphicsExtractor graphics, String text, int rightX, int columnWidth, int y) {
         int textWidth = font.width(text);
         int x = rightX + (columnWidth - textWidth) / 2;
-        graphics.drawString(font, text, x, y, 0xFFAAAAAA);
+        graphics.text(font, text, x, y, 0xFFAAAAAA);
     }
 
-    private void drawColorPreview(GuiGraphics graphics, int x, int y, int color) {
+    private void drawColorPreview(GuiGraphicsExtractor graphics, int x, int y, int color) {
         graphics.fill(x, y, x + PREVIEW_SIZE, y + PREVIEW_SIZE, color);
         int border = 0xFF404040;
         graphics.fill(x - 1, y - 1, x + PREVIEW_SIZE + 1, y, border);
