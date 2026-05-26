@@ -27,7 +27,8 @@ that brown (new textures and less opacity too!)
 - Updated the Entity Overrides button to emphasize that player damage can also be modified
 
 **Fixes:**
-- Red override color appearing blue (1.20.1/1.21.1)
+- Red override color appearing blue
+- Baby mob damage pixel scale wrong (26.1+)
 - Modded weapons causing generic damage
 - Copper golem showing damage (1.21.10+)
 
