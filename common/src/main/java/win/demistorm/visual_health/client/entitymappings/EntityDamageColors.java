@@ -56,7 +56,7 @@ public class EntityDamageColors {
         OC(BREEZE, "c2c2c2", false);
         OC(GUARDIAN, "2323c1", false);
         OC(ELDER_GUARDIAN, "2323c1", false);
-        OC(MAGMA_CUBE, "ddaf13", false);
+        OC(MAGMA_CUBE, "8d2f00", false);
         OC(SHULKER, "ae6984", false);
         OC(SLIME, "9db45f", false);
         OC(WARDEN, "008388", false);
