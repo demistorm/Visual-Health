@@ -12,14 +12,14 @@ compatibility with many mods and resourcepacks!
 - Per-player skin sampling damage tint option added (Extras screen) for unique player colors
 - New color picker UI in the Entity Overrides screen to select for CUSTOM/EMISSIVE tints!
 - Option to render damage on only the player (Extras screen)
-- Added **Enderdragon** emissive damage
+- Added **Enderdragon** emissive damage!
 
 **Changes:**
 - Generic/bruise damage now appears on the base texture instead of emissive renderlayer
 - Renamed "Color Overrides" to "Entity Overrides" to be more specific
 - Increased per-tier wound count
 - Removed EMF/ETF optional dependencies
-- Tweaked slime color
+- Tweaked slime and magma cube damage colors
 - Added random opacity for wounds (gives a bit more of a natural look)
 - Redesigned generic damage to be more bruise-like with its color now a darker shade of the damage tint instead of 
 that brown (new textures and less opacity too!)
@@ -27,7 +27,8 @@ that brown (new textures and less opacity too!)
 - Updated the Entity Overrides button to emphasize that player damage can also be modified
 
 **Fixes:**
-- Red override color appearing blue (1.20.1/1.21.1)
+- Red override color appearing blue
+- Baby mob damage pixel scale wrong (26.1+)
 - Modded weapons causing generic damage
 - Copper golem showing damage (1.21.10+)
 
