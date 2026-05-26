@@ -29,6 +29,7 @@ that brown (new textures and less opacity too!)
 **Fixes:**
 - Red override color appearing blue
 - Baby mob damage pixel scale wrong (26.1+)
+- Damage now shows properly on unsheared sheep
 - Modded weapons causing generic damage
 - Copper golem showing damage (1.21.10+)
 

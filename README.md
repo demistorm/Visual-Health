@@ -31,11 +31,13 @@ Different weapons apply different damage textures depending on what was used to 
 Many mobs have specific colored damage to aid immersion. For instance, spider damage is a light blue to match real life, creeper damage is a dark green to match the grassiness, etc.
 ### Emissives
 On Endermen, damage will glow like their eyes in the dark! (shaders supported)
+
+(2.0.0+) Similarly, the Enderdragon will have glowing damage as it gets lower in health!
 ### Resource Pack Support
 This mod should be compatible with **most** resource packs. Tested extensively with Fresh Animations and its extensions. Also compatible with EMF model variants (like the creepers found in FA: Creepers).
 *This improved drastically with the 2.0.0 update, so if something didn't work before, it might work now!*
 ### Mod Support
-Should work with modded mobs, as long as they use standard Minecraft rendering methods
+Should work with modded mobs, as long as they use standard Minecraft rendering methods.
 *This was also significantly improved in 2.0.0+ :)*
 
 ## Configuration
