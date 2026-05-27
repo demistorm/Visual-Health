@@ -18,6 +18,10 @@ accessible field net/minecraft/client/renderer/entity/LivingEntityRenderer layer
 # Required to extract texture being rendered (for applying damage textures)
 accessible field net/minecraft/client/renderer/SpriteCoordinateExpander sprite Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;
 
+# CompositeRenderType class - package -> public
+# Required for instanceof checks and casts in RenderTypeHelper
+accessible class net/minecraft/client/renderer/RenderType$CompositeRenderType
+
 # CompositeRenderType.state() - protected -> public
 # Required to extract texture from render types
 accessible method net/minecraft/client/renderer/RenderType$CompositeRenderType state ()Lnet/minecraft/client/renderer/RenderType$CompositeState;
