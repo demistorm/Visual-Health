@@ -1,3 +1,6 @@
+### Version 2.0.0-Hotfix
+- Fixes an AW/AT crash when no other rendering mods are present
+
 ## Version 2.0.0
 
 **Additions:**
