@@ -44,6 +44,12 @@ public class TextureLocator {
             T castEntity = (T) entity;
             ResourceLocation texture = renderer.getTextureLocation(castEntity);
 
+            if (texture.getPath().startsWith("textures/atlas/")) {
+                VisualHealth.LOGGER.debug("Skipping atlas texture {} for {} (ID: {})",
+                        texture, entity.getName().getString(), entity.getId());
+                return null;
+            }
+
             VisualHealth.LOGGER.debug("Got texture {} for {} (ID: {})",
                     texture, entity.getName().getString(), entity.getId());
 
