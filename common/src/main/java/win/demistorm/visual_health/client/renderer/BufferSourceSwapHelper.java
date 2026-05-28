@@ -114,6 +114,10 @@ public final class BufferSourceSwapHelper {
 
         if (path.contains("/environment/") || path.contains("/misc/")) return true;
 
+        if (path.startsWith("textures/atlas/")) return true;
+
+        if (path.startsWith("textures/cosmetics/")) return true;
+
         return texture.getNamespace().equals("visualhealth") && path.startsWith("dynamic/");
     }
 }

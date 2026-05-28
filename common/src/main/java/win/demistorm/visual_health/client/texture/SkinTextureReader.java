@@ -3,6 +3,7 @@ package win.demistorm.visual_health.client.texture;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.HttpTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
@@ -38,11 +39,26 @@ public final class SkinTextureReader {
     }
 
     private static NativeImage loadTexture(ResourceLocation textureId) {
-        // try resource pack first (works for mob textures, default skins)
+        // Try resource pack first (works for mob textures, default skins)
         try {
             ResourceManager rm = Minecraft.getInstance().getResourceManager();
             try (var resource = rm.open(textureId)) {
                 return NativeImage.read(resource);
+            }
+        } catch (Exception ignored) {
+        }
+
+        // Try DynamicTexture (catch any other mods' runtime changes too)
+        try {
+            TextureManager tm = Minecraft.getInstance().getTextureManager();
+            AbstractTexture tex = tm.getTexture(textureId);
+            if (tex instanceof DynamicTexture dynamicTexture) {
+                NativeImage pixels = dynamicTexture.getPixels();
+                if (pixels != null) {
+                    VisualHealth.LOGGER.debug("Read texture from DynamicTexture: {} ({}x{})",
+                            textureId, pixels.getWidth(), pixels.getHeight());
+                    return copyImage(pixels);
+                }
             }
         } catch (Exception ignored) {
         }
