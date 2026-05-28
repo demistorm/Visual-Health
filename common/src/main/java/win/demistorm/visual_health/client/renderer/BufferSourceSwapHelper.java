@@ -118,6 +118,10 @@ public final class BufferSourceSwapHelper {
 
         if (path.startsWith("textures/cosmetics/")) return true;
 
+        if (path.startsWith("masked_skins/")) return true;
+
+        if (path.startsWith("default/")) return true;
+
         return texture.getNamespace().equals("visualhealth") && path.startsWith("dynamic/");
     }
 }
