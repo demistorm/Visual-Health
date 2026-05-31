@@ -11,6 +11,7 @@ import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.damagestate.TintCalculator;
 import win.demistorm.visual_health.client.renderer.WoundAssetSelector;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +26,18 @@ public class WoundTextureGenerator {
 
     private static final Map<String, ResourceLocation> TEXTURE_CACHE = new ConcurrentHashMap<>();
     private static final Map<String, NativeImage> IMAGE_CACHE = new ConcurrentHashMap<>();
+
+    private static NativeImage copyNativeImage(NativeImage source) {
+        int w = source.getWidth();
+        int h = source.getHeight();
+        NativeImage copy = new NativeImage(w, h, true);
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                copy.setPixelRGBA(x, y, source.getPixelRGBA(x, y));
+            }
+        }
+        return copy;
+    }
 
     private static final int BASE_TEXTURE_SIZE = 64;
     private static final float GENERIC_WOUND_MIN_OPACITY = 0.30f;
@@ -109,6 +122,24 @@ public class WoundTextureGenerator {
             if (transparent == null) transparent = false;
         }
 
+        @Nullable
+        private NativeImage findPreviousTierCopy(int w, int h) {
+            if (damageTier <= 1 || damageTypes.length <= 1) return null;
+
+            DamageType[] prevTypes = Arrays.copyOf(damageTypes, damageTypes.length - 1);
+            String prevKey = WoundTextureGenerator.buildCacheKey(
+                    category, ownerId, texture, damageTier - 1, prevTypes, transparent);
+
+            NativeImage prevImage = IMAGE_CACHE.get(prevKey);
+            if (prevImage == null || prevImage.getWidth() != w || prevImage.getHeight() != h) {
+                return null;
+            }
+
+            VisualHealth.LOGGER.debug("Incremental tier stamping for {} tier {} (reusing tier {})",
+                    ownerId, damageTier, damageTier - 1);
+            return copyNativeImage(prevImage);
+        }
+
         private ResourceLocation generateComposited(String cacheKey, String dynamicPath) {
             NativeImage baseImage = SkinTextureReader.readTexture(texture);
             if (baseImage == null) {
@@ -118,20 +149,29 @@ public class WoundTextureGenerator {
 
             int w = baseImage.getWidth();
             int h = baseImage.getHeight();
-
-            NativeImage canvas = new NativeImage(w, h, true);
-            for (int y = 0; y < h; y++) {
-                for (int x = 0; x < w; x++) {
-                    canvas.setPixelRGBA(x, y, baseImage.getPixelRGBA(x, y));
-                }
-            }
-
             boolean[][] alphaMask = getOrGenerateAlphaMask(texture);
+
+            NativeImage incrementalCanvas = findPreviousTierCopy(w, h);
+            NativeImage canvas;
+            int startTier;
+
+            if (incrementalCanvas != null) {
+                canvas = incrementalCanvas;
+                startTier = damageTypes.length - 1;
+            } else {
+                canvas = new NativeImage(w, h, true);
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        canvas.setPixelRGBA(x, y, baseImage.getPixelRGBA(x, y));
+                    }
+                }
+                startTier = 0;
+            }
 
             try {
                 return stampAndRegister(canvas, w, h, alphaMask, baseImage,
                         seed, damageTypes, tintProvider, stampFilter,
-                        densityMultiplier, cacheKey, dynamicPath);
+                        densityMultiplier, cacheKey, dynamicPath, startTier);
             } finally {
                 baseImage.close();
             }
@@ -142,18 +182,28 @@ public class WoundTextureGenerator {
             int w = texSize != null ? texSize.width() : 64;
             int h = texSize != null ? texSize.height() : 64;
 
-            NativeImage canvas = new NativeImage(w, h, true);
-            for (int y = 0; y < h; y++) {
-                for (int x = 0; x < w; x++) {
-                    canvas.setPixelRGBA(x, y, 0x00000000);
-                }
-            }
-
             boolean[][] alphaMask = texture != null ? getOrGenerateAlphaMask(texture) : null;
+
+            NativeImage incrementalCanvas = findPreviousTierCopy(w, h);
+            NativeImage canvas;
+            int startTier;
+
+            if (incrementalCanvas != null) {
+                canvas = incrementalCanvas;
+                startTier = damageTypes.length - 1;
+            } else {
+                canvas = new NativeImage(w, h, true);
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        canvas.setPixelRGBA(x, y, 0x00000000);
+                    }
+                }
+                startTier = 0;
+            }
 
             return stampAndRegister(canvas, w, h, alphaMask, null,
                     seed, damageTypes, tintProvider, stampFilter,
-                    densityMultiplier, cacheKey, dynamicPath);
+                    densityMultiplier, cacheKey, dynamicPath, startTier);
         }
     }
 
@@ -203,7 +253,8 @@ public class WoundTextureGenerator {
             Predicate<DamageType> stampFilter,
             float densityMultiplier,
             String cacheKey,
-            String dynamicTexturePath) {
+            String dynamicTexturePath,
+            int startTier) {
 
         int maxTiers = ConfigHelper.INSTANCE.damageTierCount;
         double areaScale = (width * height) / (double) (BASE_TEXTURE_SIZE * BASE_TEXTURE_SIZE);
@@ -217,7 +268,7 @@ public class WoundTextureGenerator {
         var resourceManager = Minecraft.getInstance().getResourceManager();
         int woundIndex = 0;
 
-        for (int tier = 0; tier < damageTypes.length; tier++) {
+        for (int tier = startTier; tier < damageTypes.length; tier++) {
             DamageType damageType = damageTypes[tier];
 
             if (!stampFilter.test(damageType)) {
