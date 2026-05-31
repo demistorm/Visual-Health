@@ -112,7 +112,7 @@ public class WoundTextureGenerator {
         private ResourceLocation generateComposited(String cacheKey, String dynamicPath) {
             NativeImage baseImage = SkinTextureReader.readTexture(texture);
             if (baseImage == null) {
-                VisualHealth.LOGGER.error("Failed to load base texture {} for compositing", texture);
+                VisualHealth.LOGGER.debug("Failed to load base texture {} for compositing", texture);
                 return null;
             }
 

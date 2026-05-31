@@ -12,6 +12,7 @@ import win.demistorm.visual_health.VisualHealth;
 
 import java.io.FileInputStream;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class SkinTextureReader {
@@ -20,10 +21,27 @@ public final class SkinTextureReader {
     }
 
     private static final Map<ResourceLocation, NativeImage> CACHE = new ConcurrentHashMap<>();
+    private static final int RETRY_DELAY_TICKS = 20;
+    private static final Map<ResourceLocation, Long> RETRY_SCHEDULE = new ConcurrentHashMap<>();
+    private static final Set<ResourceLocation> RETRY_FAILED = ConcurrentHashMap.newKeySet();
+
+    private static long currentGameTick() {
+        var level = Minecraft.getInstance().level;
+        return level != null ? level.getGameTime() : 0L;
+    }
 
     public static boolean canRead(ResourceLocation textureId) {
         if (CACHE.containsKey(textureId)) {
             return true;
+        }
+
+        if (RETRY_FAILED.contains(textureId)) {
+            return false;
+        }
+
+        Long retryAt = RETRY_SCHEDULE.get(textureId);
+        if (retryAt != null && currentGameTick() < retryAt) {
+            return false;
         }
 
         try {
@@ -58,13 +76,35 @@ public final class SkinTextureReader {
             }
         }
 
+        if (RETRY_FAILED.contains(textureId)) {
+            return null;
+        }
+
+        Long retryAt = RETRY_SCHEDULE.get(textureId);
+        if (retryAt != null && currentGameTick() < retryAt) {
+            return null;
+        }
+
         NativeImage image = loadTexture(textureId);
         if (image != null) {
+            RETRY_SCHEDULE.remove(textureId);
             CACHE.put(textureId, copyImage(image));
             return image;
         }
 
+        handleLoadFailure(textureId);
         return null;
+    }
+
+    private static void handleLoadFailure(ResourceLocation textureId) {
+        if (RETRY_SCHEDULE.containsKey(textureId)) {
+            VisualHealth.LOGGER.warn("Could not load texture {}, giving up after retry", textureId);
+            RETRY_SCHEDULE.remove(textureId);
+            RETRY_FAILED.add(textureId);
+        } else {
+            VisualHealth.LOGGER.warn("Could not load texture {}, will retry in {} ticks", textureId, RETRY_DELAY_TICKS);
+            RETRY_SCHEDULE.put(textureId, currentGameTick() + RETRY_DELAY_TICKS);
+        }
     }
 
     private static NativeImage loadTexture(ResourceLocation textureId) {
@@ -82,7 +122,6 @@ public final class SkinTextureReader {
         AbstractTexture tex = tm.getTexture(textureId, null);
 
         if (tex == null) {
-            VisualHealth.LOGGER.warn("Could not load texture {} (not registered)", textureId);
             return null;
         }
 
@@ -112,7 +151,6 @@ public final class SkinTextureReader {
             }
         }
 
-        VisualHealth.LOGGER.debug("Could not load texture {} from resource pack or disk cache", textureId);
         return null;
     }
 
@@ -129,13 +167,19 @@ public final class SkinTextureReader {
     }
 
     public static void clearCache() {
-        int size = CACHE.size();
+        int cacheSize = CACHE.size();
         for (NativeImage image : CACHE.values()) {
             try { image.close(); } catch (Exception ignored) {}
         }
         CACHE.clear();
-        if (size > 0) {
-            VisualHealth.LOGGER.info("Cleared {} skin texture cache entries", size);
+
+        int failedSize = RETRY_FAILED.size();
+        RETRY_SCHEDULE.clear();
+        RETRY_FAILED.clear();
+
+        if (cacheSize > 0 || failedSize > 0) {
+            VisualHealth.LOGGER.info("Cleared {} skin texture cache entries, {} retry failed textures",
+                    cacheSize, failedSize);
         }
     }
 }
