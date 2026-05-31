@@ -292,12 +292,13 @@ public class WoundTextureGenerator {
             }
         }
 
+        var textureManager = Minecraft.getInstance().getTextureManager();
         int cleared = 0;
         for (String key : keysToRemove) {
-            TEXTURE_CACHE.remove(key);
-            NativeImage img = IMAGE_CACHE.remove(key);
-            if (img != null) {
-                try { img.close(); } catch (Exception ignored) {}
+            ResourceLocation loc = TEXTURE_CACHE.remove(key);
+            IMAGE_CACHE.remove(key);
+            if (loc != null) {
+                try { textureManager.release(loc); } catch (Exception ignored) {}
             }
             cleared++;
         }
@@ -328,8 +329,9 @@ public class WoundTextureGenerator {
     public static void clearAllCaches() {
         int cacheSize = TEXTURE_CACHE.size();
 
-        for (NativeImage image : IMAGE_CACHE.values()) {
-            try { image.close(); } catch (Exception ignored) {}
+        var textureManager = Minecraft.getInstance().getTextureManager();
+        for (ResourceLocation loc : TEXTURE_CACHE.values()) {
+            try { textureManager.release(loc); } catch (Exception ignored) {}
         }
 
         TEXTURE_CACHE.clear();
@@ -344,6 +346,12 @@ public class WoundTextureGenerator {
 
     public static void clearTextureCaches() {
         int cacheSize = TEXTURE_CACHE.size();
+
+        var textureManager = Minecraft.getInstance().getTextureManager();
+        for (ResourceLocation loc : TEXTURE_CACHE.values()) {
+            try { textureManager.release(loc); } catch (Exception ignored) {}
+        }
+
         TEXTURE_CACHE.clear();
         IMAGE_CACHE.clear();
 
