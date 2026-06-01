@@ -1,5 +1,6 @@
 package win.demistorm.visual_health.client.renderer;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -7,8 +8,8 @@ import net.minecraft.server.packs.resources.Resource;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -22,6 +23,7 @@ public class WoundAssetSelector {
     private static final String TEXTURE_FOLDER = "damage";
 
     private static final Map<DamageType, List<ResourceLocation>> woundTextures = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, NativeImage> assetImageCache = new ConcurrentHashMap<>();
     private static boolean texturesLoaded = false;
 
     public static synchronized void loadTextures() {
@@ -85,6 +87,32 @@ public class WoundAssetSelector {
         return texture;
     }
 
+    public static NativeImage getCachedWoundAsset(ResourceLocation assetId) {
+        NativeImage cached = assetImageCache.get(assetId);
+        if (cached != null) {
+            return copyAsset(cached);
+        }
+
+        try (var resource = Minecraft.getInstance().getResourceManager().open(assetId)) {
+            NativeImage image = NativeImage.read(resource);
+            assetImageCache.put(assetId, image);
+            return copyAsset(image);
+        } catch (IOException e) {
+            VisualHealth.LOGGER.error("Failed to load wound asset {}: {}", assetId, e.getMessage());
+            return null;
+        }
+    }
+
+    private static NativeImage copyAsset(NativeImage source) {
+        NativeImage copy = new NativeImage(source.getWidth(), source.getHeight(), true);
+        for (int y = 0; y < source.getHeight(); y++) {
+            for (int x = 0; x < source.getWidth(); x++) {
+                copy.setPixelRGBA(x, y, source.getPixelRGBA(x, y));
+            }
+        }
+        return copy;
+    }
+
     // Fallback texture if none found
     private static ResourceLocation getFallbackTexture() {
         return ResourceLocation.fromNamespaceAndPath(MODID, "damage/generic/generic1.png");
@@ -92,7 +120,13 @@ public class WoundAssetSelector {
 
     // Clean up on resource reload
     public static void cleanup() {
-        VisualHealth.LOGGER.info("Cleaning up wound texture identifiers");
+        VisualHealth.LOGGER.info("Cleaning up wound texture identifiers and asset cache");
+
+        for (NativeImage image : assetImageCache.values()) {
+            try { image.close(); } catch (Exception ignored) {}
+        }
+        assetImageCache.clear();
+
         texturesLoaded = false;
         woundTextures.clear();
     }

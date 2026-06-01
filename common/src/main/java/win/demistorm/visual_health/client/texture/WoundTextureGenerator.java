@@ -265,7 +265,6 @@ public class WoundTextureGenerator {
         VisualHealth.LOGGER.debug("Stamping {}x{} texture ({} tiers, {} wounds/tier, area scale: {})",
                 width, height, damageTypes.length, woundsPerTier, String.format("%.2f", areaScale));
 
-        var resourceManager = Minecraft.getInstance().getResourceManager();
         int woundIndex = 0;
 
         for (int tier = startTier; tier < damageTypes.length; tier++) {
@@ -289,12 +288,11 @@ public class WoundTextureGenerator {
                 try {
                     ResourceLocation woundAssetId = WoundAssetSelector.getRandomWoundTexture(damageType, tierRandom);
 
-                    NativeImage woundAsset;
-                    try (var resource = resourceManager.open(woundAssetId)) {
-                        woundAsset = NativeImage.read(resource);
-                    }
+                    NativeImage woundAsset = WoundAssetSelector.getCachedWoundAsset(woundAssetId);
+                    if (woundAsset == null) continue;
 
                     NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
+                    woundAsset.close();
 
                     int[] position = WoundTextureUtils.getFuzzyGridPosition(width, height,
                             tintedWound.getWidth(), tintedWound.getHeight(),
@@ -307,7 +305,6 @@ public class WoundTextureGenerator {
                             ++woundIndex, tier + 1, damageType, String.format("%.0f%%", opacity * 100), position[0], position[1]);
 
                     tintedWound.close();
-                    woundAsset.close();
 
                 } catch (Exception e) {
                     VisualHealth.LOGGER.error("Failed to load or stamp wound texture: {}", e.getMessage(), e);
