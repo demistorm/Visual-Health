@@ -15,6 +15,7 @@ public class AlphaMaskCache {
 
     private static final Map<ResourceLocation, boolean[][]> ALPHA_CACHE = new ConcurrentHashMap<>();
     private static final Map<ResourceLocation, TextureSize> DIMENSION_CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, boolean[]> CELL_GRID_CACHE = new ConcurrentHashMap<>();
 
     public static TextureSize getOrGenerateTextureSize(ResourceLocation textureId) {
         if (DIMENSION_CACHE.containsKey(textureId)) {
@@ -84,6 +85,54 @@ public class AlphaMaskCache {
         }
     }
 
+    @Nullable
+    public static boolean[] getOrGenerateCellGrid(ResourceLocation textureId) {
+        boolean[] cached = CELL_GRID_CACHE.get(textureId);
+        if (cached != null) {
+            return cached;
+        }
+
+        boolean[] cellGrid = generateCellGrid(textureId);
+        if (cellGrid != null) {
+            CELL_GRID_CACHE.put(textureId, cellGrid);
+        }
+        return cellGrid;
+    }
+
+    @Nullable
+    private static boolean[] generateCellGrid(ResourceLocation textureId) {
+        boolean[][] alphaMask = getOrGenerateAlphaMask(textureId);
+        if (alphaMask == null) return null;
+
+        int width = alphaMask.length;
+        int height = alphaMask[0].length;
+        int gridCols = width / 8;
+        int gridRows = height / 8;
+        boolean[] cellGrid = new boolean[gridRows * gridCols];
+
+        for (int cellRow = 0; cellRow < gridRows; cellRow++) {
+            for (int cellCol = 0; cellCol < gridCols; cellCol++) {
+                int cellX = cellCol * 8;
+                int cellY = cellRow * 8;
+                boolean opaque = false;
+
+                for (int dy = 0; dy < 8 && !opaque; dy++) {
+                    for (int dx = 0; dx < 8 && !opaque; dx++) {
+                        int px = cellX + dx;
+                        int py = cellY + dy;
+                        if (px < width && py < height && alphaMask[px][py]) {
+                            opaque = true;
+                        }
+                    }
+                }
+
+                cellGrid[cellRow * gridCols + cellCol] = opaque;
+            }
+        }
+
+        return cellGrid;
+    }
+
     public static void applyAlphaMaskToTexture(NativeImage woundTexture, boolean[][] alphaMask, @Nullable NativeImage originalImage) {
         int width = woundTexture.getWidth();
         int height = woundTexture.getHeight();
@@ -113,13 +162,15 @@ public class AlphaMaskCache {
     public static void clearAllCaches() {
         int alphaCacheSize = ALPHA_CACHE.size();
         int dimensionCacheSize = DIMENSION_CACHE.size();
+        int cellGridCacheSize = CELL_GRID_CACHE.size();
         ALPHA_CACHE.clear();
         DIMENSION_CACHE.clear();
+        CELL_GRID_CACHE.clear();
         SkinTextureReader.clearCache();
 
-        if (alphaCacheSize > 0 || dimensionCacheSize > 0) {
-            VisualHealth.LOGGER.info("Cleared {} alpha mask and {} dimension cache entries on resource reload",
-                    alphaCacheSize, dimensionCacheSize);
+        if (alphaCacheSize > 0 || dimensionCacheSize > 0 || cellGridCacheSize > 0) {
+            VisualHealth.LOGGER.info("Cleared {} alpha mask, {} dimension, and {} cell grid cache entries on resource reload",
+                    alphaCacheSize, dimensionCacheSize, cellGridCacheSize);
         }
     }
 }
