@@ -90,27 +90,17 @@ public class WoundAssetSelector {
     public static NativeImage getCachedWoundAsset(ResourceLocation assetId) {
         NativeImage cached = assetImageCache.get(assetId);
         if (cached != null) {
-            return copyAsset(cached);
+            return cached;
         }
 
         try (var resource = Minecraft.getInstance().getResourceManager().open(assetId)) {
             NativeImage image = NativeImage.read(resource);
             assetImageCache.put(assetId, image);
-            return copyAsset(image);
+            return image;
         } catch (IOException e) {
             VisualHealth.LOGGER.error("Failed to load wound asset {}: {}", assetId, e.getMessage());
             return null;
         }
-    }
-
-    private static NativeImage copyAsset(NativeImage source) {
-        NativeImage copy = new NativeImage(source.getWidth(), source.getHeight(), true);
-        for (int y = 0; y < source.getHeight(); y++) {
-            for (int x = 0; x < source.getWidth(); x++) {
-                copy.setPixelRGBA(x, y, source.getPixelRGBA(x, y));
-            }
-        }
-        return copy;
     }
 
     // Fallback texture if none found

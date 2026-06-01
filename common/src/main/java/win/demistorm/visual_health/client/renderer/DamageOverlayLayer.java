@@ -145,7 +145,7 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
             RenderType renderType = RenderType.entityTranslucent(woundTexture);
 
             VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
-            model.renderToBuffer(poseStack, vertexConsumer, packedLight, overlay);
+            model.renderToBuffer(poseStack, vertexConsumer, packedLight, overlay,1.0f, 1.0f, 1.0f, 1.0f);
 
             poseStack.popPose();
 

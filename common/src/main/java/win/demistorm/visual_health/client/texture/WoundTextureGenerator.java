@@ -150,6 +150,7 @@ public class WoundTextureGenerator {
             int w = baseImage.getWidth();
             int h = baseImage.getHeight();
             boolean[][] alphaMask = getOrGenerateAlphaMask(texture);
+            boolean[] cellGrid = AlphaMaskCache.getOrGenerateCellGrid(texture);
 
             NativeImage incrementalCanvas = findPreviousTierCopy(w, h);
             NativeImage canvas;
@@ -169,7 +170,7 @@ public class WoundTextureGenerator {
             }
 
             try {
-                return stampAndRegister(canvas, w, h, alphaMask, baseImage,
+                return stampAndRegister(canvas, w, h, alphaMask, cellGrid, baseImage,
                         seed, damageTypes, tintProvider, stampFilter,
                         densityMultiplier, cacheKey, dynamicPath, startTier);
             } finally {
@@ -183,6 +184,7 @@ public class WoundTextureGenerator {
             int h = texSize != null ? texSize.height() : 64;
 
             boolean[][] alphaMask = texture != null ? getOrGenerateAlphaMask(texture) : null;
+            boolean[] cellGrid = texture != null ? AlphaMaskCache.getOrGenerateCellGrid(texture) : null;
 
             NativeImage incrementalCanvas = findPreviousTierCopy(w, h);
             NativeImage canvas;
@@ -201,7 +203,7 @@ public class WoundTextureGenerator {
                 startTier = 0;
             }
 
-            return stampAndRegister(canvas, w, h, alphaMask, null,
+            return stampAndRegister(canvas, w, h, alphaMask, cellGrid, null,
                     seed, damageTypes, tintProvider, stampFilter,
                     densityMultiplier, cacheKey, dynamicPath, startTier);
         }
@@ -246,6 +248,7 @@ public class WoundTextureGenerator {
             NativeImage canvas,
             int width, int height,
             boolean[][] alphaMask,
+            boolean[] cellGrid,
             NativeImage originalImage,
             long seed,
             DamageType[] damageTypes,
@@ -261,6 +264,7 @@ public class WoundTextureGenerator {
         int densityPercent = ConfigHelper.INSTANCE.woundDensityPercentage;
         int baseWoundsPerTier = (densityPercent * 115) / 100;
         int woundsPerTier = (int) (baseWoundsPerTier * areaScale * 5.0 / maxTiers * densityMultiplier);
+        int gridCols = width / 8;
 
         VisualHealth.LOGGER.debug("Stamping {}x{} texture ({} tiers, {} wounds/tier, area scale: {})",
                 width, height, damageTypes.length, woundsPerTier, String.format("%.2f", areaScale));
@@ -291,23 +295,25 @@ public class WoundTextureGenerator {
                     NativeImage woundAsset = WoundAssetSelector.getCachedWoundAsset(woundAssetId);
                     if (woundAsset == null) continue;
 
-                    NativeImage tintedWound = TintUtils.applyTint(woundAsset, woundTint);
-                    woundAsset.close();
-
                     int[] position = WoundTextureUtils.getFuzzyGridPosition(width, height,
-                            tintedWound.getWidth(), tintedWound.getHeight(),
+                            woundAsset.getWidth(), woundAsset.getHeight(),
                             tierCells, i, tierRandom);
 
+                    if (cellGrid != null && !WoundTextureUtils.isWoundVisible(
+                            cellGrid, gridCols, position[0], position[1],
+                            woundAsset.getWidth(), woundAsset.getHeight())) {
+                        continue;
+                    }
+
                     float opacity = getWoundOpacity(damageType, tierRandom);
-                    WoundTextureUtils.stampTexture(canvas, tintedWound, position[0], position[1], opacity);
+                    WoundTextureUtils.stampTexture(canvas, woundAsset, woundTint,
+                            position[0], position[1], opacity);
 
                     VisualHealth.LOGGER.debug("Stamped wound {} (tier {}, {}, opacity: {}) at ({}, {})",
                             ++woundIndex, tier + 1, damageType, String.format("%.0f%%", opacity * 100), position[0], position[1]);
 
-                    tintedWound.close();
-
                 } catch (Exception e) {
-                    VisualHealth.LOGGER.error("Failed to load or stamp wound texture: {}", e.getMessage(), e);
+                    VisualHealth.LOGGER.error("Failed to stamp wound texture: {}", e.getMessage(), e);
                 }
             }
         }
