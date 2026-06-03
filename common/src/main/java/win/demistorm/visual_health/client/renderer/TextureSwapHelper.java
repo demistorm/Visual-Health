@@ -73,7 +73,17 @@ public final class TextureSwapHelper {
         if (path.contains("particle")) return true;
         if (path.contains("/environment/") || path.contains("/misc/")) return true;
 
-        return texture.getNamespace().equals("visualhealth")
-                && (path.startsWith("dynamic/") || path.startsWith("damage/"));
+        if (path.startsWith("textures/atlas/")) return true;
+        if (path.startsWith("textures/cosmetics/")) return true;
+        if (path.startsWith("masked_skins/")) return true;
+        if (path.startsWith("default/")) return true;
+        if (texture.getNamespace().equals("epicfight") && path.contains("/gui/")) return true;
+
+        if (texture.getNamespace().equals("visualhealth")
+                && (path.startsWith("dynamic/") || path.startsWith("damage/"))) {
+            return true;
+        }
+
+        return false;
     }
 }

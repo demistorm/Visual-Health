@@ -16,6 +16,7 @@ import win.demistorm.visual_health.client.compat.PhysicsModBridge;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.entitymappings.DamageType;
 import win.demistorm.visual_health.client.entitymappings.EntityDamageColors;
+import win.demistorm.visual_health.client.texture.SkinTextureReader;
 import win.demistorm.visual_health.client.texture.TextureLocator;
 import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 
@@ -45,15 +46,39 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         if (!DamageRenderCheck.shouldRender(entity, DamageRenderCheck.ALL)) return;
 
         EntityDamageColors.DamageOverride override = EntityDamageColors.getOverride(entity.getType());
-        if (override == null || !override.isEmissive()) return;
 
         int damageTier = EntityHealthTracker.getDamageTier(entity.getId());
-        if (damageTier == 0) return;
-
-        if (!EntityHealthTracker.hasWeaponTiers(entity.getId(), damageTier)) return;
+        if (damageTier == 0) {
+            return;
+        }
 
         M model = getParentModel();
 
+        // Emissive damage rendering
+        if (override != null && override.isEmissive()) {
+            if (EntityHealthTracker.hasWeaponTiers(entity.getId(), damageTier)) {
+                renderEmissiveOverlay(poseStack, submitNodeCollector, entityRenderState, entity, model, damageTier);
+            }
+            return;
+        }
+
+        // Fallback rendering when texture can't be read
+        ResourceLocation baseTexture = TextureLocator.getEntityTexture(entity);
+        if (baseTexture == null) {
+            return;
+        }
+
+        if (SkinTextureReader.canRead(baseTexture) && !TextureSwapHelper.shouldSkipTexture(baseTexture)) {
+            return;
+        }
+
+        renderFallbackOverlay(poseStack, submitNodeCollector, packedLight, entityRenderState,
+                entity, model, damageTier, baseTexture);
+    }
+
+    private void renderEmissiveOverlay(PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
+                                       S entityRenderState,
+                                       net.minecraft.world.entity.LivingEntity entity, M model, int damageTier) {
         try {
             Identifier baseTexture = TextureLocator.getEntityTexture(entity);
             if (baseTexture == null) return;
@@ -89,6 +114,44 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
         } catch (Exception e) {
             VisualHealth.LOGGER.error("Failed to render emissive overlay for {}: {}",
+                    entity.getName().getString(), e.getMessage());
+        }
+    }
+
+    private void renderFallbackOverlay(PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
+                                       int packedLight, S entityRenderState,
+                                       net.minecraft.world.entity.LivingEntity entity, M model,
+                                       int damageTier, ResourceLocation baseTexture) {
+        try {
+            ResourceLocation woundTexture = WoundTextureGenerator.builder()
+                    .category("fallback")
+                    .entity(entity)
+                    .damageTier(damageTier)
+                    .texture(baseTexture)
+                    .transparent()
+                    .generate();
+
+            if (woundTexture == null) {
+                woundTexture = FALLBACK_TEXTURE;
+            }
+
+            int overlay = net.minecraft.client.renderer.entity.LivingEntityRenderer
+                    .getOverlayCoords(entityRenderState, 0.0f);
+
+            poseStack.pushPose();
+
+            RenderType renderType = RenderType.entityTranslucent(woundTexture);
+
+            submitNodeCollector.order(0).submitModel(model, entityRenderState, poseStack, renderType,
+                    packedLight, overlay, -1, null, 0, null);
+
+            poseStack.popPose();
+
+            VisualHealth.LOGGER.debug("Rendered fallback damage overlay for {} (ID: {}) at tier {}",
+                    entity.getName().getString(), entity.getId(), damageTier);
+
+        } catch (Exception e) {
+            VisualHealth.LOGGER.error("Failed to render fallback overlay for {}: {}",
                     entity.getName().getString(), e.getMessage());
         }
     }

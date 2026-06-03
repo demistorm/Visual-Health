@@ -57,23 +57,32 @@ public final class WoundTextureUtils {
         return new int[]{x, y};
     }
 
-    public static void stampTexture(NativeImage baseTexture, NativeImage stamp, int posX, int posY) {
-        stampTexture(baseTexture, stamp, posX, posY, 1.0f);
-    }
+    public static void stampTexture(NativeImage canvas, NativeImage woundAsset, int tint,
+                                    int posX, int posY, float opacity) {
+        int tintR = (tint >> 16) & 0xFF;
+        int tintG = (tint >> 8) & 0xFF;
+        int tintB = tint & 0xFF;
 
-    public static void stampTexture(NativeImage baseTexture, NativeImage stamp, int posX, int posY, float opacity) {
-        for (int y = 0; y < stamp.getHeight(); y++) {
-            for (int x = 0; x < stamp.getWidth(); x++) {
-                if (posX + x >= baseTexture.getWidth() || posY + y >= baseTexture.getHeight()) {
+        for (int y = 0; y < woundAsset.getHeight(); y++) {
+            for (int x = 0; x < woundAsset.getWidth(); x++) {
+                if (posX + x >= canvas.getWidth() || posY + y >= canvas.getHeight()) {
                     continue;
                 }
 
-                int stampPixel = stamp.getPixel(x, y);
+                int stampPixel = woundAsset.getPixel(x, y);
                 int stampAlpha = (stampPixel >> 24) & 0xFF;
 
                 if (stampAlpha == 0) {
                     continue;
                 }
+
+                int r = (stampPixel >> 16) & 0xFF;
+                int g = (stampPixel >> 8) & 0xFF;
+                int b = stampPixel & 0xFF;
+
+                int tintedR = (r * tintR) / 255;
+                int tintedG = (g * tintG) / 255;
+                int tintedB = (b * tintB) / 255;
 
                 int effectiveAlpha = Math.min(255, (int)(stampAlpha * opacity));
                 if (effectiveAlpha == 0) {
@@ -82,24 +91,46 @@ public final class WoundTextureUtils {
 
                 int baseX = posX + x;
                 int baseY = posY + y;
-                int basePixel = baseTexture.getPixel(baseX, baseY);
+                int basePixel = canvas.getPixel(baseX, baseY);
                 int baseAlpha = (basePixel >> 24) & 0xFF;
 
                 if (baseAlpha == 0) {
-                    int adjustedPixel = (effectiveAlpha << 24) | (stampPixel & 0x00FFFFFF);
-                    baseTexture.setPixel(baseX, baseY, adjustedPixel);
+                    int adjustedPixel = (effectiveAlpha << 24) | (tintedR << 16) | (tintedG << 8) | tintedB;
+                    canvas.setPixel(baseX, baseY, adjustedPixel);
                 } else {
+                    int baseR = (basePixel >> 16) & 0xFF;
+                    int baseG = (basePixel >> 8) & 0xFF;
+                    int baseB = basePixel & 0xFF;
+
                     float alphaRatio = effectiveAlpha / 255.0f;
-                    int blendedR = blendChannel((basePixel >> 16) & 0xFF, (stampPixel >> 16) & 0xFF, alphaRatio);
-                    int blendedG = blendChannel((basePixel >> 8) & 0xFF, (stampPixel >> 8) & 0xFF, alphaRatio);
-                    int blendedB = blendChannel(basePixel & 0xFF, stampPixel & 0xFF, alphaRatio);
+                    int blendedR = blendChannel(baseR, tintedR, alphaRatio);
+                    int blendedG = blendChannel(baseG, tintedG, alphaRatio);
+                    int blendedB = blendChannel(baseB, tintedB, alphaRatio);
                     int blendedA = Math.min(255, baseAlpha + effectiveAlpha);
 
                     int blendedPixel = (blendedA << 24) | (blendedR << 16) | (blendedG << 8) | blendedB;
-                    baseTexture.setPixel(baseX, baseY, blendedPixel);
+                    canvas.setPixel(baseX, baseY, blendedPixel);
                 }
             }
         }
+    }
+
+    public static boolean isWoundVisible(boolean[] cellGrid, int gridCols,
+                                         int posX, int posY, int woundWidth, int woundHeight) {
+        int cellX1 = posX / 8;
+        int cellY1 = posY / 8;
+        int cellX2 = (posX + woundWidth - 1) / 8;
+        int cellY2 = (posY + woundHeight - 1) / 8;
+
+        for (int cy = cellY1; cy <= cellY2; cy++) {
+            for (int cx = cellX1; cx <= cellX2; cx++) {
+                if (cellGrid[cy * gridCols + cx]) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static int blendChannel(int base, int stamp, float alphaRatio) {
