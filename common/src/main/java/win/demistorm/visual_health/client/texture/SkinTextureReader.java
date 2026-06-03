@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class SkinTextureReader {
@@ -19,7 +20,63 @@ public final class SkinTextureReader {
     private SkinTextureReader() {
     }
 
-    private static final Map<Identifier, NativeImage> CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, NativeImage> CACHE = new ConcurrentHashMap<>();
+    private static final int RETRY_DELAY_TICKS = 20;
+    private static final Map<ResourceLocation, Long> RETRY_SCHEDULE = new ConcurrentHashMap<>();
+    private static final Set<ResourceLocation> RETRY_FAILED = ConcurrentHashMap.newKeySet();
+
+    private static long currentGameTick() {
+        var level = Minecraft.getInstance().level;
+        return level != null ? level.getGameTime() : 0L;
+    }
+
+    public static boolean canRead(ResourceLocation textureId) {
+        if (CACHE.containsKey(textureId)) {
+            return true;
+        }
+
+        if (RETRY_FAILED.contains(textureId)) {
+            return false;
+        }
+
+        Long retryAt = RETRY_SCHEDULE.get(textureId);
+        if (retryAt != null && currentGameTick() < retryAt) {
+            return false;
+        }
+
+        try {
+            ResourceManager rm = Minecraft.getInstance().getResourceManager();
+            rm.open(textureId).close();
+            return true;
+        } catch (Exception ignored) {
+        }
+
+        String path = textureId.getPath();
+        if (path.startsWith("skins/")) {
+            String hash = path.substring("skins/".length());
+            if (hash.length() > 2) {
+                Path skinFile = Minecraft.getInstance().gameDirectory.toPath()
+                        .resolve("skins")
+                        .resolve(hash.substring(0, 2))
+                        .resolve(hash);
+                if (Files.isRegularFile(skinFile)) {
+                    return true;
+                }
+            }
+        }
+
+        if (!textureId.getNamespace().equals("visualhealth")) {
+            try {
+                AbstractTexture tex = Minecraft.getInstance().getTextureManager().getTexture(textureId);
+                if (tex instanceof DynamicTexture dynamicTexture && dynamicTexture.getPixels() != null) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        return false;
+    }
 
     public static NativeImage readTexture(Identifier textureId) {
         if (CACHE.containsKey(textureId)) {
@@ -29,17 +86,38 @@ public final class SkinTextureReader {
             }
         }
 
+        if (RETRY_FAILED.contains(textureId)) {
+            return null;
+        }
+
+        Long retryAt = RETRY_SCHEDULE.get(textureId);
+        if (retryAt != null && currentGameTick() < retryAt) {
+            return null;
+        }
+
         NativeImage image = loadTexture(textureId);
         if (image != null) {
+            RETRY_SCHEDULE.remove(textureId);
             CACHE.put(textureId, copyImage(image));
             return image;
         }
 
+        handleLoadFailure(textureId);
         return null;
     }
 
-    private static NativeImage loadTexture(Identifier textureId) {
-        // Try resource manager first (mob textures, default skins)
+    private static void handleLoadFailure(ResourceLocation textureId) {
+        if (RETRY_SCHEDULE.containsKey(textureId)) {
+            VisualHealth.LOGGER.warn("Could not load texture {}, giving up after retry", textureId);
+            RETRY_SCHEDULE.remove(textureId);
+            RETRY_FAILED.add(textureId);
+        } else {
+            VisualHealth.LOGGER.warn("Could not load texture {}, will retry in {} ticks", textureId, RETRY_DELAY_TICKS);
+            RETRY_SCHEDULE.put(textureId, currentGameTick() + RETRY_DELAY_TICKS);
+        }
+    }
+
+    private static NativeImage loadTexture(ResourceLocation textureId) {
         try {
             ResourceManager rm = Minecraft.getInstance().getResourceManager();
             try (var resource = rm.open(textureId)) {
@@ -48,19 +126,19 @@ public final class SkinTextureReader {
         } catch (Exception ignored) {
         }
 
-        // Try DynamicTexture in-memory pixels (downloaded player skins)
         try {
             AbstractTexture tex = Minecraft.getInstance().getTextureManager().getTexture(textureId);
             if (tex instanceof DynamicTexture dynamicTexture) {
                 NativeImage pixels = dynamicTexture.getPixels();
                 if (pixels != null) {
+                    VisualHealth.LOGGER.debug("Read texture from DynamicTexture: {} ({}x{})",
+                            textureId, pixels.getWidth(), pixels.getHeight());
                     return copyImage(pixels);
                 }
             }
         } catch (Exception ignored) {
         }
 
-        // Fallback: reconstruct disk cache path for downloaded skins
         try {
             String path = textureId.getPath();
             if (path.startsWith("skins/")) {
@@ -85,7 +163,6 @@ public final class SkinTextureReader {
                     textureId, e.getMessage());
         }
 
-        VisualHealth.LOGGER.warn("Could not load texture {} from resource pack, DynamicTexture, or disk cache", textureId);
         return null;
     }
 
@@ -102,13 +179,19 @@ public final class SkinTextureReader {
     }
 
     public static void clearCache() {
-        int size = CACHE.size();
+        int cacheSize = CACHE.size();
         for (NativeImage image : CACHE.values()) {
             try { image.close(); } catch (Exception ignored) {}
         }
         CACHE.clear();
-        if (size > 0) {
-            VisualHealth.LOGGER.info("Cleared {} skin texture cache entries", size);
+
+        int failedSize = RETRY_FAILED.size();
+        RETRY_SCHEDULE.clear();
+        RETRY_FAILED.clear();
+
+        if (cacheSize > 0 || failedSize > 0) {
+            VisualHealth.LOGGER.info("Cleared {} skin texture cache entries, {} retry failed textures",
+                    cacheSize, failedSize);
         }
     }
 }
