@@ -1,3 +1,10 @@
+## Version 2.0.1
+- Should fix most cases of log spam
+- Added back the v1 RenderLayer mode as fallback for unreadable base textures (some textures get modified by
+things like Essential Mod)
+- Improved caching and texture stamping for significant performance gains on larger entities
+- No longer applies damage to Epic Fight mod's healthbars
+
 ## Version 2.0.0
 
 **Additions:**

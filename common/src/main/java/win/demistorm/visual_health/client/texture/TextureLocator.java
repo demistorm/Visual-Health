@@ -39,7 +39,15 @@ public class TextureLocator {
             }
 
             LivingEntityRenderState state = (LivingEntityRenderState) livingRenderer.createRenderState(entity, 0.0f);
-            return livingRenderer.getTextureLocation(state);
+            ResourceLocation texture = livingRenderer.getTextureLocation(state);
+
+            if (texture.getPath().startsWith("textures/atlas/")) {
+                VisualHealth.LOGGER.debug("Skipping atlas texture {} for {} (ID: {})",
+                        texture, entity.getName().getString(), entity.getId());
+                return null;
+            }
+
+            return texture;
 
         } catch (Exception e) {
             VisualHealth.LOGGER.error("Failed to get entity texture for {}: {}",
