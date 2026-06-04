@@ -13,9 +13,9 @@ public class AlphaMaskCache {
     private AlphaMaskCache() {
     }
 
-    private static final Map<ResourceLocation, boolean[][]> ALPHA_CACHE = new ConcurrentHashMap<>();
-    private static final Map<ResourceLocation, TextureSize> DIMENSION_CACHE = new ConcurrentHashMap<>();
-    private static final Map<ResourceLocation, boolean[]> CELL_GRID_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Identifier, boolean[][]> ALPHA_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Identifier, TextureSize> DIMENSION_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Identifier, boolean[]> CELL_GRID_CACHE = new ConcurrentHashMap<>();
 
     public static TextureSize getOrGenerateTextureSize(Identifier textureId) {
         if (DIMENSION_CACHE.containsKey(textureId)) {
@@ -89,8 +89,7 @@ public class AlphaMaskCache {
         }
     }
 
-    @Nullable
-    public static boolean[] getOrGenerateCellGrid(ResourceLocation textureId) {
+    public static boolean @Nullable [] getOrGenerateCellGrid(Identifier textureId) {
         boolean[] cached = CELL_GRID_CACHE.get(textureId);
         if (cached != null) {
             return cached;
@@ -103,8 +102,7 @@ public class AlphaMaskCache {
         return cellGrid;
     }
 
-    @Nullable
-    private static boolean[] generateCellGrid(ResourceLocation textureId) {
+    private static boolean @Nullable [] generateCellGrid(Identifier textureId) {
         boolean[][] alphaMask = getOrGenerateAlphaMask(textureId);
         if (alphaMask == null) return null;
 
@@ -121,11 +119,12 @@ public class AlphaMaskCache {
                 boolean opaque = false;
 
                 for (int dy = 0; dy < 8 && !opaque; dy++) {
-                    for (int dx = 0; dx < 8 && !opaque; dx++) {
+                    for (int dx = 0; dx < 8; dx++) {
                         int px = cellX + dx;
                         int py = cellY + dy;
                         if (px < width && py < height && alphaMask[px][py]) {
                             opaque = true;
+                            break;
                         }
                     }
                 }

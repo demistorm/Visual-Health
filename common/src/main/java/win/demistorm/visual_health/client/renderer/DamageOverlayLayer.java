@@ -63,7 +63,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
         }
 
         // Fallback rendering when texture can't be read
-        ResourceLocation baseTexture = TextureLocator.getEntityTexture(entity);
+        Identifier baseTexture = TextureLocator.getEntityTexture(entity);
         if (baseTexture == null) {
             return;
         }
@@ -121,9 +121,9 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
     private void renderFallbackOverlay(PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
                                        int packedLight, S entityRenderState,
                                        net.minecraft.world.entity.LivingEntity entity, M model,
-                                       int damageTier, ResourceLocation baseTexture) {
+                                       int damageTier, Identifier baseTexture) {
         try {
-            ResourceLocation woundTexture = WoundTextureGenerator.builder()
+            Identifier woundTexture = WoundTextureGenerator.builder()
                     .category("fallback")
                     .entity(entity)
                     .damageTier(damageTier)
@@ -140,7 +140,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
 
             poseStack.pushPose();
 
-            RenderType renderType = RenderType.entityTranslucent(woundTexture);
+            RenderType renderType = RenderTypes.entityTranslucent(woundTexture);
 
             submitNodeCollector.order(0).submitModel(model, entityRenderState, poseStack, renderType,
                     packedLight, overlay, -1, null, 0, null);
