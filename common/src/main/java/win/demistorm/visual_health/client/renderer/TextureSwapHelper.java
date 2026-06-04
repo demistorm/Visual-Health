@@ -79,11 +79,7 @@ public final class TextureSwapHelper {
         if (path.startsWith("default/")) return true;
         if (texture.getNamespace().equals("epicfight") && path.contains("/gui/")) return true;
 
-        if (texture.getNamespace().equals("visualhealth")
-                && (path.startsWith("dynamic/") || path.startsWith("damage/"))) {
-            return true;
-        }
-
-        return false;
+        return texture.getNamespace().equals("visualhealth")
+                && (path.startsWith("dynamic/") || path.startsWith("damage/"));
     }
 }

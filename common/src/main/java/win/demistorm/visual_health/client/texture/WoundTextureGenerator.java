@@ -140,7 +140,7 @@ public class WoundTextureGenerator {
             return copyNativeImage(prevImage);
         }
 
-        private ResourceLocation generateComposited(String cacheKey, String dynamicPath) {
+        private Identifier generateComposited(String cacheKey, String dynamicPath) {
             NativeImage baseImage = SkinTextureReader.readTexture(texture);
             if (baseImage == null) {
                 VisualHealth.LOGGER.debug("Failed to load base texture {} for compositing", texture);
@@ -350,7 +350,7 @@ public class WoundTextureGenerator {
         var textureManager = Minecraft.getInstance().getTextureManager();
         int cleared = 0;
         for (String key : keysToRemove) {
-            ResourceLocation loc = TEXTURE_CACHE.remove(key);
+            Identifier loc = TEXTURE_CACHE.remove(key);
             IMAGE_CACHE.remove(key);
             if (loc != null) {
                 try { textureManager.release(loc); } catch (Exception ignored) {}
@@ -385,7 +385,7 @@ public class WoundTextureGenerator {
         int cacheSize = TEXTURE_CACHE.size();
 
         var textureManager = Minecraft.getInstance().getTextureManager();
-        for (ResourceLocation loc : TEXTURE_CACHE.values()) {
+        for (Identifier loc : TEXTURE_CACHE.values()) {
             try { textureManager.release(loc); } catch (Exception ignored) {}
         }
 
@@ -403,7 +403,7 @@ public class WoundTextureGenerator {
         int cacheSize = TEXTURE_CACHE.size();
 
         var textureManager = Minecraft.getInstance().getTextureManager();
-        for (ResourceLocation loc : TEXTURE_CACHE.values()) {
+        for (Identifier loc : TEXTURE_CACHE.values()) {
             try { textureManager.release(loc); } catch (Exception ignored) {}
         }
 

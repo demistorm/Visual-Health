@@ -39,7 +39,7 @@ public class TextureLocator {
             }
 
             LivingEntityRenderState state = (LivingEntityRenderState) livingRenderer.createRenderState(entity, 0.0f);
-            ResourceLocation texture = livingRenderer.getTextureLocation(state);
+            Identifier texture = livingRenderer.getTextureLocation(state);
 
             if (texture.getPath().startsWith("textures/atlas/")) {
                 VisualHealth.LOGGER.debug("Skipping atlas texture {} for {} (ID: {})",

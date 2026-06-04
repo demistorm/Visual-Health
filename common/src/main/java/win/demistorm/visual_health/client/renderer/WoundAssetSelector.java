@@ -22,8 +22,8 @@ public class WoundAssetSelector {
     private static final String MODID = "visualhealth";
     private static final String TEXTURE_FOLDER = "damage";
 
-    private static final Map<DamageType, List<ResourceLocation>> woundTextures = new ConcurrentHashMap<>();
-    private static final Map<ResourceLocation, NativeImage> assetImageCache = new ConcurrentHashMap<>();
+    private static final Map<DamageType, List<Identifier>> woundTextures = new ConcurrentHashMap<>();
+    private static final Map<Identifier, NativeImage> assetImageCache = new ConcurrentHashMap<>();
     private static boolean texturesLoaded = false;
 
     public static synchronized void loadTextures() {
@@ -87,7 +87,7 @@ public class WoundAssetSelector {
         return texture;
     }
 
-    public static NativeImage getCachedWoundAsset(ResourceLocation assetId) {
+    public static NativeImage getCachedWoundAsset(Identifier assetId) {
         NativeImage cached = assetImageCache.get(assetId);
         if (cached != null) {
             return cached;

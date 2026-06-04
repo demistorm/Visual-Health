@@ -20,17 +20,17 @@ public final class SkinTextureReader {
     private SkinTextureReader() {
     }
 
-    private static final Map<ResourceLocation, NativeImage> CACHE = new ConcurrentHashMap<>();
+    private static final Map<Identifier, NativeImage> CACHE = new ConcurrentHashMap<>();
     private static final int RETRY_DELAY_TICKS = 20;
-    private static final Map<ResourceLocation, Long> RETRY_SCHEDULE = new ConcurrentHashMap<>();
-    private static final Set<ResourceLocation> RETRY_FAILED = ConcurrentHashMap.newKeySet();
+    private static final Map<Identifier, Long> RETRY_SCHEDULE = new ConcurrentHashMap<>();
+    private static final Set<Identifier> RETRY_FAILED = ConcurrentHashMap.newKeySet();
 
     private static long currentGameTick() {
         var level = Minecraft.getInstance().level;
         return level != null ? level.getGameTime() : 0L;
     }
 
-    public static boolean canRead(ResourceLocation textureId) {
+    public static boolean canRead(Identifier textureId) {
         if (CACHE.containsKey(textureId)) {
             return true;
         }
@@ -106,7 +106,7 @@ public final class SkinTextureReader {
         return null;
     }
 
-    private static void handleLoadFailure(ResourceLocation textureId) {
+    private static void handleLoadFailure(Identifier textureId) {
         if (RETRY_SCHEDULE.containsKey(textureId)) {
             VisualHealth.LOGGER.warn("Could not load texture {}, giving up after retry", textureId);
             RETRY_SCHEDULE.remove(textureId);
@@ -117,7 +117,7 @@ public final class SkinTextureReader {
         }
     }
 
-    private static NativeImage loadTexture(ResourceLocation textureId) {
+    private static NativeImage loadTexture(Identifier textureId) {
         try {
             ResourceManager rm = Minecraft.getInstance().getResourceManager();
             try (var resource = rm.open(textureId)) {
