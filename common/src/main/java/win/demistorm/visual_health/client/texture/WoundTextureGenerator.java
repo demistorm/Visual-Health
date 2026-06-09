@@ -215,7 +215,7 @@ public class WoundTextureGenerator {
         StringBuilder sb = new StringBuilder();
         sb.append(category);
         if (!isTransparent && texture != null) {
-            sb.append("_").append(texture);
+            sb.append("_").append(SkinTextureReader.normalizeForCache(texture));
         }
         sb.append("_").append(ownerId);
         sb.append("_tier").append(tier);
@@ -230,8 +230,9 @@ public class WoundTextureGenerator {
                                            boolean isTransparent) {
         String ownerPath = ownerId.replace(':', '_').replace('-', '_');
         if (!isTransparent && texture != null) {
+            ResourceLocation normalized = SkinTextureReader.normalizeForCache(texture);
             return "dynamic/" + category + "/" + ownerPath + "/"
-                    + texture.getPath().replace('/', '_') + "_tier" + tier;
+                    + normalized.getPath().replace('/', '_') + "_tier" + tier;
         }
         return "dynamic/" + category + "/" + ownerPath + "/tier" + tier;
     }

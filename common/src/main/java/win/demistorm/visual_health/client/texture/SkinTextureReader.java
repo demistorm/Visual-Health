@@ -1,6 +1,7 @@
 package win.demistorm.visual_health.client.texture;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -8,7 +9,9 @@ import net.minecraft.client.renderer.texture.HttpTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
+import org.lwjgl.opengl.GL11;
 import win.demistorm.visual_health.VisualHealth;
+import win.demistorm.visual_health.client.compat.TextureCacheCompat;
 
 import java.io.FileInputStream;
 import java.util.Map;
@@ -30,16 +33,21 @@ public final class SkinTextureReader {
         return level != null ? level.getGameTime() : 0L;
     }
 
+    public static ResourceLocation normalizeForCache(ResourceLocation rl) {
+        return TextureCacheCompat.normalizeCacheKey(rl);
+    }
+
     public static boolean canRead(ResourceLocation textureId) {
-        if (CACHE.containsKey(textureId)) {
+        ResourceLocation cacheKey = normalizeForCache(textureId);
+        if (CACHE.containsKey(cacheKey)) {
             return true;
         }
 
-        if (RETRY_FAILED.contains(textureId)) {
+        if (RETRY_FAILED.contains(cacheKey)) {
             return false;
         }
 
-        Long retryAt = RETRY_SCHEDULE.get(textureId);
+        Long retryAt = RETRY_SCHEDULE.get(cacheKey);
         if (retryAt != null && currentGameTick() < retryAt) {
             return false;
         }
@@ -65,30 +73,38 @@ public final class SkinTextureReader {
             return httpTexture.file != null && httpTexture.file.exists();
         }
 
+        // Any other registered AbstractTexture (ArrayLayeredTextures from Ice and Fire for instance) can be read via GL readback
+        if (RenderSystem.isOnRenderThreadOrInit()) {
+            try {
+                return tex.getId() >= 0;
+            } catch (Exception ignored) {}
+        }
+
         return false;
     }
 
     public static NativeImage readTexture(ResourceLocation textureId) {
-        if (CACHE.containsKey(textureId)) {
-            NativeImage cached = CACHE.get(textureId);
+        ResourceLocation cacheKey = normalizeForCache(textureId);
+        if (CACHE.containsKey(cacheKey)) {
+            NativeImage cached = CACHE.get(cacheKey);
             if (cached != null) {
                 return copyImage(cached);
             }
         }
 
-        if (RETRY_FAILED.contains(textureId)) {
+        if (RETRY_FAILED.contains(cacheKey)) {
             return null;
         }
 
-        Long retryAt = RETRY_SCHEDULE.get(textureId);
+        Long retryAt = RETRY_SCHEDULE.get(cacheKey);
         if (retryAt != null && currentGameTick() < retryAt) {
             return null;
         }
 
         NativeImage image = loadTexture(textureId);
         if (image != null) {
-            RETRY_SCHEDULE.remove(textureId);
-            CACHE.put(textureId, copyImage(image));
+            RETRY_SCHEDULE.remove(cacheKey);
+            CACHE.put(cacheKey, copyImage(image));
             return image;
         }
 
@@ -97,13 +113,14 @@ public final class SkinTextureReader {
     }
 
     private static void handleLoadFailure(ResourceLocation textureId) {
-        if (RETRY_SCHEDULE.containsKey(textureId)) {
+        ResourceLocation cacheKey = normalizeForCache(textureId);
+        if (RETRY_SCHEDULE.containsKey(cacheKey)) {
             VisualHealth.LOGGER.warn("Could not load texture {}, giving up after retry", textureId);
-            RETRY_SCHEDULE.remove(textureId);
-            RETRY_FAILED.add(textureId);
+            RETRY_SCHEDULE.remove(cacheKey);
+            RETRY_FAILED.add(cacheKey);
         } else {
             VisualHealth.LOGGER.warn("Could not load texture {}, will retry in {} ticks", textureId, RETRY_DELAY_TICKS);
-            RETRY_SCHEDULE.put(textureId, currentGameTick() + RETRY_DELAY_TICKS);
+            RETRY_SCHEDULE.put(cacheKey, currentGameTick() + RETRY_DELAY_TICKS);
         }
     }
 
@@ -151,7 +168,50 @@ public final class SkinTextureReader {
             }
         }
 
-        return null;
+        /* Fallback: GL texture readback for custom AbstractTextures like the ArrayLayeredTexture
+        from Ice and Fire's dragons
+         */
+        return readFromGLTexture(textureId, tex);
+    }
+
+    private static NativeImage readFromGLTexture(ResourceLocation textureId, AbstractTexture tex) {
+        if (!RenderSystem.isOnRenderThreadOrInit()) {
+            return null;
+        }
+
+        int glId;
+        try {
+            glId = tex.getId();
+        } catch (Exception e) {
+            return null;
+        }
+        if (glId < 0) {
+            return null;
+        }
+
+        int prevBinding = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, glId);
+
+        try {
+            int width = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH);
+            int height = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT);
+
+            if (width <= 0 || height <= 0) {
+                VisualHealth.LOGGER.debug("GL readback: invalid dimensions {}x{} for {}", width, height, textureId);
+                return null;
+            }
+
+            NativeImage image = new NativeImage(width, height, true);
+            image.downloadTexture(0, false);
+
+            VisualHealth.LOGGER.info("Read texture from GL readback: {} ({}x{})", textureId, width, height);
+            return image;
+        } catch (Exception e) {
+            VisualHealth.LOGGER.debug("GL readback failed for {}: {}", textureId, e.getMessage());
+            return null;
+        } finally {
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, prevBinding);
+        }
     }
 
     private static NativeImage copyImage(NativeImage source) {
