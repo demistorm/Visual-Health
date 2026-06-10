@@ -11,7 +11,7 @@ public final class TextureCacheCompat {
         if ("iceandfire".equals(rl.getNamespace()) && rl.getPath().startsWith("dragon_texture_")) {
             String stripped = stripTrailingBooleans(rl.getPath());
             if (stripped != rl.getPath()) {
-                return new ResourceLocation(rl.getNamespace(), stripped);
+                return ResourceLocation.fromNamespaceAndPath(rl.getNamespace(), stripped);
             }
         }
         return rl;

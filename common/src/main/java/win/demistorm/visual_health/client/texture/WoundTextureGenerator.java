@@ -285,7 +285,7 @@ public class WoundTextureGenerator {
                     frameCount, fw, fh, texture);
 
             var textureManager = Minecraft.getInstance().getTextureManager();
-            ResourceLocation dynamicTextureId = new ResourceLocation("visualhealth", dynamicPath);
+            ResourceLocation dynamicTextureId = ResourceLocation.fromNamespaceAndPath("visualhealth", dynamicPath);
 
             AnimatedDynamicTexture animTexture = new AnimatedDynamicTexture(
                     canvas, fw, fh, animInfo.defaultFrameTime());
