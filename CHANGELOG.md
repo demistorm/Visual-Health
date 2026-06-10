@@ -1,7 +1,7 @@
 ## Version 2.0.2
 - Adds GL texture fallback for some unreadable AbstractTextures (Ice and Fire's dragons for instance)
 - Supports animated mcmeta entity textures (fixes some mobs appearing very strange when hit, like some
-from Bosses'Rise)
+from Bosses'Rise and Born in Chaos)
 
 *Let me know on Discord or Matrix if you have any issues!* Thanks for playing with my mod :)
 
