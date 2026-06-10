@@ -7,14 +7,18 @@ import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.HttpTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.metadata.animation.AnimationMetadataSection;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.compat.TextureCacheCompat;
 
 import java.io.FileInputStream;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -225,6 +229,35 @@ public final class SkinTextureReader {
         }
         return copy;
     }
+
+    @Nullable
+    public static AnimationInfo getAnimationInfo(ResourceLocation textureId, int imageWidth, int imageHeight) {
+        try {
+            ResourceManager rm = Minecraft.getInstance().getResourceManager();
+            Optional<Resource> resourceOpt = rm.getResource(textureId);
+            if (resourceOpt.isEmpty()) return null;
+
+            Resource resource = resourceOpt.get();
+            AnimationMetadataSection animMeta = resource.metadata()
+                    .getSection(AnimationMetadataSection.SERIALIZER)
+                    .orElse(AnimationMetadataSection.EMPTY);
+
+            if (animMeta == AnimationMetadataSection.EMPTY) return null;
+
+            var frameSize = animMeta.calculateFrameSize(imageWidth, imageHeight);
+            int fw = frameSize.width();
+            int fh = frameSize.height();
+            if (fh <= 0 || imageHeight % fh != 0 || fh == imageHeight) return null;
+
+            int frameCount = imageHeight / fh;
+            int defaultFrameTime = animMeta.getDefaultFrameTime();
+            return new AnimationInfo(fw, fh, frameCount, defaultFrameTime);
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    public record AnimationInfo(int frameWidth, int frameHeight, int frameCount, int defaultFrameTime) {}
 
     public static void clearCache() {
         int cacheSize = CACHE.size();
