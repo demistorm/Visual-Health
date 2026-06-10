@@ -149,6 +149,16 @@ public class WoundTextureGenerator {
 
             int w = baseImage.getWidth();
             int h = baseImage.getHeight();
+
+            SkinTextureReader.AnimationInfo animInfo = SkinTextureReader.getAnimationInfo(texture, w, h);
+            if (animInfo != null) {
+                try {
+                    return generateAnimatedComposited(cacheKey, dynamicPath, baseImage, animInfo);
+                } finally {
+                    baseImage.close();
+                }
+            }
+
             boolean[][] alphaMask = getOrGenerateAlphaMask(texture);
             boolean[] cellGrid = AlphaMaskCache.getOrGenerateCellGrid(texture);
 
@@ -176,6 +186,115 @@ public class WoundTextureGenerator {
             } finally {
                 baseImage.close();
             }
+        }
+
+        private ResourceLocation generateAnimatedComposited(String cacheKey, String dynamicPath,
+                NativeImage baseImage, SkinTextureReader.AnimationInfo animInfo) {
+
+            int fw = animInfo.frameWidth();
+            int fh = animInfo.frameHeight();
+            int frameCount = animInfo.frameCount();
+            int fullW = baseImage.getWidth();
+            int fullH = baseImage.getHeight();
+
+            // Generate alpha mask and cell grid from frame 0 only
+            boolean[][] alphaMask = new boolean[fw][fh];
+            for (int x = 0; x < fw; x++) {
+                for (int y = 0; y < fh; y++) {
+                    int pixel = baseImage.getPixelRGBA(x, y);
+                    alphaMask[x][y] = ((pixel >> 24) & 0xFF) == 255;
+                }
+            }
+            int gridCols = fw / 8;
+            int gridRows = fh / 8;
+            boolean[] cellGrid = new boolean[gridRows * gridCols];
+            for (int cellRow = 0; cellRow < gridRows; cellRow++) {
+                for (int cellCol = 0; cellCol < gridCols; cellCol++) {
+                    int cx = cellCol * 8;
+                    int cy = cellRow * 8;
+                    boolean opaque = false;
+                    for (int dy = 0; dy < 8 && !opaque; dy++) {
+                        for (int dx = 0; dx < 8 && !opaque; dx++) {
+                            int px = cx + dx;
+                            int py = cy + dy;
+                            if (px < fw && py < fh && alphaMask[px][py]) {
+                                opaque = true;
+                            }
+                        }
+                    }
+                    cellGrid[cellRow * gridCols + cellCol] = opaque;
+                }
+            }
+
+            // Stamp wounds onto a transparent overlay at frame dimensions
+            NativeImage woundOverlay = new NativeImage(fw, fh, true);
+            stampWounds(woundOverlay, fw, fh, cellGrid, seed, damageTypes,
+                    tintProvider, stampFilter, densityMultiplier, 0);
+
+            // Build the full sprite sheet with wounds applied to each frame
+            NativeImage canvas = new NativeImage(fullW, fullH, true);
+            for (int f = 0; f < frameCount; f++) {
+                int frameY = f * fh;
+
+                // copy original frame pixels
+                for (int y = 0; y < fh; y++) {
+                    for (int x = 0; x < fw; x++) {
+                        canvas.setPixelRGBA(x, frameY + y, baseImage.getPixelRGBA(x, frameY + y));
+                    }
+                }
+
+                // Blend wound overlay onto this frame
+                for (int y = 0; y < fh; y++) {
+                    for (int x = 0; x < fw; x++) {
+                        int overlayPixel = woundOverlay.getPixelRGBA(x, y);
+                        int overlayAlpha = (overlayPixel >> 24) & 0xFF;
+                        if (overlayAlpha == 0) continue;
+
+                        int canvasPixel = canvas.getPixelRGBA(x, frameY + y);
+                        float ratio = overlayAlpha / 255.0f;
+
+                        int r = Math.min(255, (int) (((canvasPixel & 0xFF) * (1 - ratio)) + ((overlayPixel & 0xFF) * ratio)));
+                        int g = Math.min(255, (int) ((((canvasPixel >> 8) & 0xFF) * (1 - ratio)) + (((overlayPixel >> 8) & 0xFF) * ratio)));
+                        int b = Math.min(255, (int) ((((canvasPixel >> 16) & 0xFF) * (1 - ratio)) + (((overlayPixel >> 16) & 0xFF) * ratio)));
+                        int a = Math.min(255, ((canvasPixel >> 24) & 0xFF) + overlayAlpha);
+
+                        canvas.setPixelRGBA(x, frameY + y, (a << 24) | (b << 16) | (g << 8) | r);
+                    }
+                }
+
+                // Apply alpha mask for this frame
+                for (int y = 0; y < fh; y++) {
+                    for (int x = 0; x < fw; x++) {
+                        if (!alphaMask[x][y]) {
+                            int canvasY = frameY + y;
+                            int basePixel = baseImage.getPixelRGBA(x, canvasY);
+                            int baseAlpha = (basePixel >> 24) & 0xFF;
+                            if (baseAlpha > 0) {
+                                canvas.setPixelRGBA(x, canvasY, basePixel);
+                            } else {
+                                canvas.setPixelRGBA(x, canvasY, 0x00000000);
+                            }
+                        }
+                    }
+                }
+            }
+
+            woundOverlay.close();
+
+            VisualHealth.LOGGER.debug("Animated composite: {} frames of {}x{} for texture {}",
+                    frameCount, fw, fh, texture);
+
+            var textureManager = Minecraft.getInstance().getTextureManager();
+            ResourceLocation dynamicTextureId = new ResourceLocation("visualhealth", dynamicPath);
+
+            AnimatedDynamicTexture animTexture = new AnimatedDynamicTexture(
+                    canvas, fw, fh, animInfo.defaultFrameTime());
+            textureManager.register(dynamicTextureId, animTexture);
+
+            TEXTURE_CACHE.put(cacheKey, dynamicTextureId);
+            IMAGE_CACHE.put(cacheKey, canvas);
+
+            return dynamicTextureId;
         }
 
         private ResourceLocation generateOverlay(String cacheKey, String dynamicPath) {
@@ -245,19 +364,15 @@ public class WoundTextureGenerator {
         return types;
     }
 
-    private static ResourceLocation stampAndRegister(
+    private static void stampWounds(
             NativeImage canvas,
             int width, int height,
-            boolean[][] alphaMask,
             boolean[] cellGrid,
-            NativeImage originalImage,
             long seed,
             DamageType[] damageTypes,
             ToIntFunction<DamageType> tintProvider,
             Predicate<DamageType> stampFilter,
             float densityMultiplier,
-            String cacheKey,
-            String dynamicTexturePath,
             int startTier) {
 
         int maxTiers = ConfigHelper.INSTANCE.damageTierCount;
@@ -318,6 +433,25 @@ public class WoundTextureGenerator {
                 }
             }
         }
+    }
+
+    private static ResourceLocation stampAndRegister(
+            NativeImage canvas,
+            int width, int height,
+            boolean[][] alphaMask,
+            boolean[] cellGrid,
+            NativeImage originalImage,
+            long seed,
+            DamageType[] damageTypes,
+            ToIntFunction<DamageType> tintProvider,
+            Predicate<DamageType> stampFilter,
+            float densityMultiplier,
+            String cacheKey,
+            String dynamicTexturePath,
+            int startTier) {
+
+        stampWounds(canvas, width, height, cellGrid, seed, damageTypes,
+                tintProvider, stampFilter, densityMultiplier, startTier);
 
         if (alphaMask != null) {
             AlphaMaskCache.applyAlphaMaskToTexture(canvas, alphaMask, originalImage);
