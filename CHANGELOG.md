@@ -1,9 +1,23 @@
+## Version 2.0.3
+- Filtered out TACZ models/textures from taking damage (1.20.1)
+- 26.2 support!
+
+## Version 2.0.2
+- Adds GL texture fallback for some unreadable AbstractTextures (Ice and Fire's dragons for instance)
+- Supports animated mcmeta entity textures (fixes some mobs appearing very strange when hit, like some
+from Bosses'Rise and Born in Chaos)
+
+*Let me know on Discord or Matrix if you have any issues!* Thanks for playing with my mod :)
+
 ## Version 2.0.1
 - Should fix most cases of log spam
-- Added back the v1 RenderLayer mode as fallback for unreadable base textures (some textures get modified by
+- Added back the v1 RenderLayer mode as fallback for unreadable base textures (some textures get modified by 
 things like Essential Mod)
 - Improved caching and texture stamping for significant performance gains on larger entities
 - No longer applies damage to Epic Fight mod's healthbars
+
+### Version 2.0.0-Hotfix
+- Fixes an AW/AT crash when no other rendering mods are present
 
 ## Version 2.0.0
 
@@ -50,7 +64,6 @@ with EMISSIVE overrides.*
 - Fixed mod not working with shaders on 1.21.1
 - Fixed cow/pig texture issues on 1.20.1/1.21.1
 - Added custom entity damage overrides! Within the config menu, add entity ids and specify a custom hex color for the damage color to use!
-- Adds support for 26.1 :D
 
 ### Version 1.0.1
 
