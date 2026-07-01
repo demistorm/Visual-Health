@@ -126,12 +126,12 @@ public class ColorPickerScreen extends Screen {
         addRenderableWidget(
                 Button.builder(Component.literal("Save"), btn -> {
                     onSave.accept(getHex());
-                    Minecraft.getInstance().setScreen(parent);
+                    Minecraft.getInstance().gui.setScreen(parent);
                 }).bounds(width / 2 - 105, height - 30, 100, WIDGET_HEIGHT)
                         .build());
 
         addRenderableWidget(
-                Button.builder(Component.literal("Cancel"), btn -> Minecraft.getInstance().setScreen(parent))
+                Button.builder(Component.literal("Cancel"), btn -> Minecraft.getInstance().gui.setScreen(parent))
                         .bounds(width / 2 + 5, height - 30, 100, WIDGET_HEIGHT)
                         .build());
     }
@@ -197,7 +197,7 @@ public class ColorPickerScreen extends Screen {
 
     @Override
     public void onClose() {
-        Minecraft.getInstance().setScreen(parent);
+        Minecraft.getInstance().gui.setScreen(parent);
     }
 
     @Override

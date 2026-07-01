@@ -132,7 +132,7 @@ public final class ConfigScreen {
             addRenderableWidget(
                     Button.builder(
                                     Component.literal("Entity Overrides..."),
-                                    btn -> client.setScreen(new ColorOverridesScreen(this)))
+                                    btn -> client.gui.setScreen(new ColorOverridesScreen(this)))
                             .bounds(width / 2 - 80, height / 6 + 95, 160, 20)
                             .tooltip(Tooltip.create(Component.literal("Set or disable custom damage " +
                                     "colors for the player and specific entities!")))
@@ -141,7 +141,7 @@ public final class ConfigScreen {
             addRenderableWidget(
                     Button.builder(
                                     Component.literal("Extras..."),
-                                    btn -> client.setScreen(new ExtrasScreen(this)))
+                                    btn -> client.gui.setScreen(new ExtrasScreen(this)))
                             .bounds(width / 2 - 80, height / 6 + 116, 160, 20)
                             .tooltip(Tooltip.create(Component.literal("Additional options")))
                             .build());
@@ -164,7 +164,7 @@ public final class ConfigScreen {
                                         VisualHealth.LOGGER.info("Visual Health config saved: {}% wound density, {} tiers, passive mobs: {}, villagers: {}, color: {}",
                                                 woundDensityValue, damageTierCountValue, damagePassiveMobsValue, damageVillagersValue, damageColorValue);
 
-                                        client.setScreen(parent);
+                                        client.gui.setScreen(parent);
                                     })
                             .bounds(width / 2 - 100, height - 30, 200, 20)
                             .build());

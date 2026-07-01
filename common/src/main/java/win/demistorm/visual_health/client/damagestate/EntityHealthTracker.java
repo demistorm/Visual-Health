@@ -2,6 +2,7 @@ package win.demistorm.visual_health.client.damagestate;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
@@ -24,9 +25,9 @@ public final class EntityHealthTracker {
     private static final Map<Integer, Float> PREVIOUS_HEALTH = new ConcurrentHashMap<>();
 
     private static final Set<EntityType<?>> DISABLED_ENTITIES = Set.of(
-            EntityType.IRON_GOLEM,
-            EntityType.SNOW_GOLEM,
-            EntityType.COPPER_GOLEM
+            EntityTypes.IRON_GOLEM,
+            EntityTypes.SNOW_GOLEM,
+            EntityTypes.COPPER_GOLEM
     );
 
     public static void updateEntityDamageTier(LivingEntity entity) {

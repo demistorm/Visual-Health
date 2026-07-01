@@ -4,7 +4,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
-import static net.minecraft.world.entity.EntityType.*;
+import static net.minecraft.world.entity.EntityTypes.*;
 import win.demistorm.visual_health.VisualHealth;
 
 import java.util.HashMap;

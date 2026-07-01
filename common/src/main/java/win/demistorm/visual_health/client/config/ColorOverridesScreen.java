@@ -69,7 +69,7 @@ public class ColorOverridesScreen extends Screen {
                     EntityDamageColors.applyUserOverrides(ConfigHelper.INSTANCE.colorOverrides);
                     ConfigHelper.clearTextureCaches();
                     VisualHealth.LOGGER.info("Color overrides saved: {} entries", overrides.size());
-                    client.setScreen(parent);
+                    client.gui.setScreen(parent);
                 }).bounds(width / 2 - 100, height - 30, 200, 20)
                         .build());
     }
@@ -310,7 +310,7 @@ public class ColorOverridesScreen extends Screen {
 
             private void openColorPicker() {
                 String currentHex = hexValue != null && !hexValue.isEmpty() ? hexValue : "FF0000";
-                client.setScreen(new ColorPickerScreen(ColorOverridesScreen.this, currentHex, newHex -> {
+                client.gui.setScreen(new ColorPickerScreen(ColorOverridesScreen.this, currentHex, newHex -> {
                     String current = overrides.getOrDefault(entityId, "RED");
                     String baseMode = parseMode(current);
                     if (baseMode.equals("CUSTOM") || baseMode.equals("EMISSIVE")) {

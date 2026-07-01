@@ -72,7 +72,7 @@ public class ExtrasScreen extends Screen {
                                     ConfigHelper.clearTextureCaches();
                                     VisualHealth.LOGGER.info("Visual Health extras config saved: resource pack emissives: {}, player sampled damage: {}, player damage only: {}",
                                             resourcePackEmissivesValue, playerSampledDamageValue, playerDamageOnlyValue);
-                                    client.setScreen(parent);
+                                    client.gui.setScreen(parent);
                                 })
                         .bounds(width / 2 - 100, height - 30, 200, 20)
                         .build());

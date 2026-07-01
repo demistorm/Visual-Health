@@ -1,6 +1,6 @@
 package win.demistorm.visual_health.client;
 
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.npc.villager.AbstractVillager;
@@ -49,6 +49,6 @@ public final class DamageRenderCheck {
 
     public static boolean shouldRenderCorpseDamage() {
         if (!ConfigHelper.INSTANCE.damagePlayers) return false;
-        return !EntityDamageColors.isDisabled(EntityType.PLAYER);
+        return !EntityDamageColors.isDisabled(EntityTypes.PLAYER);
     }
 }

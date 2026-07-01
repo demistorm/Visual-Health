@@ -29,7 +29,7 @@ public final class TextureSwapHelper {
             return null;
         }
 
-        if (entity.distanceToSqr(Minecraft.getInstance().gameRenderer.getMainCamera().position())
+        if (entity.distanceToSqr(Minecraft.getInstance().gameRenderer.mainCamera().position())
                 > RENDER_DISTANCE_SQ) {
             return null;
         }

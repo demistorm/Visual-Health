@@ -1,7 +1,7 @@
 package win.demistorm.visual_health.client.compat;
 
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
@@ -96,7 +96,7 @@ public final class CorpseCompat {
     }
 
     private static int getPlayerCorpseWeaponTint(Identifier skinTexture) {
-        EntityDamageColors.DamageOverride override = EntityDamageColors.getOverride(EntityType.PLAYER);
+        EntityDamageColors.DamageOverride override = EntityDamageColors.getOverride(EntityTypes.PLAYER);
         if (override != null) {
             return override.tintColor();
         }
