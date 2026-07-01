@@ -1,3 +1,7 @@
+## Version 2.0.3
+- Filtered out TACZ models/textures from taking damage (1.20.1)
+- 26.2 support!
+
 ## Version 2.0.2
 - Adds GL texture fallback for some unreadable AbstractTextures (Ice and Fire's dragons for instance)
 - Supports animated mcmeta entity textures (fixes some mobs appearing very strange when hit, like some
