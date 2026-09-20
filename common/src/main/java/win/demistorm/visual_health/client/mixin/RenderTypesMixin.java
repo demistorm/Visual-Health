@@ -20,6 +20,7 @@ public class RenderTypesMixin {
                     "energySwirl",
                     "endCrystalBeam",
                     "entityTranslucentCullItemTarget",
+                    "entityCutoutCull",
                     "entityCutout",
                     "entityCutoutDissolve",
                     "armorCutoutNoCull",
