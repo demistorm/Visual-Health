@@ -21,6 +21,7 @@ public class RenderTypesMixin {
                     "endCrystalBeam",
                     "entityTranslucentCullItemTarget",
                     "entityCutout",
+                    "entityCutoutCull",
                     "entityCutoutDissolve",
                     "armorCutoutNoCull",
                     "entityShadow",
