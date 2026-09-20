@@ -19,7 +19,7 @@ public class RenderTypesMixin {
                     "eyes",
                     "energySwirl",
                     "endCrystalBeam",
-                    "entityTranslucentCullItemTarget",
+                    "entityTranslucentCull",
                     "entityCutoutCull",
                     "entityCutout",
                     "entityCutoutDissolve",
@@ -29,7 +29,7 @@ public class RenderTypesMixin {
                     "entityCutout(Lnet/minecraft/resources/Identifier;Z)Lnet/minecraft/client/renderer/rendertype/RenderType;",
                     "entityCutoutZOffset(Lnet/minecraft/resources/Identifier;Z)Lnet/minecraft/client/renderer/rendertype/RenderType;",
                     "entityTranslucent(Lnet/minecraft/resources/Identifier;Z)Lnet/minecraft/client/renderer/rendertype/RenderType;",
-                    "entityTranslucentEmissive(Lnet/minecraft/resources/Identifier;Z)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    "entityTranslucentEmissive"
             },
             at = @At(value = "HEAD"),
             index = 0,
