@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
 
 // Select random wound textures by damage type
 public class WoundAssetSelector {
@@ -53,7 +52,7 @@ public class WoundAssetSelector {
         ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
         String folderPath = TEXTURE_FOLDER + "/" + damageType.getFolderName();
 
-        Predicate<Identifier> predicate = id ->
+        ResourceManager.Selector predicate = id ->
                 id.getNamespace().equals("visualhealth") &&
                         id.getPath().startsWith(folderPath + "/") &&
                         id.getPath().endsWith(".png");

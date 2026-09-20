@@ -105,7 +105,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             poseStack.pushPose();
 
             submitNodeCollector.order(0).submitModel(model, entityRenderState, poseStack, renderType,
-                    finalPackedLight, overlay, -1, null, 0, null);
+                    finalPackedLight, overlay, -1, null, 0);
 
             poseStack.popPose();
 
@@ -143,7 +143,7 @@ public class DamageOverlayLayer<S extends LivingEntityRenderState, M extends Ent
             RenderType renderType = RenderTypes.entityTranslucent(woundTexture);
 
             submitNodeCollector.order(0).submitModel(model, entityRenderState, poseStack, renderType,
-                    packedLight, overlay, -1, null, 0, null);
+                    packedLight, overlay, -1, null, 0);
 
             poseStack.popPose();
 

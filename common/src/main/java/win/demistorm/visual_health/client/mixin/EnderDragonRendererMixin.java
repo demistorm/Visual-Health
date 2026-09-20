@@ -108,8 +108,7 @@ public abstract class EnderDragonRendererMixin {
             submitNodeCollector.order(0).submitModel(
                     this.model, state, poseStack, renderType,
                     LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                    -1, null, 0,
-                    null);
+                    -1, null, 0);
 
             VisualHealth.LOGGER.debug("Rendered emissive dragon wounds (ID: {}) at tier {}",
                     entityId, damageTier);

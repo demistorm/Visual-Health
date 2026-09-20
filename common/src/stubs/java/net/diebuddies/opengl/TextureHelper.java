@@ -1,6 +1,6 @@
 package net.diebuddies.opengl;
 
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 
 public class TextureHelper {
     private static GpuTextureView loadedTexture;

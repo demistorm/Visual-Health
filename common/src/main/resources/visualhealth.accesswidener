@@ -22,7 +22,6 @@ accessible method net/minecraft/client/renderer/rendertype/RenderType create (Lj
 # RenderSetup — access fields for render type cloning
 accessible field net/minecraft/client/renderer/rendertype/RenderSetup textures Ljava/util/Map;
 accessible field net/minecraft/client/renderer/rendertype/RenderSetup textureTransform Lnet/minecraft/client/renderer/rendertype/TextureTransform;
-accessible field net/minecraft/client/renderer/rendertype/RenderSetup outputTarget Lnet/minecraft/client/renderer/rendertype/OutputTarget;
 accessible field net/minecraft/client/renderer/rendertype/RenderSetup outlineProperty Lnet/minecraft/client/renderer/rendertype/RenderSetup$OutlineProperty;
 accessible field net/minecraft/client/renderer/rendertype/RenderSetup useLightmap Z
 accessible field net/minecraft/client/renderer/rendertype/RenderSetup useOverlay Z
