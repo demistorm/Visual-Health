@@ -73,7 +73,7 @@ public class DamageOverlayLayer<T extends LivingEntity, M extends EntityModel<T>
             return;
         }
 
-        if (SkinTextureReader.canRead(baseTexture)) {
+        if (SkinTextureReader.canRead(baseTexture) && !BufferSourceSwapHelper.shouldSkipTexture(baseTexture)) {
             return;
         }
 
