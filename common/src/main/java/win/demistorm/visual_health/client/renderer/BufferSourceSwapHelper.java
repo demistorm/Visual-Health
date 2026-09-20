@@ -124,6 +124,8 @@ public final class BufferSourceSwapHelper {
 
         if (texture.getNamespace().equals("epicfight") && path.contains("/gui/")) return true;
 
+        if (texture.getNamespace().equals("etf_skin")) return true;
+
         return texture.getNamespace().equals("visualhealth") && path.startsWith("dynamic/");
     }
 }
