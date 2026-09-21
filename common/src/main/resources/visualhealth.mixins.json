@@ -10,7 +10,8 @@
     "LivingEntityMixin",
     "EntityRenderDispatcherMixin",
     "BufferSourceMixin",
-    "EnderDragonRendererMixin"
+    "EnderDragonRendererMixin",
+    "BlockEntityRenderDispatcherMixin"
   ],
   "server": [],
   "injectors": {
