@@ -1,5 +1,6 @@
 package win.demistorm.visual_health.client.damagestate;
 
+import net.minecraft.util.Mth;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -67,9 +68,11 @@ public final class EntityHealthTracker {
         }
 
         if (tier > 0 || oldTier != tier) {
-            float healthPercent = (entity.getHealth() / entity.getMaxHealth()) * 100;
-            VisualHealth.LOGGER.debug("Tracked damaged entity {} (ID: {}) -> Tier {} ({}% health)",
-                    entity.getName().getString(), entity.getId(), tier, String.format("%.1f", healthPercent));
+            float roundedHealth = Mth.ceil(entity.getHealth());
+            float healthPercent = (roundedHealth / entity.getMaxHealth()) * 100;
+            VisualHealth.LOGGER.debug("Tracked damaged entity {} (ID: {}) -> Tier {} ({}% health, {}->{} HP rounded)",
+                    entity.getName().getString(), entity.getId(), tier, String.format("%.1f", healthPercent),
+                    String.format("%.1f", entity.getHealth()), roundedHealth);
         }
     }
 
@@ -78,7 +81,13 @@ public final class EntityHealthTracker {
     }
 
     private static int calculateDamageTier(LivingEntity entity) {
-        float healthPercent = entity.getHealth() / entity.getMaxHealth();
+        float maxHealth = entity.getMaxHealth();
+        if (maxHealth <= 0.0f) {
+            return 0;
+        }
+
+        // Round health up to the nearest whole number
+        float healthPercent = Mth.ceil(entity.getHealth()) / maxHealth;
 
         if (healthPercent >= 1.0f) return 0;
 
