@@ -105,6 +105,7 @@ public final class BufferSourceSwapHelper {
 
         if (path.contains("/cape")) return true;
         if (path.endsWith("/cape.png")) return true;
+        if (path.startsWith("capes/") || path.startsWith("elytra/")) return true;
 
         if (path.contains("glint")) return true;
 
