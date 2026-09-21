@@ -1,3 +1,19 @@
+## Version 2.0.4
+- Default color override hex value in the Overrides config screen is now the hardcoded entity damage 
+color instead of the default FF0000
+- Fixed certain modded entities and custom EMF models not showing damage (26.2+)
+- Fixed rare crash with certain block entities (1.20.1)
+- (hopefully) Fixed incompatibility with ETF emissive skins (should properly show fallback now)
+- Disabled damage rendering on capes and elytra
+- Health values are now rounded when calculating damage tiers (fixes damage showing on players when hearts are full)
+- **26.3** support :D
+
+*Apologies for the lack of new feature updates! Larger updates are planned to come in the next few months!*
+
+## Version 2.0.3
+- Filtered out TACZ models/textures from taking damage (1.20.1)
+- 26.2 support!
+
 ## Version 2.0.2
 - Adds GL texture fallback for some unreadable AbstractTextures (Ice and Fire's dragons for instance)
 - Supports animated mcmeta entity textures (fixes some mobs appearing very strange when hit, like some
@@ -60,6 +76,7 @@ with EMISSIVE overrides.*
 - Fixed mod not working with shaders on 1.21.1
 - Fixed cow/pig texture issues on 1.20.1/1.21.1
 - Added custom entity damage overrides! Within the config menu, add entity ids and specify a custom hex color for the damage color to use!
+- Adds support for 26.1 :D
 
 ### Version 1.0.1
 
