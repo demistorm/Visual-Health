@@ -83,6 +83,22 @@ public class EntityDamageColors {
         return OVERRIDE_MAP.get(entityType);
     }
 
+    public static DamageOverride getHardcodedOverride(String entityId) {
+        try {
+            Identifier id = Identifier.tryParse(entityId);
+            if (id == null) return null;
+            Optional<Holder.Reference<EntityType<?>>> holder = BuiltInRegistries.ENTITY_TYPE.get(id);
+            if (holder.isEmpty()) return null;
+            return OVERRIDE_MAP.get(holder.get().value());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static String toHexString(DamageOverride override) {
+        return String.format("%06X", override.tintColor() & 0xFFFFFF);
+    }
+
     public static boolean isValidEntityId(String id) {
         try {
             Identifier rl = Identifier.tryParse(id);
