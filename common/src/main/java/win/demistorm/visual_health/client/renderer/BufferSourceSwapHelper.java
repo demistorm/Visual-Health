@@ -34,15 +34,15 @@ public final class BufferSourceSwapHelper {
         int damageTier = EntityHealthTracker.getDamageTier(entity.getId());
         if (damageTier == 0) return renderType;
 
-        ResourceLocation texture = RenderTypeHelper.extractTexture(renderType);
-        if (texture == null) {
-            VisualHealth.LOGGER.debug("VH swap: {} tier={} but extractTexture returned null for rt={}",
+        if (RenderTypeHelper.shouldSkipRenderType(renderType)) {
+            VisualHealth.LOGGER.debug("VH swap: {} tier={} skipped render type {}",
                     entity.getName().getString(), damageTier, renderType);
             return renderType;
         }
 
-        if (RenderTypeHelper.shouldSkipRenderType(renderType)) {
-            VisualHealth.LOGGER.debug("VH swap: {} tier={} skipped render type {}",
+        ResourceLocation texture = RenderTypeHelper.extractTexture(renderType);
+        if (texture == null) {
+            VisualHealth.LOGGER.debug("VH swap: {} tier={} but extractTexture returned null for rt={}",
                     entity.getName().getString(), damageTier, renderType);
             return renderType;
         }

@@ -69,12 +69,13 @@ public final class CorpseCompat {
         if (isCorpseInactive()) return null;
         if (!DamageRenderCheck.shouldRenderCorpseDamage()) return null;
 
+        if (RenderTypeHelper.shouldSkipRenderType(renderType)) return null;
+
         ResourceLocation texture = RenderTypeHelper.extractTexture(renderType);
         if (texture == null) return null;
 
         if (!isPlayerSkin(texture)) return null;
 
-        if (RenderTypeHelper.shouldSkipRenderType(renderType)) return null;
         if (BufferSourceSwapHelper.shouldSkipTexture(texture)) return null;
         if (!ConfigHelper.INSTANCE.drawOnOptifineEmissives && texture.getPath().endsWith("_e.png")) return null;
 

@@ -113,10 +113,6 @@ public final class RenderTypeHelper {
             return tss.texture.orElse(null);
         }
 
-        if (texState instanceof RenderStateShard.MultiTextureStateShard mtss) {
-            return mtss.cutoutTexture().orElse(null);
-        }
-
         return null;
     }
 
@@ -195,7 +191,8 @@ public final class RenderTypeHelper {
             case "eyes", "entity_shadow", "beacon_beam", "energy_swirl",
                  "leash", "lightning", "armor_glint", "armor_entity_glint",
                  "glint_translucent", "glint", "glint_direct",
-                 "entity_glint", "entity_glint_direct" -> true;
+                 "entity_glint", "entity_glint_direct",
+                 "end_portal", "end_gateway" -> true;
             default -> false;
         };
     }
