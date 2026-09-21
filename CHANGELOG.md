@@ -1,3 +1,15 @@
+## Version 2.0.4
+- Default color override hex value in the Overrides config screen is now the hardcoded entity damage 
+color instead of the default FF0000
+- Fixed certain modded entities and custom EMF models not showing damage (26.2+)
+- Fixed rare crash with certain block entities (1.20.1)
+- (hopefully) Fixed incompatibility with ETF emissive skins (should properly show fallback now)
+- Disabled damage rendering on capes and elytra
+- Health values are now rounded when calculating damage tiers (fixes damage showing on players when hearts are full)
+- **26.3** support :D
+
+*Apologies for the lack of new feature updates! Larger updates are planned to come in the next few months!*
+
 ## Version 2.0.3
 - Filtered out TACZ models/textures from taking damage (1.20.1)
 - 26.2 support!
