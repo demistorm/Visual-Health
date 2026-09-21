@@ -68,6 +68,7 @@ public final class TextureSwapHelper {
         if (path.contains("/models/armor/")) return true;
         if (path.contains("/cape")) return true;
         if (path.endsWith("/cape.png")) return true;
+        if (path.startsWith("capes/") || path.startsWith("elytra/")) return true;
         if (path.contains("glint")) return true;
         if (path.contains("/block/") || path.contains("/item/")) return true;
         if (path.contains("particle")) return true;
