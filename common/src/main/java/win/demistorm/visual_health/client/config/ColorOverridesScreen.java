@@ -117,7 +117,10 @@ public class ColorOverridesScreen extends Screen {
         String nextMode = MODES[nextIdx];
 
         String currentHex = nextIdx == 0 ? "FF0000" : parseHex(current);
-        if (currentHex == null) currentHex = nextMode.equals("EMISSIVE") ? "FFFFFF" : "FF0000";
+        if (currentHex == null) {
+            currentHex = resolveHardcodedHex(entityId);
+            if (currentHex == null) currentHex = nextMode.equals("EMISSIVE") ? "FFFFFF" : "FF0000";
+        }
 
         overrides.put(entityId, nextMode.equals("RED") || nextMode.equals("BLACK") || nextMode.equals("WHITE") || nextMode.equals("DISABLED")
                 ? nextMode
@@ -149,6 +152,11 @@ public class ColorOverridesScreen extends Screen {
         if (value.startsWith("CUSTOM:")) return value.substring(7);
         if (value.startsWith("EMISSIVE:")) return value.substring(9);
         return null;
+    }
+
+    private static String resolveHardcodedHex(String entityId) {
+        EntityDamageColors.DamageOverride hardcoded = EntityDamageColors.getHardcodedOverride(entityId);
+        return hardcoded != null ? EntityDamageColors.toHexString(hardcoded) : null;
     }
 
     private static int indexOf(String[] arr, String target) {
@@ -309,7 +317,8 @@ public class ColorOverridesScreen extends Screen {
             }
 
             private void openColorPicker() {
-                String currentHex = hexValue != null && !hexValue.isEmpty() ? hexValue : "FF0000";
+                String fallback = resolveHardcodedHex(entityId);
+                String currentHex = hexValue != null && !hexValue.isEmpty() ? hexValue : (fallback != null ? fallback : "FF0000");
                 client.gui.setScreen(new ColorPickerScreen(ColorOverridesScreen.this, currentHex, newHex -> {
                     String current = overrides.getOrDefault(entityId, "RED");
                     String baseMode = parseMode(current);
