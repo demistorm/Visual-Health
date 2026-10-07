@@ -1,3 +1,6 @@
+## Version 2.0.5 (1.21.11+)
+- Fixes ETF emissive texture compat
+
 ## Version 2.0.4
 - Default color override hex value in the Overrides config screen is now the hardcoded entity damage 
 color instead of the default FF0000
