@@ -6,6 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 import win.demistorm.visual_health.ConfigHelper;
 import win.demistorm.visual_health.VisualHealth;
 import win.demistorm.visual_health.client.DamageRenderCheck;
+import win.demistorm.visual_health.client.compat.EtfEmissiveCompat;
 import win.demistorm.visual_health.client.damagestate.EntityHealthTracker;
 import win.demistorm.visual_health.client.texture.WoundTextureGenerator;
 
@@ -44,6 +45,7 @@ public final class TextureSwapHelper {
                     .generate();
 
             if (composited != null) {
+                EtfEmissiveCompat.linkComposite(originalTexture, composited);
                 VisualHealth.LOGGER.debug("Swapped texture {} -> {} for {} (ID: {})",
                         originalTexture, composited, entity.getName().getString(), entity.getId());
                 return composited;
