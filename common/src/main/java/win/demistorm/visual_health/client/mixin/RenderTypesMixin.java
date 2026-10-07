@@ -18,6 +18,7 @@ public class RenderTypesMixin {
                     "entitySolid",
                     "eyes",
                     "energySwirl",
+                    "beaconBeam",
                     "endCrystalBeam",
                     "entityTranslucentCullItemTarget",
                     "entityCutoutCull",
